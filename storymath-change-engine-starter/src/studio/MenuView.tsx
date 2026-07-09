@@ -7,6 +7,7 @@ import { useStudio } from "./StudioContext";
 import { StickersButton } from "./StickersButton";
 import { PROBLEMS } from "./problemCatalog";
 import { BrandMark } from "../components/BrandMark";
+import { CubeOrnament } from "../ornament/CubeOrnament";
 
 export function MenuView() {
   const { solvedProblemIds, playProblem, earned, goal, unlocked } = useStudio();
@@ -19,6 +20,11 @@ export function MenuView() {
 
   return (
     <main className="app-shell menu">
+      {/* Quiet cube atmosphere in the right column, sitting under the stickers
+          pill. The problem list is narrower and stacks above it, so the rows
+          overlap the cluster as the viewport tightens. */}
+      <CubeOrnament seed="menu-home" region="top-right" />
+
       <header className="masthead">
         <div className="brand">
           <BrandMark className="brand__mark" />

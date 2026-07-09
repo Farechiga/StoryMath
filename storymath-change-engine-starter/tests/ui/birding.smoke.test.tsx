@@ -80,4 +80,21 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     // Step-confirmed visual is the repeated-groups grid, not a bar.
     expect(screen.getByRole("img", { name: /blocks, each one .* expression/i })).toBeTruthy();
   });
+
+  it("shows division as equal-sharing bins with a leftover remainder", async () => {
+    const user = userEvent.setup();
+    render(<App problem={problem} />);
+
+    await user.click(screen.getByRole("button", { name: /Open the rig/i }));
+    await user.click(screen.getByRole("button", { name: "Repeat them" }));
+
+    // Trying ÷ on 8 and 12 shares 8 into 12 groups: 0 in each, 8 left over.
+    await user.click(screen.getByRole("button", { name: "Try ÷" }));
+
+    expect(await screen.findByRole("img", { name: /Sharing .* left over/i })).toBeTruthy();
+    expect(screen.getByText(/remainder 8/i)).toBeTruthy();
+    // The calc line shows the whole quotient (0), not a decimal that would
+    // contradict the bins.
+    expect(screen.queryByText(/0\.67/)).toBeNull();
+  });
 });

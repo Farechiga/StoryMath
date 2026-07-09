@@ -977,3 +977,61 @@
   font-variant-numeric: tabular-nums;
 }
 .groups__total b { color: var(--q-whole-ink); }
+
+/* --- Equal-shares model (division) ---------------------------------------- */
+.shares { margin-top: var(--sp-4); }
+.shares__bins {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  max-width: 640px;
+}
+.shares__bin {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+  padding: 7px;
+  min-width: 26px;
+  min-height: 25px;
+  max-width: 132px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-quiet);
+}
+.groups__unit--loose {
+  /* Leftover blocks read as not-yet-grouped, so they sit quieter. */
+  opacity: 0.5;
+}
+.shares__plus {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--q-whole-ink);
+}
+.shares__morebins {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.shares__remainder {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+.shares__loose {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 360px;
+}
+.shares__note {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}

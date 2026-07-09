@@ -2,6 +2,7 @@ import { formatNumber } from "../domain";
 import type { DirectionKind, OperatorExperimentResult } from "../domain";
 import { PreviewBars } from "./PreviewBars";
 import { RepeatedGroupsModel } from "./RepeatedGroupsModel";
+import { EqualSharesModel } from "./EqualSharesModel";
 
 type Tone = "fit" | "alt" | "question";
 
@@ -47,6 +48,12 @@ export function OperatorExperimentPanel({
   const tone = TONE[result.narrativeFit] ?? "question";
   const [leftVal, rightVal] = result.operandValues;
 
+  // Division here means equal sharing: the calc line shows the whole number that
+  // lands in each group; any leftover is drawn as the remainder in the picture
+  // below, so a confusing decimal never sits next to the bins.
+  const displayResult =
+    result.operator === "÷" ? Math.floor(leftVal / rightVal) : result.computed;
+
   const reactionText =
     result.shortReaction ??
     (result.directionProduced === "combine"
@@ -69,6 +76,15 @@ export function OperatorExperimentPanel({
         hideTotal={result.fitsStory}
       />
     );
+  } else if (result.visualModel === "equal_shares_tray") {
+    viz = (
+      <EqualSharesModel
+        dividend={leftVal}
+        divisor={rightVal}
+        unit={unit}
+        groupNoun={result.groupNoun ?? "group"}
+      />
+    );
   } else if (
     !result.fitsStory &&
     (result.visualModel === "comparison_gap_bar" || result.visualModel === "part_whole_bar")
@@ -89,7 +105,7 @@ export function OperatorExperimentPanel({
     <div className={`verdict verdict--${tone}`}>
       <p className="verdict__calc">
         {formatNumber(leftVal)} {result.operator} {formatNumber(rightVal)} ={" "}
-        {result.fitsStory ? "?" : `${formatNumber(result.computed)} ${unit}`}
+        {result.fitsStory ? "?" : `${formatNumber(displayResult)} ${unit}`}
         <span className="verdict__reaction">{reactionText}</span>
       </p>
 

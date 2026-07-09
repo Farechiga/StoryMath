@@ -3,6 +3,7 @@ import type { ProblemInstance, ProblemStep, Quantity } from "../domain";
 import { ComparisonBarModel, PartWholeBarModel } from "./BarModel";
 import { BeforeChangeAfterBridge } from "./BeforeChangeAfterBridge";
 import { RepeatedGroupsModel } from "./RepeatedGroupsModel";
+import { EqualSharesModel } from "./EqualSharesModel";
 
 /**
  * Renders the visual model a step's relationship template calls for. The model
@@ -66,6 +67,19 @@ export function BarFigure({
           groupSize={items.value}
           groupCount={groups.value}
           total={total.value}
+          unit={total.unit}
+          groupNoun={problem.storyChrome.groupNoun ?? "group"}
+        />
+      );
+    }
+  } else if (model === "equal_shares_tray") {
+    const total = roleQ("total");
+    const groups = roleQ("groups");
+    if (total && groups) {
+      figure = (
+        <EqualSharesModel
+          dividend={total.value}
+          divisor={groups.value}
           unit={total.unit}
           groupNoun={problem.storyChrome.groupNoun ?? "group"}
         />

@@ -57,6 +57,18 @@
   margin: 0;
   display: grid;
   gap: var(--sp-3);
+  /* Narrower rows leave the right column open for the cube ornament. */
+  max-width: 640px;
+  /* Own stacking context so the rows paint above the (z-index:-1) cube where
+     they overlap it as the viewport tightens or zooms in. */
+  position: relative;
+  z-index: 1;
+}
+/* The intro copy stays above the ornament too, so nothing reads through it. */
+.menu .stage-title,
+.menu__progress {
+  position: relative;
+  z-index: 1;
 }
 .problem-card {
   width: 100%;
