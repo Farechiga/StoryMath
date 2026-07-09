@@ -39,7 +39,7 @@ const teamModules = import.meta.glob("../assets/stickers/team/*.png", {
 /** Recruitable project team members, sorted by name. */
 export const TEAM_STICKERS: TeamSticker[] = Object.entries(teamModules)
   .map(([path, url]) => ({ id: stem(path), name: prettify(stem(path)), url: url as string }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
 export const TEAM_BY_ID = new Map(TEAM_STICKERS.map((s) => [s.id, s]));
 
@@ -52,6 +52,6 @@ const roomModules = import.meta.glob("../assets/projectrooms/*.{jpeg,jpg,png}", 
 /** Selectable ProjectSpace backgrounds, sorted by name. */
 export const ROOMS: Room[] = Object.entries(roomModules)
   .map(([path, url]) => ({ id: stem(path), name: prettify(stem(path)), url: url as string }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
 export const ROOM_BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
