@@ -34,7 +34,7 @@
     "learnerRole": "rig animator"
   },
   "story": {
-    "briefTemplate": "In a tiny animation lab, an animator designed a cagey squirrel character. Each expression could use a combination of {quantity:eyebrow_shapes}: curious, worried, heroic, sneaky, and more. The team built another {quantity:eye_shapes} for the eyes. Another animator on the team added {quantity:mouth_shapes} for smirks and gasps.",
+    "briefTemplate": "In a tiny animation lab, an animator designed a cagey squirrel character. Each expression could use a combination of {quantity:eyebrow_shapes}: curious, worried, heroic, sneaky, and more. The animator also built {quantity:eye_shapes} for the eyes. Another animator on the team added {quantity:mouth_shapes} mouth shapes for smirks and gasps.",
     "causalEvent": "Each eye shape can pair with each eyebrow shape, and each of those can pair with each mouth shape.",
     "closingNoteTemplate": "A few small shapes combined into {quantity:total_face_expressions} for the whole squirrel."
   },
