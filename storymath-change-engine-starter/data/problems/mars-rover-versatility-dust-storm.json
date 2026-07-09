@@ -94,6 +94,8 @@
         "lowercase": "the close-up photos after the storm"
       },
       "unit": "photos",
+      "unitSingular": "close-up photo",
+      "unitPlural": "close-up photos",
       "value": 34,
       "visibility": "given"
     },

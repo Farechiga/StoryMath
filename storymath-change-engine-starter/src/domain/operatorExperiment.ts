@@ -24,7 +24,13 @@ export function findExperiment(
 function mergeMap(problem: ProblemInstance): Record<string, MergeQuantity> {
   const map: Record<string, MergeQuantity> = {};
   for (const q of problem.quantities) {
-    map[q.id] = { value: q.value, unit: q.unit, label: q.label };
+    map[q.id] = {
+      value: q.value,
+      unit: q.unit,
+      ...(q.unitSingular ? { unitSingular: q.unitSingular } : {}),
+      ...(q.unitPlural ? { unitPlural: q.unitPlural } : {}),
+      label: q.label,
+    };
   }
   return map;
 }

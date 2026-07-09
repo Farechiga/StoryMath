@@ -43,10 +43,12 @@
       "id": "morning_chickadee_calls",
       "label": {
         "child": "Chickadee calls before lunch",
-        "compact": "Morning calls",
-        "lowercase": "the morning calls"
+        "compact": "Morning chickadee calls",
+        "lowercase": "the morning chickadee calls"
       },
       "unit": "calls",
+      "unitSingular": "chickadee call",
+      "unitPlural": "chickadee calls",
       "value": 78,
       "visibility": "given"
     },
@@ -54,10 +56,12 @@
       "id": "afternoon_chickadee_calls",
       "label": {
         "child": "Chickadee calls in the noisy afternoon",
-        "compact": "Afternoon calls",
-        "lowercase": "the afternoon calls"
+        "compact": "Afternoon chickadee calls",
+        "lowercase": "the afternoon chickadee calls"
       },
       "unit": "calls",
+      "unitSingular": "chickadee call",
+      "unitPlural": "chickadee calls",
       "value": 146,
       "visibility": "given"
     },
@@ -69,6 +73,8 @@
         "lowercase": "all the chickadee calls"
       },
       "unit": "sounds",
+      "unitSingular": "chickadee call",
+      "unitPlural": "chickadee calls",
       "value": null,
       "visibility": "find",
       "derived": {
@@ -88,6 +94,8 @@
         "lowercase": "the nuthatch taps"
       },
       "unit": "sounds",
+      "unitSingular": "nuthatch tap",
+      "unitPlural": "nuthatch taps",
       "value": 93,
       "visibility": "given"
     },
@@ -95,10 +103,12 @@
       "id": "total_bird_sounds",
       "label": {
         "child": "All bird sounds the recorder caught",
-        "compact": "All bird sounds",
+        "compact": "Total bird sounds",
         "lowercase": "all the bird sounds"
       },
       "unit": "sounds",
+      "unitSingular": "bird sound",
+      "unitPlural": "bird sounds",
       "value": null,
       "visibility": "revealed_after_step",
       "derived": {

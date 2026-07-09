@@ -34,7 +34,7 @@
     "learnerRole": "rig animator"
   },
   "story": {
-    "briefTemplate": "In a tiny animation lab, an animator designed a cagey squirrel character. Each expression could use a combination of {quantity:eyebrow_shapes}: curious, worried, heroic, sneaky, and more. The animator also built {quantity:eye_shapes} for the eyes. Another animator on the team added {quantity:mouth_shapes} mouth shapes for smirks and gasps.",
+    "briefTemplate": "In a tiny animation lab, an animator designed a cagey squirrel character. Each expression could use a combination of {quantity:eyebrow_shapes}: curious, worried, heroic, sneaky, and more. The animator also built {quantity:eye_shapes} for the eyes. Another animator on the team added {quantity:mouth_shapes} for smirks and gasps.",
     "causalEvent": "Each eye shape can pair with each eyebrow shape, and each of those can pair with each mouth shape.",
     "closingNoteTemplate": "A few small shapes combined into {quantity:total_face_expressions} for the whole squirrel."
   },
@@ -59,6 +59,8 @@
         "lowercase": "the eyebrow shapes"
       },
       "unit": "shapes",
+      "unitSingular": "eyebrow shape",
+      "unitPlural": "eyebrow shapes",
       "value": 12,
       "visibility": "given",
       "semanticRole": "difference"
@@ -71,6 +73,8 @@
         "lowercase": "the eye-and-eyebrow combinations"
       },
       "unit": "expressions",
+      "unitSingular": "eye-and-eyebrow expression",
+      "unitPlural": "eye-and-eyebrow expressions",
       "value": null,
       "visibility": "find",
       "derived": {
@@ -91,6 +95,8 @@
         "lowercase": "the mouth expressions"
       },
       "unit": "expressions",
+      "unitSingular": "mouth shape",
+      "unitPlural": "mouth shapes",
       "value": 10,
       "visibility": "given",
       "semanticRole": "difference"
@@ -103,6 +109,8 @@
         "lowercase": "all the face expressions"
       },
       "unit": "expressions",
+      "unitSingular": "face expression",
+      "unitPlural": "face expressions",
       "value": null,
       "visibility": "revealed_after_step",
       "derived": {
@@ -239,7 +247,7 @@
     "causalChain": [
       "The team paired {quantity:eye_shapes} with {quantity:eyebrow_shapes}.",
       "That made {value:eye_eyebrow_expressions} eye-and-eyebrow combinations.",
-      "Each one could pair with {quantity:mouth_shapes}, making {quantity:total_face_expressions} squirrel expressions."
+      "Each one could pair with {quantity:mouth_shapes}, making {quantity:total_face_expressions} in all."
     ],
     "calcFromStepId": "find_eye_eyebrow_expressions",
     "totalVisualStepId": "find_total_face_expressions",

@@ -13,7 +13,6 @@ import type {
  */
 export type GamePhase =
   | "brief"
-  | "direction_prediction"
   | "relationship_building"
   | "operator_experiment"
   | "arithmetic_entry"
@@ -24,7 +23,6 @@ export type GamePhase =
 
 export const PHASE_ORDER: GamePhase[] = [
   "brief",
-  "direction_prediction",
   "relationship_building",
   "operator_experiment",
   "arithmetic_entry",
@@ -52,7 +50,6 @@ export interface GameState {
   phase: GamePhase;
 
   // --- ephemeral, reset per step ---
-  directionPrediction?: string;
   placed: { left?: string; right?: string };
   selectedOperator?: Operator;
   lastExperiment?: OperatorExperimentResult;
@@ -70,7 +67,6 @@ export interface GameState {
 }
 
 const emptyEphemeral = {
-  directionPrediction: undefined,
   placed: {},
   selectedOperator: undefined,
   lastExperiment: undefined,
@@ -96,7 +92,6 @@ export function initGame(problem: ProblemInstance): GameState {
 
 export type GameAction =
   | { type: "BEGIN" }
-  | { type: "PREDICT_DIRECTION"; choice: string }
   | { type: "PLACE_QUANTITY"; slot: OperandSlot; quantityId: string }
   | { type: "CLEAR_SLOT"; slot: OperandSlot }
   | { type: "SELECT_OPERATOR"; operator: Operator; result: OperatorExperimentResult }
@@ -127,7 +122,7 @@ function advanceFromStep(state: GameState): GameState {
   return {
     ...state,
     currentStepIndex: state.currentStepIndex + 1,
-    phase: "direction_prediction",
+    phase: "relationship_building",
     ...emptyEphemeral,
   };
 }
@@ -135,14 +130,7 @@ function advanceFromStep(state: GameState): GameState {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "BEGIN":
-      return { ...state, phase: "direction_prediction" };
-
-    case "PREDICT_DIRECTION":
-      return {
-        ...state,
-        directionPrediction: action.choice,
-        phase: "relationship_building",
-      };
+      return { ...state, phase: "relationship_building" };
 
     case "PLACE_QUANTITY": {
       // A quantity can only occupy one operand slot at a time.

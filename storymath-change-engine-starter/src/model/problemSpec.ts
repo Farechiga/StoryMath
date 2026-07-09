@@ -52,7 +52,18 @@ export interface DerivedQuantitySpec {
 export interface QuantitySpec {
   id: QuantityId;
   label: QuantityLabelSpec;
+  /**
+   * The arithmetic dimension used for unit-compatibility (e.g. "calls",
+   * "sounds"). Kept generic so operands that combine into a supertype still add.
+   */
   unit: string;
+  /**
+   * Story-specific display noun for field-merged prose. When present,
+   * `{quantity:id}` renders "78 chickadee calls" instead of the generic
+   * "78 calls". `unitSingular` is used when the value is exactly 1.
+   */
+  unitSingular?: string;
+  unitPlural?: string;
   value: number | null;
   expectedValueForFixture?: number;
   derived?: DerivedQuantitySpec;
@@ -141,6 +152,8 @@ export interface Quantity {
   id: QuantityId;
   label: QuantityLabelSpec;
   unit: string;
+  unitSingular?: string;
+  unitPlural?: string;
   value: number;
   semanticRole?: string;
   visibility: "given" | "find" | "revealed_after_step";

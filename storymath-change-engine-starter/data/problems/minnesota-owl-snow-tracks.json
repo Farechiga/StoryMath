@@ -88,6 +88,8 @@
         "lowercase": "the owl wing marks"
       },
       "unit": "tracks",
+      "unitSingular": "owl wing mark",
+      "unitPlural": "owl wing marks",
       "value": 47,
       "visibility": "given"
     },

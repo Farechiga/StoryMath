@@ -32,9 +32,12 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
 
     await user.click(screen.getByRole("button", { name: /Start the rover log/i }));
 
-    // Prediction: dimension labels from the pack; one status line, no filler.
-    await user.click(screen.getByRole("button", { name: "Shorter" }));
-    expect(screen.getByText(/Your prediction:/i).textContent).toMatch(/Shorter/);
+    // No relationship-choice stage: the builder + operator buttons appear straight
+    // away, and the vague combine/compare/repeat labels never render.
+    expect(
+      screen.queryByRole("button", { name: /Combine them|Compare them|Repeat them/i }),
+    ).toBeNull();
+    expect(screen.queryByText(/Your prediction:/i)).toBeNull();
     expect(screen.queryByText(/good thinking|you can always revise|let’s build/i)).toBeNull();
 
     // Tiles show compact label + value only — no semantic chips.
@@ -81,9 +84,9 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     await user.click(screen.getByRole("button", { name: /Check it/i }));
     await user.click(await screen.findByRole("button", { name: /Continue/i }));
 
-    // Step 2: total step → part-whole visual, combine reaction.
-    await user.click(await screen.findByRole("button", { name: "Combine them" }));
-    await user.click(screen.getByRole("button", { name: "Try +" }));
+    // Step 2: straight to the builder (no "Combine them"), part-whole visual.
+    expect(screen.queryByRole("button", { name: /Combine them/i })).toBeNull();
+    await user.click(await screen.findByRole("button", { name: "Try +" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
     await digit(user, "Answer for .*both days", "hundreds", "6");
     await digit(user, "Answer for .*both days", "tens", "4");

@@ -79,6 +79,8 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
     id: q.id,
     label: q.label,
     unit: q.unit,
+    ...(q.unitSingular ? { unitSingular: q.unitSingular } : {}),
+    ...(q.unitPlural ? { unitPlural: q.unitPlural } : {}),
     value: values[q.id]!,
     ...(q.semanticRole ? { semanticRole: q.semanticRole } : {}),
     visibility: q.visibility,
@@ -86,7 +88,13 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
 
   const mergeMap: Record<string, MergeQuantity> = {};
   for (const q of quantities) {
-    mergeMap[q.id] = { value: q.value, unit: q.unit, label: q.label };
+    mergeMap[q.id] = {
+      value: q.value,
+      unit: q.unit,
+      ...(q.unitSingular ? { unitSingular: q.unitSingular } : {}),
+      ...(q.unitPlural ? { unitPlural: q.unitPlural } : {}),
+      label: q.label,
+    };
   }
 
   const merge = (t: string) => resolveTemplate(t, mergeMap);

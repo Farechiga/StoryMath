@@ -19,12 +19,11 @@ function reduce(state: GameState, ...actions: Parameters<typeof gameReducer>[1][
 }
 
 describe("game machine — NASA reference flow", () => {
-  it("moves brief → direction → building", () => {
+  it("moves brief → building (no prediction stage)", () => {
     let s = initGame(problem);
     expect(s.phase).toBe("brief");
-    s = reduce(s, { type: "BEGIN" }, { type: "PREDICT_DIRECTION", choice: "shorter" });
+    s = reduce(s, { type: "BEGIN" });
     expect(s.phase).toBe("relationship_building");
-    expect(s.directionPrediction).toBe("shorter");
   });
 
   it("a card only occupies one slot at a time", () => {
@@ -40,7 +39,7 @@ describe("game machine — NASA reference flow", () => {
 
   it("an attempted counterfactual never confirms the step, and can be revised", () => {
     let s = initGame(problem);
-    s = reduce(s, { type: "BEGIN" }, { type: "PREDICT_DIRECTION", choice: "shorter" });
+    s = reduce(s, { type: "BEGIN" });
     s = reduce(
       s,
       { type: "PLACE_QUANTITY", slot: "left", quantityId: "monday_distance" },
@@ -102,7 +101,7 @@ describe("game machine — NASA reference flow", () => {
 
     s = gameReducer(s, { type: "CONTINUE_FROM_BACKWARD" });
     expect(s.currentStepIndex).toBe(1);
-    expect(s.phase).toBe("direction_prediction");
+    expect(s.phase).toBe("relationship_building");
     expect(s.selectedOperator).toBeUndefined();
     expect(s.placed).toEqual({});
   });
@@ -113,7 +112,7 @@ describe("game machine — NASA reference flow", () => {
 
     s = gameReducer(s, { type: "ADVANCE_STEP" });
     expect(s.currentStepIndex).toBe(1);
-    expect(s.phase).toBe("direction_prediction");
+    expect(s.phase).toBe("relationship_building");
     // Advanced without ever running the backward check, and ephemeral state reset.
     expect(s.backwardChecks[step1.id]).toBeUndefined();
     expect(s.selectedOperator).toBeUndefined();
@@ -147,7 +146,6 @@ describe("game machine — NASA reference flow", () => {
     // Step 2
     s = reduce(
       s,
-      { type: "PREDICT_DIRECTION", choice: "combine" },
       { type: "PLACE_QUANTITY", slot: "left", quantityId: "monday_distance" },
       { type: "PLACE_QUANTITY", slot: "right", quantityId: "tuesday_distance" },
     );
@@ -174,7 +172,6 @@ function withOperatorAccepted(): GameState {
   s = reduce(
     s,
     { type: "BEGIN" },
-    { type: "PREDICT_DIRECTION", choice: "shorter" },
     { type: "PLACE_QUANTITY", slot: "left", quantityId: "monday_distance" },
     { type: "PLACE_QUANTITY", slot: "right", quantityId: "tuesday_difference" },
   );

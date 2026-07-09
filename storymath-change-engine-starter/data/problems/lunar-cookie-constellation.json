@@ -47,6 +47,8 @@
         "lowercase": "the star cookies"
       },
       "unit": "cookies",
+      "unitSingular": "star cookie",
+      "unitPlural": "star cookies",
       "value": 184,
       "visibility": "given"
     },
@@ -58,6 +60,8 @@
         "lowercase": "the constellation cookies"
       },
       "unit": "cookies",
+      "unitSingular": "star cookie",
+      "unitPlural": "star cookies",
       "value": 76,
       "visibility": "given"
     },
@@ -69,6 +73,8 @@
         "lowercase": "the ready star cookies"
       },
       "unit": "cookies",
+      "unitSingular": "star cookie",
+      "unitPlural": "star cookies",
       "value": null,
       "visibility": "find",
       "derived": {
@@ -88,6 +94,8 @@
         "lowercase": "the rocket cookies"
       },
       "unit": "cookies",
+      "unitSingular": "rocket cookie",
+      "unitPlural": "rocket cookies",
       "value": 58,
       "visibility": "given"
     },
@@ -99,6 +107,8 @@
         "lowercase": "the watch-party cookies"
       },
       "unit": "cookies",
+      "unitSingular": "cookie",
+      "unitPlural": "cookies",
       "value": null,
       "visibility": "revealed_after_step",
       "derived": {
@@ -232,7 +242,7 @@
     "headline": "Why the watch party had {quantity:total_party_cookies}",
     "causalChain": [
       "The classes used {quantity:constellation_cookies} for the constellation map.",
-      "That left {quantity:star_cookies_remaining} star cookies ready to eat.",
+      "That left {quantity:star_cookies_remaining} ready to eat.",
       "The science teacher added {quantity:rocket_cookies}, making {quantity:total_party_cookies}."
     ],
     "calcFromStepId": "find_star_cookies_remaining",

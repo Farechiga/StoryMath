@@ -48,6 +48,10 @@ const BANNED = [
   "runs far past this scale",
   "A different question",
   "repeated-group question",
+  // The vague relationship-choice labels were removed from the flow entirely.
+  "Combine them",
+  "Compare them",
+  "Repeat them",
 ];
 
 // Raw source of App + every component, via Vite (no Node fs needed).

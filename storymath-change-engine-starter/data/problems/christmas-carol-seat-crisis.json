@@ -52,6 +52,8 @@
         "lowercase": "the planned folding chairs"
       },
       "unit": "seats",
+      "unitSingular": "folding chair",
+      "unitPlural": "folding chairs",
       "value": 232,
       "visibility": "given"
     },
@@ -63,6 +65,8 @@
         "lowercase": "the chairs locked away"
       },
       "unit": "seats",
+      "unitSingular": "folding chair",
+      "unitPlural": "folding chairs",
       "value": 46,
       "visibility": "given"
     },
@@ -74,6 +78,8 @@
         "lowercase": "the available folding chairs"
       },
       "unit": "seats",
+      "unitSingular": "folding chair",
+      "unitPlural": "folding chairs",
       "value": null,
       "visibility": "find",
       "derived": {
@@ -93,6 +99,8 @@
         "lowercase": "the bucket stools"
       },
       "unit": "seats",
+      "unitSingular": "bucket stool",
+      "unitPlural": "bucket stools",
       "value": 38,
       "visibility": "given"
     },
@@ -104,6 +112,8 @@
         "lowercase": "the total seats available"
       },
       "unit": "seats",
+      "unitSingular": "seat",
+      "unitPlural": "seats",
       "value": null,
       "visibility": "revealed_after_step",
       "derived": {
@@ -241,7 +251,7 @@
     "causalChain": [
       "The drama club planned {quantity:planned_folding_chairs}.",
       "The supply closet locked away {quantity:inaccessible_chairs}.",
-      "The teacher added {quantity:bucket_stools}, making {quantity:total_available_seats} available seats."
+      "The teacher added {quantity:bucket_stools}, making {quantity:total_available_seats} in all."
     ],
     "calcFromStepId": "find_available_folding_chairs",
     "totalVisualStepId": "find_total_available_seats",

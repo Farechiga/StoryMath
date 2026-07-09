@@ -50,22 +50,6 @@
 .brief--muted { margin-bottom: var(--sp-8); }
 .brief--muted .brief__story { font-size: 0.98rem; }
 
-/* --- Prediction (one prompt, one status line) ------------------------------ */
-.predict__prompt {
-  font-size: clamp(1.15rem, 2.4vw, 1.4rem);
-  font-weight: 620;
-  letter-spacing: -0.015em;
-  color: var(--accent);
-  margin-bottom: var(--sp-5);
-  max-width: 30ch;
-}
-.predict__status {
-  margin-top: var(--sp-5);
-  font-size: 1rem;
-  color: var(--ink-soft);
-}
-.predict__status b { color: var(--ink); font-weight: 600; }
-
 .established__label {
   font-size: 0.78rem;
   font-weight: 600;
@@ -290,7 +274,7 @@
 }
 .given__v--find { color: var(--accent); }
 
-/* --- Choice grid (direction prediction) ------------------------------------- */
+/* --- Choice grid (recap data question) -------------------------------------- */
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));

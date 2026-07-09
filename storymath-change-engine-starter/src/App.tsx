@@ -16,7 +16,6 @@ import {
 } from "./domain";
 import type {
   BackwardCheckFrame,
-  DimensionSpec,
   Operator,
   ProblemInstance,
   ProblemStep,
@@ -33,11 +32,9 @@ import { OperatorExperimentPanel } from "./components/OperatorExperimentPanel";
 import { BackwardCheckBuilder } from "./components/BackwardCheckBuilder";
 import { BarFigure } from "./components/BarFigure";
 import { StackedArithmetic } from "./components/StackedArithmetic";
-import { directionOptionsFor } from "./components/labels";
 
 /** Phases where the child is actively working the current step. */
 const WORKING_PHASES = new Set([
-  "direction_prediction",
   "relationship_building",
   "operator_experiment",
   "arithmetic_entry",
@@ -143,25 +140,11 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
           </h2>
         )}
 
-        {/* --- Stage 1: Direction prediction --- */}
-        {phase === "direction_prediction" && (
-          <DirectionPrediction
-            step={step}
-            dimension={problem.dimension}
-            {...(state.directionPrediction ? { selected: state.directionPrediction } : {})}
-            onPredict={(choice) => dispatch({ type: "PREDICT_DIRECTION", choice })}
-          />
-        )}
-
-        {/* --- Stages 2-4: Build + operator experiment --- */}
+        {/* --- Build + operator experiment --- */}
         {(phase === "relationship_building" ||
           phase === "operator_experiment" ||
           phase === "arithmetic_entry") && (
           <section className="panel">
-            {state.directionPrediction && (
-              <PredictionEcho step={step} dimension={problem.dimension} choice={state.directionPrediction} />
-            )}
-
             <EquationBuilder
               leftQuantity={leftQuantity}
               rightQuantity={rightQuantity}
@@ -204,7 +187,6 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
         {phase === "step_confirmed" && (
           <section className="panel">
             <h2 className="stage-title">The math and the story agree</h2>
-            <PredictionOutcome step={step} dimension={problem.dimension} {...(state.directionPrediction ? { choice: state.directionPrediction } : {})} />
             <ModelCardView problem={problem} step={step} record={state.completedSteps[step.id]!} />
             <BarFigure problem={problem} step={step} />
             {/* Backward check is optional: move on, or verify first. */}
@@ -263,7 +245,7 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
               </h2>
               <p className="prose">
                 {problem.story.closingNote ??
-                  "You predicted a change, tested operators, kept the one that fit the story, solved it, and proved each result backward."}
+                  "You built the model, tested operators, kept the one that fit the story, solved it, and proved each result backward."}
               </p>
               <div className="btn-row" style={{ justifyContent: "center" }}>
                 <button type="button" className="btn btn--primary" onClick={() => studio.openMenu()}>
@@ -342,57 +324,6 @@ function MissionBrief({
   );
 }
 
-function DirectionPrediction({
-  step,
-  dimension,
-  selected,
-  onPredict,
-}: {
-  step: ProblemStep;
-  dimension: DimensionSpec;
-  selected?: string;
-  onPredict: (choice: string) => void;
-}) {
-  const options = directionOptionsFor(dimension, step.expectedDirection);
-  return (
-    <section className="panel">
-      <h2 className="predict__prompt">{step.reasoningPrompt ?? step.prompt}</h2>
-      <div className="choice-grid">
-        {options.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            className={`choice${selected === opt.key ? " choice--selected" : ""}`}
-            aria-pressed={selected === opt.key}
-            onClick={() => onPredict(opt.key)}
-          >
-            <span className="choice__glyph" aria-hidden="true">{opt.glyph}</span>
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PredictionEcho({
-  step,
-  dimension,
-  choice,
-}: {
-  step: ProblemStep;
-  dimension: DimensionSpec;
-  choice: string;
-}) {
-  const chosen = directionOptionsFor(dimension, step.expectedDirection).find((o) => o.key === choice);
-  if (!chosen) return null;
-  return (
-    <p className="predict__status" role="status">
-      Your prediction: <b>{chosen.label}</b>.
-    </p>
-  );
-}
-
 function BackwardConfirmed({
   problem,
   frame,
@@ -421,38 +352,6 @@ function BackwardConfirmed({
         </button>
       </div>
     </>
-  );
-}
-
-/** Loops back to the child's prediction once the step is solved. */
-function PredictionOutcome({
-  step,
-  dimension,
-  choice,
-}: {
-  step: ProblemStep;
-  dimension: DimensionSpec;
-  choice?: string;
-}) {
-  if (!choice) return null;
-  const options = directionOptionsFor(dimension, step.expectedDirection);
-  const chosen = options.find((o) => o.key === choice);
-  const actual = options.find((o) => o.direction === step.expectedDirection);
-  if (!chosen || !actual) return null;
-  const matched = chosen.direction === step.expectedDirection;
-  return (
-    <div className={`note ${matched ? "note--good" : "note--nudge"}`} role="status">
-      {matched ? (
-        <>
-          You predicted <strong>{chosen.lower}</strong> — and it was.
-        </>
-      ) : (
-        <>
-          You predicted <strong>{chosen.lower}</strong>, but it turned out{" "}
-          <strong>{actual.lower}</strong>. You updated your model after seeing the numbers.
-        </>
-      )}
-    </div>
   );
 }
 

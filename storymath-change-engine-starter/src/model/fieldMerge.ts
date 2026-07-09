@@ -1,12 +1,15 @@
 // src/model/fieldMerge.ts
 //
 // Resolves curated prose templates against the quantity model, so story text
-// stays vivid but never bakes a value literal that can drift.
-//   {quantity:monday_distance}       -> "384 meters"
-//   {value:monday_distance}          -> "384"
-//   {unit:monday_distance}           -> "meters"
-//   {label:monday_distance.compact}  -> "Monday distance"
-//   {label:monday_distance.child}    -> "Distance … on Monday"
+// stays vivid but never bakes a value literal that can drift. Quantities carry a
+// generic `unit` (for arithmetic compatibility) and optional story-specific
+// display nouns (`unitSingular`/`unitPlural`); the merged prose prefers the
+// story-specific noun so "chickadee calls" never collapses into "calls".
+//   {quantity:morning_chickadee_calls} -> "78 chickadee calls"
+//   {value:morning_chickadee_calls}    -> "78"
+//   {unit:morning_chickadee_calls}     -> "chickadee calls"
+//   {label:monday_distance.compact}    -> "Monday distance"
+//   {label:monday_distance.child}      -> "Distance … on Monday"
 
 import { formatNumber } from "./formulaEvaluator";
 import type { QuantityLabelSpec } from "./problemSpec";
@@ -14,7 +17,15 @@ import type { QuantityLabelSpec } from "./problemSpec";
 export interface MergeQuantity {
   value: number;
   unit: string;
+  unitSingular?: string;
+  unitPlural?: string;
   label: QuantityLabelSpec;
+}
+
+/** The noun shown in prose: story-specific when supplied, else the generic unit. */
+export function displayNoun(q: MergeQuantity): string {
+  if (q.value === 1) return q.unitSingular ?? q.unitPlural ?? q.unit;
+  return q.unitPlural ?? q.unit;
 }
 
 const TOKEN = /\{(quantity|value|unit|label):([a-zA-Z0-9_]+)(?:\.(child|compact|lowercase))?\}/g;
@@ -28,11 +39,11 @@ export function resolveTemplate(
     if (!q) throw new Error(`field-merge: unknown quantity id "${id}" in token ${whole}`);
     switch (kind) {
       case "quantity":
-        return `${formatNumber(q.value)} ${q.unit}`;
+        return `${formatNumber(q.value)} ${displayNoun(q)}`;
       case "value":
         return formatNumber(q.value);
       case "unit":
-        return q.unit;
+        return displayNoun(q);
       case "label": {
         if (sub === "child") return q.label.child;
         if (sub === "lowercase") return q.label.lowercase ?? q.label.compact.toLowerCase();

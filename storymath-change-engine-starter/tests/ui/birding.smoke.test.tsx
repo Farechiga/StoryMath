@@ -30,20 +30,21 @@ describe("non-NASA fixture runs with zero component edits", () => {
     expect(screen.getByText(/Field recorder note/i)).toBeTruthy(); // storyChrome
     expect(screen.getByText(/The chickadees found the frozen cattails/i)).toBeTruthy(); // title
     expect(screen.getByRole("button", { name: /Start the bird log/i })).toBeTruthy();
-    // Derived-value story prose rendered (78 morning + 146 noisy afternoon, no NASA nouns).
-    expect(screen.getByText(/146 calls/i)).toBeTruthy();
+    // Story prose keeps the story-specific noun: "146 chickadee calls", not "146 calls".
+    expect(screen.getByText(/146 chickadee calls/i)).toBeTruthy();
+    expect(screen.queryByText(/146 calls\b/i)).toBeNull();
     expect(screen.queryByText(/Perseverance|Rover field note|meters/i)).toBeNull();
 
     await user.click(screen.getByRole("button", { name: /Start the bird log/i }));
 
-    // Dimension labels are the pack's "count" labels — not distance words.
-    expect(screen.getByRole("button", { name: "More" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Fewer" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Farther|Shorter/ })).toBeNull();
-    await user.click(screen.getByRole("button", { name: "More" }));
+    // No prediction stage: the builder appears directly, with none of the vague
+    // relationship labels (or the More/Fewer prediction buttons).
+    expect(
+      screen.queryByRole("button", { name: /More|Fewer|Combine them|Repeat them/i }),
+    ).toBeNull();
 
     // The start+change fit is addition; solve the derived total 146 + 78 = 224.
-    await user.click(screen.getByRole("button", { name: "Try +" }));
+    await user.click(await screen.findByRole("button", { name: "Try +" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
     await digit(user, "Answer for .*chickadee calls", "hundreds", "2");
     await digit(user, "Answer for .*chickadee calls", "tens", "2");
@@ -66,9 +67,9 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     expect(screen.getByText(/Animation lab note/i)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: /Open the rig/i }));
 
-    // Multiplication step → "Repeat them" is the fitting prediction family.
-    await user.click(screen.getByRole("button", { name: "Repeat them" }));
-    await user.click(screen.getByRole("button", { name: "Try ×" }));
+    // Straight to the builder — no "Repeat them" relationship-choice step.
+    expect(screen.queryByRole("button", { name: /Repeat them/i })).toBeNull();
+    await user.click(await screen.findByRole("button", { name: "Try ×" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
 
     // The product 8 × 12 = 96 (eye shapes × eyebrow shapes) needs two answer columns.
@@ -86,10 +87,9 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     render(<App problem={problem} />);
 
     await user.click(screen.getByRole("button", { name: /Open the rig/i }));
-    await user.click(screen.getByRole("button", { name: "Repeat them" }));
 
     // Trying ÷ on 8 and 12: no group of 12 fits into 8, so 8 are left over.
-    await user.click(screen.getByRole("button", { name: "Try ÷" }));
+    await user.click(await screen.findByRole("button", { name: "Try ÷" }));
 
     expect(await screen.findByRole("img", { name: /in groups of .* left over/i })).toBeTruthy();
     expect(screen.getByText(/remainder = 8/i)).toBeTruthy();
