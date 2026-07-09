@@ -1,0 +1,260 @@
+{
+  "id": "mars-rover-versatility-dust-storm-v1",
+  "metadata": {
+    "title": "Versatility's Dust-Storm Photo Target",
+    "theme": "Mars rover mission",
+    "gradeBand": "2–3",
+    "factualStatus": "inspired_by_real_world",
+    "tags": [
+      "space",
+      "Mars rover",
+      "NASA-inspired",
+      "photos",
+      "targets",
+      "part-part-whole",
+      "start-change-end",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Solar-powered rovers ration their work when dust storms block sunlight from the panels."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Rover field note",
+    "startCta": "Open the rover log",
+    "finishCta": "Close the rover log",
+    "completionTitle": "Rover log closed",
+    "stepProgressVerb": "model the rover target",
+    "groupNoun": "photo",
+    "learnerRole": "mission planner"
+  },
+  "story": {
+    "briefTemplate": "Solar-powered Mars rover Versatility was sent to investigate a clay ridge where ancient water may have once flowed. In a productive morning, Versatility captured {quantity:morning_photos} of terrain on the ridge, but by afternoon a rust-colored dust storm blew over the ridge, completely blocking sunlight from reaching the rover's solar panels. Bunkering down to save power, the rover was still {quantity:photos_shy_after_storm} shy of its photo target for the day. When the dust settled and sunlight returned, the rover was able to take {quantity:closeup_photos_after_storm} of a strange glittering rock.",
+    "causalEvent": "A dust storm blocked sunlight from the rover's solar panels.",
+    "closingNoteTemplate": "The rover log closed with Versatility still {quantity:final_photo_shortfall} short of its daily target."
+  },
+  "quantities": [
+    {
+      "id": "morning_photos",
+      "label": {
+        "child": "Photos captured in the morning",
+        "compact": "Morning photos",
+        "lowercase": "the morning photos"
+      },
+      "unit": "photos",
+      "value": 171,
+      "visibility": "given"
+    },
+    {
+      "id": "photos_shy_after_storm",
+      "label": {
+        "child": "Photos short of the target after the storm",
+        "compact": "Photos shy after storm",
+        "lowercase": "the photos shy after the storm"
+      },
+      "unit": "photos",
+      "value": 79,
+      "visibility": "given"
+    },
+    {
+      "id": "daily_photo_target",
+      "label": {
+        "child": "The day's photo target",
+        "compact": "Daily photo target",
+        "lowercase": "the daily photo target"
+      },
+      "unit": "photos",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "morning_photos",
+          "partB": "photos_shy_after_storm"
+        }
+      },
+      "expectedValueForFixture": 250,
+      "semanticRole": "whole"
+    },
+    {
+      "id": "closeup_photos_after_storm",
+      "label": {
+        "child": "Close-up photos after the dust cleared",
+        "compact": "Close-up photos after storm",
+        "lowercase": "the close-up photos after the storm"
+      },
+      "unit": "photos",
+      "value": 34,
+      "visibility": "given"
+    },
+    {
+      "id": "final_photo_shortfall",
+      "label": {
+        "child": "Photos still short of the target",
+        "compact": "Photos still short",
+        "lowercase": "the photos still short"
+      },
+      "unit": "photos",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "photos_shy_after_storm",
+          "change": "closeup_photos_after_storm"
+        }
+      },
+      "expectedValueForFixture": 45
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_daily_photo_target",
+      "order": 1,
+      "prompt": "What was Versatility's target number of photos for the day?",
+      "reasoningPrompt": "The rover took some photos and was still short of the target. How do the photos taken and the missing photos relate to the target?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "morning_photos",
+        "partB": "photos_shy_after_storm",
+        "whole": "daily_photo_target"
+      },
+      "goalQuantityId": "daily_photo_target",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the morning photos back out. Do you land on the photos it was still short?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_a_equals_part_b",
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    },
+    {
+      "id": "find_final_photo_shortfall",
+      "order": 2,
+      "prompt": "Including the round of photos after the storm, how many photos short of its daily goal was Versatility?",
+      "reasoningPrompt": "The rover was short of its goal, then took more photos after the storm. Did the shortfall get bigger or smaller?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "photos_shy_after_storm",
+        "change": "closeup_photos_after_storm",
+        "end": "final_photo_shortfall"
+      },
+      "goalQuantityId": "final_photo_shortfall",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Put the close-up photos back on. Do you return to the first shortfall?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_daily_photo_target",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the total larger.",
+      "alternateWorldTemplate": "This matches the story: {label:morning_photos.lowercase} and {label:photos_shy_after_storm.lowercase} combine into {label:daily_photo_target.lowercase}."
+    },
+    {
+      "stepId": "find_daily_photo_target",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:photos_shy_after_storm} were taken away instead of counted toward the target."
+    },
+    {
+      "stepId": "find_daily_photo_target",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:photos_shy_after_storm} groups like {label:morning_photos.lowercase}, how many photos would there be?"
+    },
+    {
+      "stepId": "find_daily_photo_target",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:morning_photos.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_final_photo_shortfall",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the amount smaller.",
+      "alternateWorldTemplate": "This matches the story: the close-up photos after the storm came off the shortfall, closing the gap."
+    },
+    {
+      "stepId": "find_final_photo_shortfall",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:closeup_photos_after_storm} widened the shortfall instead of closing it."
+    },
+    {
+      "stepId": "find_final_photo_shortfall",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:closeup_photos_after_storm} groups like {label:photos_shy_after_storm.lowercase}, how many photos would there be?"
+    },
+    {
+      "stepId": "find_final_photo_shortfall",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:photos_shy_after_storm.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why Versatility ended {quantity:final_photo_shortfall} short",
+    "causalChain": [
+      "Versatility captured {quantity:morning_photos} in the morning.",
+      "The storm left it {quantity:photos_shy_after_storm} short of its target.",
+      "After sunlight returned, {quantity:closeup_photos_after_storm} reduced the shortfall to {quantity:final_photo_shortfall}."
+    ],
+    "calcFromStepId": "find_daily_photo_target",
+    "totalVisualStepId": "find_final_photo_shortfall",
+    "dataQuestion": {
+      "prompt": "What does {quantity:photos_shy_after_storm} represent in the rover model?",
+      "correctQuantityId": "photos_shy_after_storm",
+      "distractorQuantityIds": [
+        "morning_photos",
+        "closeup_photos_after_storm",
+        "daily_photo_target"
+      ],
+      "correctFeedback": "Right. {quantity:photos_shy_after_storm} is how far Versatility was from its daily photo target after the storm.",
+      "incorrectFeedback": "That amount is the rover's shortfall after the storm: {quantity:photos_shy_after_storm}."
+    }
+  }
+}

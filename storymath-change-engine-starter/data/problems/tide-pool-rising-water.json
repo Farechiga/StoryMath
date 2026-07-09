@@ -1,0 +1,260 @@
+{
+  "id": "tide-pool-rising-water-v1",
+  "metadata": {
+    "title": "Tide-Pool Glass Rooms",
+    "theme": "Tide-pool field cataloguing",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "ocean",
+      "tide pools",
+      "marine biology",
+      "categorizing",
+      "field notebook",
+      "start-change-end",
+      "part-part-whole",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "A rising tide can rearrange a tide pool in minutes, so field counts have to happen fast."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Tide-pool field note",
+    "startCta": "Open the tide-pool log",
+    "finishCta": "Close the tide-pool log",
+    "completionTitle": "Tide-pool log closed",
+    "stepProgressVerb": "model the tide-pool count",
+    "groupNoun": "creature",
+    "learnerRole": "field cataloguer"
+  },
+  "story": {
+    "briefTemplate": "During low tide, the coastal bedrock transformed into tiny tide pools like secret glass rooms. Seraphina and her cousin counted {quantity:counted_lower_pool_creatures}, which they began to categorize into groups: anemones, crabs, snails, and one extremely offended-looking shrimp. As the tide returned, the waves carried off {quantity:washed_away_creatures} before they could be categorized. A park ranger led them to a safer upper pool, where they counted and categorized {quantity:upper_pool_creatures} still visible above the rising water.",
+    "causalEvent": "The returning tide carried away some creatures before they could be categorized.",
+    "closingNoteTemplate": "The tide-pool log closed with {quantity:total_catalogued_creatures} catalogued in all."
+  },
+  "quantities": [
+    {
+      "id": "counted_lower_pool_creatures",
+      "label": {
+        "child": "Creatures counted in the lower pools",
+        "compact": "Lower-pool creatures",
+        "lowercase": "the lower-pool creatures"
+      },
+      "unit": "creatures",
+      "value": 184,
+      "visibility": "given"
+    },
+    {
+      "id": "washed_away_creatures",
+      "label": {
+        "child": "Creatures the tide carried off",
+        "compact": "Washed away",
+        "lowercase": "the creatures washed away"
+      },
+      "unit": "creatures",
+      "value": 57,
+      "visibility": "given"
+    },
+    {
+      "id": "categorized_lower_pool_creatures",
+      "label": {
+        "child": "Lower-pool creatures categorized in time",
+        "compact": "Categorized lower-pool creatures",
+        "lowercase": "the categorized lower-pool creatures"
+      },
+      "unit": "creatures",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "counted_lower_pool_creatures",
+          "change": "washed_away_creatures"
+        }
+      },
+      "expectedValueForFixture": 127
+    },
+    {
+      "id": "upper_pool_creatures",
+      "label": {
+        "child": "Creatures counted in the upper pool",
+        "compact": "Upper-pool creatures",
+        "lowercase": "the upper-pool creatures"
+      },
+      "unit": "creatures",
+      "value": 42,
+      "visibility": "given"
+    },
+    {
+      "id": "total_catalogued_creatures",
+      "label": {
+        "child": "All creatures catalogued",
+        "compact": "Total catalogued creatures",
+        "lowercase": "the total catalogued creatures"
+      },
+      "unit": "creatures",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "categorized_lower_pool_creatures",
+          "partB": "upper_pool_creatures"
+        }
+      },
+      "expectedValueForFixture": 169,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_categorized_lower_pool_creatures",
+      "order": 1,
+      "prompt": "How many of the counted creatures were categorized before the tide washed some away?",
+      "reasoningPrompt": "The tide carried off some counted creatures before they could be categorized. Did the categorized count go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "counted_lower_pool_creatures",
+        "change": "washed_away_creatures",
+        "end": "categorized_lower_pool_creatures"
+      },
+      "goalQuantityId": "categorized_lower_pool_creatures",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Put the washed-away creatures back in. Do you return to the full count?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_total_catalogued_creatures",
+      "order": 2,
+      "prompt": "After the ranger introduced the upper pool, how many creatures were catalogued in total?",
+      "reasoningPrompt": "The categorized lower-pool creatures and the upper-pool creatures are both in the notebook. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "categorized_lower_pool_creatures",
+        "partB": "upper_pool_creatures",
+        "whole": "total_catalogued_creatures"
+      },
+      "goalQuantityId": "total_catalogued_creatures",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the upper-pool creatures back out. Do you land on the categorized lower-pool count?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a",
+          "whole_minus_part_a_equals_part_b"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_categorized_lower_pool_creatures",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the amount smaller.",
+      "alternateWorldTemplate": "This matches the story: the tide washed some creatures away before they were categorized."
+    },
+    {
+      "stepId": "find_categorized_lower_pool_creatures",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:washed_away_creatures} washed in instead of out."
+    },
+    {
+      "stepId": "find_categorized_lower_pool_creatures",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:washed_away_creatures} groups like {label:counted_lower_pool_creatures.lowercase}, how many creatures would there be?"
+    },
+    {
+      "stepId": "find_categorized_lower_pool_creatures",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:counted_lower_pool_creatures.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_catalogued_creatures",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the total larger.",
+      "alternateWorldTemplate": "This matches the story: {label:categorized_lower_pool_creatures.lowercase} and {label:upper_pool_creatures.lowercase} combine into everything catalogued."
+    },
+    {
+      "stepId": "find_total_catalogued_creatures",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:upper_pool_creatures} were removed instead of added to the notebook."
+    },
+    {
+      "stepId": "find_total_catalogued_creatures",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:upper_pool_creatures} groups like {label:categorized_lower_pool_creatures.lowercase}, how many creatures would there be?"
+    },
+    {
+      "stepId": "find_total_catalogued_creatures",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:categorized_lower_pool_creatures.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the tide-pool log reached {quantity:total_catalogued_creatures}",
+    "causalChain": [
+      "They counted {quantity:counted_lower_pool_creatures} in the lower pools.",
+      "The tide carried off {quantity:washed_away_creatures} before categorizing.",
+      "The ranger's upper pool added {quantity:upper_pool_creatures}, making {quantity:total_catalogued_creatures}."
+    ],
+    "calcFromStepId": "find_categorized_lower_pool_creatures",
+    "totalVisualStepId": "find_total_catalogued_creatures",
+    "dataQuestion": {
+      "prompt": "What does {quantity:washed_away_creatures} represent in the tide-pool model?",
+      "correctQuantityId": "washed_away_creatures",
+      "distractorQuantityIds": [
+        "upper_pool_creatures",
+        "categorized_lower_pool_creatures",
+        "total_catalogued_creatures"
+      ],
+      "correctFeedback": "Right. {quantity:washed_away_creatures} is the number the tide carried off before categorizing.",
+      "incorrectFeedback": "That amount is the number the tide carried off before categorizing: {quantity:washed_away_creatures}."
+    }
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "id": "sourdough-armadillo-rolls-v1",
+  "metadata": {
+    "title": "A Roll of Sourdough Armadillos",
+    "theme": "School sourdough bake-off",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "baking",
+      "sourdough",
+      "school challenge",
+      "armadillos",
+      "food",
+      "start-change-end",
+      "part-part-whole",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Sourdough needs steady oven heat to puff, so losing baking time can leave rolls flat."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Bake-off kitchen note",
+    "startCta": "Open the bake-off log",
+    "finishCta": "Close the bake-off log",
+    "completionTitle": "Bake-off log closed",
+    "stepProgressVerb": "model the armadillo rolls",
+    "groupNoun": "roll",
+    "learnerRole": "bake-off modeler"
+  },
+  "story": {
+    "briefTemplate": "For a school baking challenge, Grandma and Seraphina shaped dough into {quantity:shaped_armadillo_rolls}, complete with chocolate chip eyes. A power outage cut the baking time short, so {quantity:underpuffed_rolls} did not puff up enough to look like sourdough armadillos. When the power returned, Seraphina slid the tray back into the oven, and {quantity:rescued_rolls} finally puffed up enough to join the roll of other sourdough armadillos.",
+    "causalEvent": "A power outage cut the baking time short.",
+    "closingNoteTemplate": "The bake-off log closed with {quantity:final_presentable_rolls} presentable armadillos."
+  },
+  "quantities": [
+    {
+      "id": "shaped_armadillo_rolls",
+      "label": {
+        "child": "Armadillo shapes on the trays",
+        "compact": "Shaped armadillos",
+        "lowercase": "the shaped armadillos"
+      },
+      "unit": "rolls",
+      "value": 156,
+      "visibility": "given"
+    },
+    {
+      "id": "underpuffed_rolls",
+      "label": {
+        "child": "Rolls that did not puff enough",
+        "compact": "Not puffed enough",
+        "lowercase": "the rolls that did not puff enough"
+      },
+      "unit": "rolls",
+      "value": 48,
+      "visibility": "given"
+    },
+    {
+      "id": "initially_presentable_rolls",
+      "label": {
+        "child": "Armadillos ready after the outage",
+        "compact": "Initially presentable",
+        "lowercase": "the initially presentable armadillos"
+      },
+      "unit": "rolls",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "shaped_armadillo_rolls",
+          "change": "underpuffed_rolls"
+        }
+      },
+      "expectedValueForFixture": 108
+    },
+    {
+      "id": "rescued_rolls",
+      "label": {
+        "child": "Armadillos rescued in the second bake",
+        "compact": "Rescued in second bake",
+        "lowercase": "the rescued armadillos"
+      },
+      "unit": "rolls",
+      "value": 37,
+      "visibility": "given"
+    },
+    {
+      "id": "final_presentable_rolls",
+      "label": {
+        "child": "Presentable armadillos in all",
+        "compact": "Presentable total",
+        "lowercase": "the presentable total"
+      },
+      "unit": "rolls",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "initially_presentable_rolls",
+          "partB": "rescued_rolls"
+        }
+      },
+      "expectedValueForFixture": 145,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_initially_presentable_rolls",
+      "order": 1,
+      "prompt": "How many sourdough armadillos were ready to join the roll right after the power came back?",
+      "reasoningPrompt": "Some rolls did not puff up enough after the outage. Did the number of presentable armadillos go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "shaped_armadillo_rolls",
+        "change": "underpuffed_rolls",
+        "end": "initially_presentable_rolls"
+      },
+      "goalQuantityId": "initially_presentable_rolls",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the flat rolls back in. Do you return to the shaped count?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_final_presentable_rolls",
+      "order": 2,
+      "prompt": "After the round in the oven, how many sourdough armadillos were presentable in total?",
+      "reasoningPrompt": "The initially presentable armadillos and the rescued armadillos both joined the roll. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "initially_presentable_rolls",
+        "partB": "rescued_rolls",
+        "whole": "final_presentable_rolls"
+      },
+      "goalQuantityId": "final_presentable_rolls",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the rescued armadillos back out. Do you land on the first presentable count?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a",
+          "whole_minus_part_a_equals_part_b"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_initially_presentable_rolls",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the amount smaller.",
+      "alternateWorldTemplate": "This matches the story: the flat rolls dropped out, so fewer armadillos were presentable."
+    },
+    {
+      "stepId": "find_initially_presentable_rolls",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:underpuffed_rolls} joined the tray instead of falling flat."
+    },
+    {
+      "stepId": "find_initially_presentable_rolls",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:underpuffed_rolls} groups like {label:shaped_armadillo_rolls.lowercase}, how many rolls would there be?"
+    },
+    {
+      "stepId": "find_initially_presentable_rolls",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:shaped_armadillo_rolls.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_final_presentable_rolls",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the total larger.",
+      "alternateWorldTemplate": "This matches the story: {label:initially_presentable_rolls.lowercase} and {label:rescued_rolls.lowercase} combine into the presentable total."
+    },
+    {
+      "stepId": "find_final_presentable_rolls",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:rescued_rolls} were pulled from the tray instead of added."
+    },
+    {
+      "stepId": "find_final_presentable_rolls",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:rescued_rolls} groups like {label:initially_presentable_rolls.lowercase}, how many rolls would there be?"
+    },
+    {
+      "stepId": "find_final_presentable_rolls",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:initially_presentable_rolls.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the bake-off log reached {quantity:final_presentable_rolls}",
+    "causalChain": [
+      "Grandma and Seraphina shaped {quantity:shaped_armadillo_rolls}.",
+      "The outage left {quantity:underpuffed_rolls} not puffed enough.",
+      "The second bake rescued {quantity:rescued_rolls}, making {quantity:final_presentable_rolls} presentable."
+    ],
+    "calcFromStepId": "find_initially_presentable_rolls",
+    "totalVisualStepId": "find_final_presentable_rolls",
+    "dataQuestion": {
+      "prompt": "What does {quantity:underpuffed_rolls} represent in the baking model?",
+      "correctQuantityId": "underpuffed_rolls",
+      "distractorQuantityIds": [
+        "rescued_rolls",
+        "initially_presentable_rolls",
+        "final_presentable_rolls"
+      ],
+      "correctFeedback": "Right. {quantity:underpuffed_rolls} is the number that did not puff enough after the power outage.",
+      "incorrectFeedback": "That amount is the number that did not puff enough after the power outage: {quantity:underpuffed_rolls}."
+    }
+  }
+}

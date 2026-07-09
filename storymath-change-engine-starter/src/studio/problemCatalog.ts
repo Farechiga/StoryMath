@@ -8,6 +8,11 @@ import { instantiateProblem } from "../model/instantiateProblem";
 import type { ProblemSpec } from "../model/problemSpec";
 import type { ProblemInstance } from "../domain/types";
 
+import marsDustStorm from "../../data/problems/mars-rover-versatility-dust-storm.json";
+import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
+import tidePool from "../../data/problems/tide-pool-rising-water.json";
+import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
+import christmasCarol from "../../data/problems/christmas-carol-seat-crisis.json";
 import nasa from "../../data/problems/nasa-perseverance-wheel-slip.json";
 import owl from "../../data/problems/minnesota-owl-snow-tracks.json";
 import littleWomen from "../../data/problems/little-women-storm-reading.json";
@@ -19,6 +24,8 @@ import animation from "../../data/problems/animation-lab-eyebrows.json";
 import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
 
 const SPECS: ProblemSpec[] = [
+  // The five new add/subtract stories surface first on the menu.
+  marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
   nasa, owl, littleWomen, puppyTray, aikido, lunar, birding, animation, puppyBiscuits,
 ].map((s) => s as unknown as ProblemSpec);
 

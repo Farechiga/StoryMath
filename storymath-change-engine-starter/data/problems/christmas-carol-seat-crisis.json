@@ -1,0 +1,260 @@
+{
+  "id": "christmas-carol-seat-crisis-v1",
+  "metadata": {
+    "title": "A Christmas Carol Seat Crisis",
+    "theme": "School play seating logistics",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "theater",
+      "school play",
+      "A Christmas Carol",
+      "logistics",
+      "seating",
+      "start-change-end",
+      "part-part-whole",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Live theater often improvises seating, turning props and spare furniture into extra seats at the last minute."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Theater manager note",
+    "startCta": "Open the seating log",
+    "finishCta": "Close the seating log",
+    "completionTitle": "Seating log closed",
+    "stepProgressVerb": "model the theater seats",
+    "groupNoun": "seat",
+    "learnerRole": "stage manager"
+  },
+  "story": {
+    "briefTemplate": "For a school production of A Christmas Carol, the drama club had prepared {quantity:planned_folding_chairs} for the tickets they had sold. An hour before curtain, the school's operations manager was called to the hospital for the birth of his third child. It was a joyful event, but without his keys to the supply closet, the crew could not reach {quantity:inaccessible_chairs}. Then the theater teacher got creative and grabbed {quantity:bucket_stools} from their recent plant-a-tree drive for kids to use as stools in the front row, and many said they liked the closer view. Staff members offered to stand for the performance.",
+    "causalEvent": "The operations manager had the supply-closet keys when he was called away to the hospital.",
+    "closingNoteTemplate": "The seating log closed with {quantity:total_available_seats} ready for the audience."
+  },
+  "quantities": [
+    {
+      "id": "planned_folding_chairs",
+      "label": {
+        "child": "Folding chairs set out for ticket holders",
+        "compact": "Planned folding chairs",
+        "lowercase": "the planned folding chairs"
+      },
+      "unit": "seats",
+      "value": 232,
+      "visibility": "given"
+    },
+    {
+      "id": "inaccessible_chairs",
+      "label": {
+        "child": "Chairs locked in the supply closet",
+        "compact": "Chairs locked away",
+        "lowercase": "the chairs locked away"
+      },
+      "unit": "seats",
+      "value": 46,
+      "visibility": "given"
+    },
+    {
+      "id": "available_folding_chairs",
+      "label": {
+        "child": "Folding chairs they could actually use",
+        "compact": "Available folding chairs",
+        "lowercase": "the available folding chairs"
+      },
+      "unit": "seats",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "planned_folding_chairs",
+          "change": "inaccessible_chairs"
+        }
+      },
+      "expectedValueForFixture": 186
+    },
+    {
+      "id": "bucket_stools",
+      "label": {
+        "child": "Buckets turned into front-row stools",
+        "compact": "Bucket stools",
+        "lowercase": "the bucket stools"
+      },
+      "unit": "seats",
+      "value": 38,
+      "visibility": "given"
+    },
+    {
+      "id": "total_available_seats",
+      "label": {
+        "child": "All seats ready for the audience",
+        "compact": "Total seats available",
+        "lowercase": "the total seats available"
+      },
+      "unit": "seats",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "available_folding_chairs",
+          "partB": "bucket_stools"
+        }
+      },
+      "expectedValueForFixture": 224,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_available_folding_chairs",
+      "order": 1,
+      "prompt": "How many folding chairs could the crew actually use without the supply closet?",
+      "reasoningPrompt": "Some planned chairs were locked away. Did the number of usable folding chairs go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "planned_folding_chairs",
+        "change": "inaccessible_chairs",
+        "end": "available_folding_chairs"
+      },
+      "goalQuantityId": "available_folding_chairs",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Unlock the closet and add those chairs back. Do you return to the planned count?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_total_available_seats",
+      "order": 2,
+      "prompt": "After the teacher repurposed the buckets, how many seats were available for the performance in total?",
+      "reasoningPrompt": "The available folding chairs and the bucket stools can both seat audience members. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "available_folding_chairs",
+        "partB": "bucket_stools",
+        "whole": "total_available_seats"
+      },
+      "goalQuantityId": "total_available_seats",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the bucket stools back out. Do you land on the folding-chair count?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a",
+          "whole_minus_part_a_equals_part_b"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_available_folding_chairs",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the amount smaller.",
+      "alternateWorldTemplate": "This matches the story: the locked closet put chairs out of reach, leaving fewer to use."
+    },
+    {
+      "stepId": "find_available_folding_chairs",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:inaccessible_chairs} were delivered instead of locked away."
+    },
+    {
+      "stepId": "find_available_folding_chairs",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:inaccessible_chairs} groups like {label:planned_folding_chairs.lowercase}, how many seats would there be?"
+    },
+    {
+      "stepId": "find_available_folding_chairs",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:planned_folding_chairs.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_available_seats",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the total larger.",
+      "alternateWorldTemplate": "This matches the story: {label:available_folding_chairs.lowercase} and {label:bucket_stools.lowercase} combine into every seat available."
+    },
+    {
+      "stepId": "find_total_available_seats",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:bucket_stools} were taken away instead of added to the rows."
+    },
+    {
+      "stepId": "find_total_available_seats",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:bucket_stools} groups like {label:available_folding_chairs.lowercase}, how many seats would there be?"
+    },
+    {
+      "stepId": "find_total_available_seats",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:available_folding_chairs.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the theater had {quantity:total_available_seats}",
+    "causalChain": [
+      "The drama club planned {quantity:planned_folding_chairs}.",
+      "The supply closet locked away {quantity:inaccessible_chairs}.",
+      "The teacher added {quantity:bucket_stools}, making {quantity:total_available_seats} available seats."
+    ],
+    "calcFromStepId": "find_available_folding_chairs",
+    "totalVisualStepId": "find_total_available_seats",
+    "dataQuestion": {
+      "prompt": "What does {quantity:inaccessible_chairs} represent in the seating model?",
+      "correctQuantityId": "inaccessible_chairs",
+      "distractorQuantityIds": [
+        "bucket_stools",
+        "available_folding_chairs",
+        "total_available_seats"
+      ],
+      "correctFeedback": "Right. {quantity:inaccessible_chairs} is the number of planned chairs they could not reach.",
+      "incorrectFeedback": "That amount is the number of planned chairs they could not reach: {quantity:inaccessible_chairs}."
+    }
+  }
+}

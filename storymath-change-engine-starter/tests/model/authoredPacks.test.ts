@@ -6,12 +6,17 @@ import women from "../../data/problems/little-women-storm-reading.json";
 import puppyTray from "../../data/problems/puppy-rescue-biscuit-tray.json";
 import aikido from "../../data/problems/aikido-sliding-mat-rolls.json";
 import lunar from "../../data/problems/lunar-cookie-constellation.json";
+import mars from "../../data/problems/mars-rover-versatility-dust-storm.json";
+import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
+import tidePool from "../../data/problems/tide-pool-rising-water.json";
+import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
+import carol from "../../data/problems/christmas-carol-seat-crisis.json";
 
 /**
- * The five authored add/subtract packs. Proves each one loads, validates,
- * computes its derived values to the authored expectations, exposes exactly one
- * "actual" operator experiment per step with full operator coverage, and never
- * bakes a modeled number into field-merged prose.
+ * The authored add/subtract packs. Proves each one loads, validates, computes
+ * its derived values to the authored expectations, exposes exactly one "actual"
+ * operator experiment per step with full operator coverage, and never bakes a
+ * modeled number into field-merged prose.
  */
 const PACKS: Array<[string, ProblemSpec]> = [
   ["minnesota-owl-snow-tracks", owl as unknown as ProblemSpec],
@@ -19,6 +24,11 @@ const PACKS: Array<[string, ProblemSpec]> = [
   ["puppy-rescue-biscuit-tray", puppyTray as unknown as ProblemSpec],
   ["aikido-sliding-mat-rolls", aikido as unknown as ProblemSpec],
   ["lunar-cookie-constellation", lunar as unknown as ProblemSpec],
+  ["mars-rover-versatility-dust-storm", mars as unknown as ProblemSpec],
+  ["monarch-prairie-citizen-science", monarchs as unknown as ProblemSpec],
+  ["tide-pool-rising-water", tidePool as unknown as ProblemSpec],
+  ["sourdough-armadillo-rolls", sourdough as unknown as ProblemSpec],
+  ["christmas-carol-seat-crisis", carol as unknown as ProblemSpec],
 ];
 
 /** Every field the engine field-merges (tokens allowed, raw numbers not). */

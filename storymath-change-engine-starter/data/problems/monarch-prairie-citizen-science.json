@@ -1,0 +1,260 @@
+{
+  "id": "monarch-prairie-citizen-science-v1",
+  "metadata": {
+    "title": "Monarchs Beyond the Counting Flags",
+    "theme": "Minnesota prairie citizen science",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "butterflies",
+      "prairie",
+      "citizen science",
+      "AI camera",
+      "ecosystems",
+      "part-part-whole",
+      "start-change-end",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Monarch surveys count within flagged areas, so butterflies that leave the perimeter drop out of the tally."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Prairie field note",
+    "startCta": "Open the butterfly log",
+    "finishCta": "Close the butterfly log",
+    "completionTitle": "Butterfly log closed",
+    "stepProgressVerb": "model the monarch count",
+    "groupNoun": "monarch",
+    "learnerRole": "citizen scientist"
+  },
+  "story": {
+    "briefTemplate": "Along a prairie trail in a patch of milkweed, Seraphina and her class helped count monarch butterflies for a Monarch Joint Venture-style citizen science project. In the chilly morning, the team spread out and counted {quantity:area_one_monarchs} resting with closed wings in area one. They hiked to the other side of a lake, and in the warm sun the monarchs took flight to feed on milkweed. With help from a video camera on a tripod and AI analysis of a flagged-in perimeter, the team spotted {quantity:area_two_monarchs} in area two. During logging, a group of noisy hikers came through blasting music. The noise and vibrations caused {quantity:monarchs_scattered} to fly out of the prairie toward an adjacent shopping center.",
+    "causalEvent": "Noisy hikers caused some monarchs to fly out of the flagged prairie area.",
+    "closingNoteTemplate": "The butterfly log closed with a best known estimate of {quantity:monarchs_remaining_estimate} in the prairie."
+  },
+  "quantities": [
+    {
+      "id": "area_one_monarchs",
+      "label": {
+        "child": "Monarchs resting in the first area",
+        "compact": "Area one monarchs",
+        "lowercase": "the area one monarchs"
+      },
+      "unit": "monarchs",
+      "value": 68,
+      "visibility": "given"
+    },
+    {
+      "id": "area_two_monarchs",
+      "label": {
+        "child": "Monarchs feeding in the second area",
+        "compact": "Area two monarchs",
+        "lowercase": "the area two monarchs"
+      },
+      "unit": "monarchs",
+      "value": 117,
+      "visibility": "given"
+    },
+    {
+      "id": "monarchs_before_hikers",
+      "label": {
+        "child": "Monarchs counted before the hikers",
+        "compact": "Monarchs before hikers",
+        "lowercase": "the monarchs before the hikers"
+      },
+      "unit": "monarchs",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "area_one_monarchs",
+          "partB": "area_two_monarchs"
+        }
+      },
+      "expectedValueForFixture": 185,
+      "semanticRole": "whole"
+    },
+    {
+      "id": "monarchs_scattered",
+      "label": {
+        "child": "Monarchs that scattered away",
+        "compact": "Monarchs that scattered",
+        "lowercase": "the monarchs that scattered"
+      },
+      "unit": "monarchs",
+      "value": 29,
+      "visibility": "given"
+    },
+    {
+      "id": "monarchs_remaining_estimate",
+      "label": {
+        "child": "Best estimate still in the prairie",
+        "compact": "Best known estimate",
+        "lowercase": "the best known estimate"
+      },
+      "unit": "monarchs",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "monarchs_before_hikers",
+          "change": "monarchs_scattered"
+        }
+      },
+      "expectedValueForFixture": 156
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_monarchs_before_hikers",
+      "order": 1,
+      "prompt": "How many monarchs did the team spot in total before the hikers came through?",
+      "reasoningPrompt": "The team counted monarchs in area one and area two. How do those two counts make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "area_one_monarchs",
+        "partB": "area_two_monarchs",
+        "whole": "monarchs_before_hikers"
+      },
+      "goalQuantityId": "monarchs_before_hikers",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the area one count back out. Do you land on the area two count?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_a_equals_part_b",
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    },
+    {
+      "id": "find_monarchs_remaining_estimate",
+      "order": 2,
+      "prompt": "After some monarchs scattered beyond the counting flags, what is the best known estimate of how many were still in the prairie?",
+      "reasoningPrompt": "Some monarchs left the flagged prairie area. Did the best known estimate go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "monarchs_before_hikers",
+        "change": "monarchs_scattered",
+        "end": "monarchs_remaining_estimate"
+      },
+      "goalQuantityId": "monarchs_remaining_estimate",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Put the scattered monarchs back in. Do you return to the count before the hikers?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_monarchs_before_hikers",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the total larger.",
+      "alternateWorldTemplate": "This matches the story: {label:area_one_monarchs.lowercase} and {label:area_two_monarchs.lowercase} combine into all the monarchs before the hikers."
+    },
+    {
+      "stepId": "find_monarchs_before_hikers",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:area_two_monarchs} flew off instead of joining the count."
+    },
+    {
+      "stepId": "find_monarchs_before_hikers",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:area_two_monarchs} groups like {label:area_one_monarchs.lowercase}, how many monarchs would there be?"
+    },
+    {
+      "stepId": "find_monarchs_before_hikers",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:area_one_monarchs.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_monarchs_remaining_estimate",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "shortReaction": "That makes the amount smaller.",
+      "alternateWorldTemplate": "This matches the story: the monarchs that scattered left the prairie, lowering the estimate."
+    },
+    {
+      "stepId": "find_monarchs_remaining_estimate",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:monarchs_scattered} flew in instead of scattering away."
+    },
+    {
+      "stepId": "find_monarchs_remaining_estimate",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:monarchs_scattered} groups like {label:monarchs_before_hikers.lowercase}, how many monarchs would there be?"
+    },
+    {
+      "stepId": "find_monarchs_remaining_estimate",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:monarchs_before_hikers.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the prairie estimate became {quantity:monarchs_remaining_estimate}",
+    "causalChain": [
+      "The class counted {quantity:area_one_monarchs} in area one.",
+      "The camera and AI analysis found {quantity:area_two_monarchs} in area two.",
+      "After {quantity:monarchs_scattered} scattered away, the best known estimate was {quantity:monarchs_remaining_estimate}."
+    ],
+    "calcFromStepId": "find_monarchs_before_hikers",
+    "totalVisualStepId": "find_monarchs_remaining_estimate",
+    "dataQuestion": {
+      "prompt": "What does {quantity:monarchs_scattered} represent in the prairie model?",
+      "correctQuantityId": "monarchs_scattered",
+      "distractorQuantityIds": [
+        "area_one_monarchs",
+        "area_two_monarchs",
+        "monarchs_remaining_estimate"
+      ],
+      "correctFeedback": "Right. {quantity:monarchs_scattered} is the number that left the flagged prairie area.",
+      "incorrectFeedback": "That amount is the number that left the flagged prairie area: {quantity:monarchs_scattered}."
+    }
+  }
+}
