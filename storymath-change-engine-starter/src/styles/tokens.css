@@ -58,6 +58,7 @@
   --curio-amber-tint: #fbf3e6;
   --curio-lilac: #6d5ce6; /* "a different question"   */
   --curio-lilac-tint: #efecfd;
+  --wrong-red: #7f0b30; /* one consistent color for any operation that does not match */
 
   /* --- Typography --- */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,

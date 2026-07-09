@@ -5,8 +5,12 @@ import { formatNumber } from "../domain";
  * but bundled into full groups. Each complete group of `divisor` blocks gets its
  * own outlined bin, the bins stack vertically, and whatever is left over sits on
  * a final row (no bin) beside a light-grey "remainder = N" note. So 384 ÷ 128
- * reads as three groups of 128, not 128 tiny bins. It is meant to SHOW the split,
- * not be pixel-exact, so oversized groups/counts collapse to a "+N" marker.
+ * reads as three groups of 128, not 128 tiny bins.
+ *
+ * The groups are always described generically as "groups" (never the story's
+ * noun): dividing "tracks into tracks" is nonsensical, so the point is only to
+ * show the split. `tone="wrong"` outlines the groups in dark red for a wrong
+ * operator being tried; `tone="fit"` (default) is green for a real division.
  */
 const MAX_BINS = 12; // full groups drawn before the rest collapse to "+N more"
 const MAX_PER_BIN = 150; // blocks drawn inside one group before "+N"
@@ -17,14 +21,15 @@ export function EqualSharesModel({
   dividend,
   divisor,
   unit,
-  groupNoun,
+  tone = "fit",
 }: {
   /** The whole amount being divided up. */
   dividend: number;
   /** The size of each equal group. */
   divisor: number;
   unit: string;
-  groupNoun: string;
+  /** "wrong" outlines the groups in red (a wrong operator); "fit" is green. */
+  tone?: "fit" | "wrong";
 }) {
   const groupSize = Math.max(1, Math.round(divisor));
   const fullGroups = Math.max(0, Math.floor(dividend / groupSize));
@@ -41,12 +46,12 @@ export function EqualSharesModel({
 
   return (
     <div
-      className="shares"
+      className={`shares${tone === "wrong" ? " shares--wrong" : ""}`}
       role="img"
       aria-label={
         `${formatNumber(dividend)} ${unit} in groups of ${formatNumber(groupSize)}: ` +
-        `${formatNumber(fullGroups)} full ${groupNoun} group${fullGroups === 1 ? "" : "s"}` +
-        (remainder > 0 ? `, ${formatNumber(remainder)} left over.` : ".")
+        `${formatNumber(fullGroups)} full group${fullGroups === 1 ? "" : "s"}` +
+        (remainder > 0 ? ", with some left over." : ".")
       }
     >
       {binsShown > 0 && (
@@ -60,9 +65,7 @@ export function EqualSharesModel({
             </div>
           ))}
           {moreBins > 0 && (
-            <span className="shares__morebins">
-              +{formatNumber(moreBins)} more {groupNoun} groups
-            </span>
+            <span className="shares__morebins">+{formatNumber(moreBins)} more groups</span>
           )}
         </div>
       )}

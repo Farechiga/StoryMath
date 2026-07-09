@@ -93,8 +93,13 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
 
     expect(await screen.findByRole("img", { name: /in groups of .* left over/i })).toBeTruthy();
     expect(screen.getByText(/remainder = 8/i)).toBeTruthy();
-    // The calc line shows the whole quotient (0), not a decimal that would
-    // contradict the bins.
+    // The calc line reports generic "groups" (never the story unit) and flags the
+    // leftover, so it never reads as an even split — and never a decimal.
+    expect(document.querySelector(".verdict__calc")?.textContent).toMatch(
+      /0 groups with some left over/i,
+    );
     expect(screen.queryByText(/0\.67/)).toBeNull();
+    // A wrong operator outlines the groups in the shared "does not match" red.
+    expect(document.querySelector(".shares--wrong")).toBeTruthy();
   });
 });

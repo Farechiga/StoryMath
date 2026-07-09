@@ -77,12 +77,7 @@ export function BarFigure({
     const groups = roleQ("groups");
     if (total && groups) {
       figure = (
-        <EqualSharesModel
-          dividend={total.value}
-          divisor={groups.value}
-          unit={total.unit}
-          groupNoun={problem.storyChrome.groupNoun ?? "group"}
-        />
+        <EqualSharesModel dividend={total.value} divisor={groups.value} unit={total.unit} />
       );
     }
   }

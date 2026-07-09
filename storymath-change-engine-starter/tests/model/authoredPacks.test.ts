@@ -3,7 +3,6 @@ import { isProblemValid, loadProblemSpec, validateProblem } from "../../src/doma
 import type { ProblemSpec } from "../../src/domain";
 import owl from "../../data/problems/minnesota-owl-snow-tracks.json";
 import women from "../../data/problems/little-women-storm-reading.json";
-import puppyTray from "../../data/problems/puppy-rescue-biscuit-tray.json";
 import aikido from "../../data/problems/aikido-sliding-mat-rolls.json";
 import lunar from "../../data/problems/lunar-cookie-constellation.json";
 import mars from "../../data/problems/mars-rover-versatility-dust-storm.json";
@@ -21,7 +20,6 @@ import carol from "../../data/problems/christmas-carol-seat-crisis.json";
 const PACKS: Array<[string, ProblemSpec]> = [
   ["minnesota-owl-snow-tracks", owl as unknown as ProblemSpec],
   ["little-women-storm-reading", women as unknown as ProblemSpec],
-  ["puppy-rescue-biscuit-tray", puppyTray as unknown as ProblemSpec],
   ["aikido-sliding-mat-rolls", aikido as unknown as ProblemSpec],
   ["lunar-cookie-constellation", lunar as unknown as ProblemSpec],
   ["mars-rover-versatility-dust-storm", mars as unknown as ProblemSpec],

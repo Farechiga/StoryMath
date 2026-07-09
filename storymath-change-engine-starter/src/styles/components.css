@@ -554,8 +554,10 @@
   animation: panel-in 0.42s var(--ease) both;
 }
 .verdict--fit { border-color: var(--fit-green); }
-.verdict--alt { border-color: var(--curio-amber); }
-.verdict--question { border-color: var(--curio-lilac); }
+/* Any operation that does not match the story reads in one dark red, so a wrong
+   choice never looks like two different "kinds" of not-quite (amber vs lilac). */
+.verdict--alt { border-color: var(--wrong-red); }
+.verdict--question { border-color: var(--wrong-red); }
 
 .verdict__calc {
   margin: 0 0 var(--sp-4);
@@ -679,7 +681,8 @@
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--ink-soft);
-  border: 1px dashed var(--hairline-strong);
+  /* Darker dashed guide so the empty regroup boxes are clearly visible. */
+  border: 1px dashed #a6a6a6;
   border-radius: var(--r-sm);
   background: rgba(27, 36, 52, 0.04);
   padding: 0;
@@ -699,7 +702,8 @@
   font-family: var(--font-mono);
   font-size: 0.98rem;
   color: var(--q-minus);
-  border: 1px dashed var(--hairline-strong);
+  /* Darker dashed guide so the empty regroup boxes are clearly visible. */
+  border: 1px dashed #a6a6a6;
   border-radius: var(--r-sm);
   background: transparent;
 }
@@ -987,7 +991,8 @@
   gap: var(--sp-3);
   max-width: 760px;
 }
-/* A full group: blocks wrap inside a soft green outline (green = "matches"). */
+/* A full group: blocks wrap inside a soft outline. Green when the division
+   actually matches the story; dark red when it is a wrong operator being tried. */
 .shares__bin {
   display: flex;
   flex-wrap: wrap;
@@ -998,6 +1003,7 @@
   border-radius: var(--r-md);
   background: transparent;
 }
+.shares--wrong .shares__bin { border-color: var(--wrong-red); }
 .shares__plus {
   align-self: center;
   font-family: var(--font-mono);

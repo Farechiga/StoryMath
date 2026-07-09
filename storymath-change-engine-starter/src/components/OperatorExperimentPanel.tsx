@@ -48,11 +48,18 @@ export function OperatorExperimentPanel({
   const tone = TONE[result.narrativeFit] ?? "question";
   const [leftVal, rightVal] = result.operandValues;
 
-  // Division here means equal sharing: the calc line shows the whole number that
-  // lands in each group; any leftover is drawn as the remainder in the picture
-  // below, so a confusing decimal never sits next to the bins.
-  const displayResult =
-    result.operator === "÷" ? Math.floor(leftVal / rightVal) : result.computed;
+  // Division here means making equal groups: the calc line reports the whole
+  // number of groups in generic "groups" (never the story's unit, which would be
+  // nonsensical), and says "with some left over" whenever it does not divide
+  // evenly, so no decimal or false "divides cleanly" impression sneaks in.
+  const isDivision = result.operator === "÷";
+  const displayResult = isDivision ? Math.floor(leftVal / rightVal) : result.computed;
+  const divRemainder = isDivision ? leftVal - displayResult * rightVal : 0;
+  const resultText = isDivision
+    ? `${formatNumber(displayResult)} group${displayResult === 1 ? "" : "s"}${
+        divRemainder > 0 ? " with some left over" : ""
+      }`
+    : `${formatNumber(displayResult)} ${unit}`;
 
   const reactionText =
     result.shortReaction ??
@@ -82,7 +89,7 @@ export function OperatorExperimentPanel({
         dividend={leftVal}
         divisor={rightVal}
         unit={unit}
-        groupNoun={result.groupNoun ?? "group"}
+        tone={result.fitsStory ? "fit" : "wrong"}
       />
     );
   } else if (
@@ -105,7 +112,7 @@ export function OperatorExperimentPanel({
     <div className={`verdict verdict--${tone}`}>
       <p className="verdict__calc">
         {formatNumber(leftVal)} {result.operator} {formatNumber(rightVal)} ={" "}
-        {result.fitsStory ? "?" : `${formatNumber(displayResult)} ${unit}`}
+        {result.fitsStory ? "?" : resultText}
         <span className="verdict__reaction">{reactionText}</span>
       </p>
 

@@ -16,7 +16,6 @@ import christmasCarol from "../../data/problems/christmas-carol-seat-crisis.json
 import nasa from "../../data/problems/nasa-perseverance-wheel-slip.json";
 import owl from "../../data/problems/minnesota-owl-snow-tracks.json";
 import littleWomen from "../../data/problems/little-women-storm-reading.json";
-import puppyTray from "../../data/problems/puppy-rescue-biscuit-tray.json";
 import aikido from "../../data/problems/aikido-sliding-mat-rolls.json";
 import lunar from "../../data/problems/lunar-cookie-constellation.json";
 import birding from "../../data/problems/minnesota-birding.json";
@@ -26,7 +25,7 @@ import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
 const SPECS: ProblemSpec[] = [
   // The five new add/subtract stories surface first on the menu.
   marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
-  nasa, owl, littleWomen, puppyTray, aikido, lunar, birding, animation, puppyBiscuits,
+  nasa, owl, littleWomen, aikido, lunar, birding, animation, puppyBiscuits,
 ].map((s) => s as unknown as ProblemSpec);
 
 export interface ProblemSummary {
