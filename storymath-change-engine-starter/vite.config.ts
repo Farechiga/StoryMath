@@ -4,7 +4,10 @@ import react from "@vitejs/plugin-react";
 
 // Domain data lives at the repo root under data/. The engine imports the
 // canonical problem JSON directly so there is a single source of truth.
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves this project at farechiga.github.io/StoryMath/, so the
+  // production build is based under /StoryMath/; local dev stays at /.
+  base: command === "build" ? "/StoryMath/" : "/",
   plugins: [react()],
   server: {
     fs: {
@@ -18,4 +21,4 @@ export default defineConfig({
     include: ["tests/**/*.test.{ts,tsx}"],
     globals: false,
   },
-});
+}));

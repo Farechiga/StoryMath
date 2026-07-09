@@ -7,7 +7,9 @@
 
 import type { StudioState } from "./types";
 
-const KEY = "storymath_studio_v1";
+// Bumping this version resets all saved state (solved problems, recruited team,
+// saved projects) to a clean slate for every player.
+const KEY = "storymath_studio_v2";
 
 let memoryFallback: StudioState | null = null;
 
