@@ -16,7 +16,7 @@
       "two-step",
       "count"
     ],
-    "curiosityNote": "Sourdough needs steady oven heat to puff, so losing baking time can leave rolls flat."
+    "curiosityNote": "Sourdough needs steady oven heat to puff, so losing baking time can leave armadillos flat."
   },
   "dimension": {
     "kind": "count",
@@ -34,14 +34,14 @@
     "startCta": "Open the bake-off log",
     "finishCta": "Close the bake-off log",
     "completionTitle": "Bake-off log closed",
-    "stepProgressVerb": "model the armadillo rolls",
+    "stepProgressVerb": "model the sourdough armadillos",
     "groupNoun": "roll",
     "learnerRole": "bake-off modeler"
   },
   "story": {
-    "briefTemplate": "For a school baking challenge, Grandma and Seraphina shaped dough into {quantity:shaped_armadillo_rolls}, complete with chocolate chip eyes. A power outage cut the baking time short, so {quantity:underpuffed_rolls} did not puff up enough to look like sourdough armadillos. When the power returned, Seraphina slid the tray back into the oven, and {quantity:rescued_rolls} finally puffed up enough to join the roll of other sourdough armadillos.",
+    "briefTemplate": "For a school baking challenge, Grandma and Seraphina shaped dough into {quantity:shaped_armadillo_rolls}, complete with chocolate chip eyes. A power outage cut the baking time short, so {quantity:underpuffed_rolls} did not puff up enough to look convincing. When the power returned, Seraphina slid the tray back into the oven, and {quantity:rescued_rolls} finally puffed up enough to join others in the roll.",
     "causalEvent": "A power outage cut the baking time short.",
-    "closingNoteTemplate": "The bake-off log closed with {quantity:final_presentable_rolls} presentable armadillos."
+    "closingNoteTemplate": "The bake-off log closed with {quantity:final_presentable_rolls} in the roll."
   },
   "quantities": [
     {
@@ -51,18 +51,22 @@
         "compact": "Shaped armadillos",
         "lowercase": "the shaped armadillos"
       },
-      "unit": "rolls",
+      "unit": "armadillos",
+      "unitSingular": "sourdough armadillo",
+      "unitPlural": "sourdough armadillos",
       "value": 156,
       "visibility": "given"
     },
     {
       "id": "underpuffed_rolls",
       "label": {
-        "child": "Rolls that did not puff enough",
+        "child": "Armadillos that did not puff enough",
         "compact": "Not puffed enough",
-        "lowercase": "the rolls that did not puff enough"
+        "lowercase": "the armadillos that did not puff enough"
       },
-      "unit": "rolls",
+      "unit": "armadillos",
+      "unitSingular": "sourdough armadillo",
+      "unitPlural": "sourdough armadillos",
       "value": 48,
       "visibility": "given"
     },
@@ -73,7 +77,9 @@
         "compact": "Initially presentable",
         "lowercase": "the initially presentable armadillos"
       },
-      "unit": "rolls",
+      "unit": "armadillos",
+      "unitSingular": "sourdough armadillo",
+      "unitPlural": "sourdough armadillos",
       "value": null,
       "visibility": "find",
       "derived": {
@@ -92,7 +98,9 @@
         "compact": "Rescued in second bake",
         "lowercase": "the rescued armadillos"
       },
-      "unit": "rolls",
+      "unit": "armadillos",
+      "unitSingular": "sourdough armadillo",
+      "unitPlural": "sourdough armadillos",
       "value": 37,
       "visibility": "given"
     },
@@ -103,7 +111,9 @@
         "compact": "Presentable total",
         "lowercase": "the presentable total"
       },
-      "unit": "rolls",
+      "unit": "armadillos",
+      "unitSingular": "sourdough armadillo",
+      "unitPlural": "sourdough armadillos",
       "value": null,
       "visibility": "revealed_after_step",
       "derived": {
@@ -122,7 +132,7 @@
       "id": "find_initially_presentable_rolls",
       "order": 1,
       "prompt": "How many sourdough armadillos were ready to join the roll right after the power came back?",
-      "reasoningPrompt": "Some rolls did not puff up enough after the outage. Did the number of presentable armadillos go up or down?",
+      "reasoningPrompt": "Some armadillos did not puff up enough after the outage. Did the number of presentable armadillos go up or down?",
       "relationshipTemplateId": "start_change_end_decrease",
       "roleToQuantityId": {
         "start": "shaped_armadillo_rolls",
@@ -142,7 +152,7 @@
         "÷"
       ],
       "backwardCheck": {
-        "prompt": "Add the flat rolls back in. Do you return to the shaped count?",
+        "prompt": "Add the flat armadillos back in. Do you return to the shaped count?",
         "acceptedEquationFormIds": [
           "end_plus_change_equals_start"
         ]
@@ -186,7 +196,7 @@
       "operator": "-",
       "narrativeFit": "actual",
       "shortReaction": "That makes the amount smaller.",
-      "alternateWorldTemplate": "This matches the story: the flat rolls dropped out, so fewer armadillos were presentable."
+      "alternateWorldTemplate": "This matches the story: the flat armadillos dropped out, so fewer armadillos were presentable."
     },
     {
       "stepId": "find_initially_presentable_rolls",
@@ -199,7 +209,7 @@
       "operator": "×",
       "narrativeFit": "different_question",
       "visualModel": "repeated_groups_grid",
-      "alternateWorldTemplate": "This would fit a different question: if there were {value:underpuffed_rolls} groups like {label:shaped_armadillo_rolls.lowercase}, how many rolls would there be?"
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:underpuffed_rolls} groups like {label:shaped_armadillo_rolls.lowercase}, how many armadillos would there be?"
     },
     {
       "stepId": "find_initially_presentable_rolls",
@@ -226,7 +236,7 @@
       "operator": "×",
       "narrativeFit": "different_question",
       "visualModel": "repeated_groups_grid",
-      "alternateWorldTemplate": "This would fit a different question: if there were {value:rescued_rolls} groups like {label:initially_presentable_rolls.lowercase}, how many rolls would there be?"
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:rescued_rolls} groups like {label:initially_presentable_rolls.lowercase}, how many armadillos would there be?"
     },
     {
       "stepId": "find_final_presentable_rolls",
