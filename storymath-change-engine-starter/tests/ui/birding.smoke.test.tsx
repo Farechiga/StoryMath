@@ -88,11 +88,11 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     await user.click(screen.getByRole("button", { name: /Open the rig/i }));
     await user.click(screen.getByRole("button", { name: "Repeat them" }));
 
-    // Trying ÷ on 8 and 12 shares 8 into 12 groups: 0 in each, 8 left over.
+    // Trying ÷ on 8 and 12: no group of 12 fits into 8, so 8 are left over.
     await user.click(screen.getByRole("button", { name: "Try ÷" }));
 
-    expect(await screen.findByRole("img", { name: /Sharing .* left over/i })).toBeTruthy();
-    expect(screen.getByText(/remainder 8/i)).toBeTruthy();
+    expect(await screen.findByRole("img", { name: /in groups of .* left over/i })).toBeTruthy();
+    expect(screen.getByText(/remainder = 8/i)).toBeTruthy();
     // The calc line shows the whole quotient (0), not a decimal that would
     // contradict the bins.
     expect(screen.queryByText(/0\.67/)).toBeNull();
