@@ -10,8 +10,17 @@ dist/
 Thumbs.db
 *.log
 
-# ── Local Claude Code settings (keep shared config, ignore local) ─
-.claude/settings.local.json
+# ── Internal process / dev artifacts (not needed to build or run) ─
+# Design specs, audits, authoring/process docs, and Claude tooling — kept
+# locally, excluded from the published repo.
+audit/
+docs/
+prompts/
+ClaudeCodePrompts/
+CLAUDE.md
+IMPLEMENTATION_NOTES.md
+STORYMATH_PRODUCT_AND_BUILD_SPEC.md
+.claude/
 
 # ── Redundant / stray local files ─────────────────────────────
 # The runnable app bundles its own copies of the art under

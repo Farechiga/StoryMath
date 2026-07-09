@@ -34,12 +34,7 @@ Dev routes: `/` is the game; `/#ornament` opens the cube-ornament gallery.
 │   │   │                              #   ornament system, reward/sticker studio
 │   │   └── assets/                    # bundled sticker + room art
 │   ├── data/problems/                 # story-pack JSON (one file per word problem)
-│   ├── docs/                          # product spec, data framework, gameplay,
-│   │                                  #   story authoring, problem-pack schema
 │   └── tests/                         # vitest suites (model, domain, ui, studio, ornament)
-├── STORYMATH_PRODUCT_AND_BUILD_SPEC.md  # top-level product + build spec
-├── audit/                             # parameterization audit + cleanup specs
-├── ClaudeCodePrompts/                 # design/kickoff prompts
 └── StoryMathLogo.png                  # brand mark
 ```
 
@@ -48,11 +43,9 @@ Dev routes: `/` is the game; `/#ornament` opens the cube-ornament gallery.
 Every word problem is a JSON `ProblemSpec` under `data/problems/`. The engine computes
 all derived values by formula and field-merges story prose from tokens (`{quantity:id}`,
 `{value:id}`, `{label:id}`), so a pack can change numbers or swap its entire scenario
-with **zero component edits**. Authoring is documented in
-[`docs/06-problem-pack-schema.md`](storymath-change-engine-starter/docs/06-problem-pack-schema.md)
-and [`docs/04-story-authoring.md`](storymath-change-engine-starter/docs/04-story-authoring.md);
-`src/model/relationshipRegistry.ts` is the source of truth for relationship families and
-equation forms.
+with **zero component edits**. `src/model/relationshipRegistry.ts` is the source of truth
+for relationship families and equation forms, and the existing files under `data/problems/`
+are worked examples to copy.
 
 ## Tech
 
