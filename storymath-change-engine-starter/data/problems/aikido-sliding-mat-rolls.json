@@ -109,7 +109,7 @@
       "id": "find_second_ukemi_roll",
       "order": 1,
       "prompt": "How far did Seraphina roll on the second attempt?",
-      "reasoningPrompt": "The new technique helped Seraphina roll farther. Should the second roll be farther, shorter, or the same?",
+      "reasoningPrompt": "How did the new technique change the distance of Seraphina's ukemi roll?",
       "relationshipTemplateId": "additive_comparison_increase",
       "roleToQuantityId": {
         "smaller": "first_ukemi_roll",
