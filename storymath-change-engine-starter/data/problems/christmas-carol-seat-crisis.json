@@ -39,7 +39,7 @@
     "learnerRole": "stage manager"
   },
   "story": {
-    "briefTemplate": "For a school production of A Christmas Carol, the drama club had prepared {quantity:planned_folding_chairs} for the tickets they had sold. An hour before curtain, the school's operations manager was called to the hospital for the birth of his third child. It was a joyful event, but without his keys to the supply closet, the crew could not reach {quantity:inaccessible_chairs}. Then the theater teacher got creative and grabbed {quantity:bucket_stools} from their recent plant-a-tree drive for kids to use as stools in the front row, and many said they liked the closer view. Staff members offered to stand for the performance.",
+    "briefTemplate": "For a school production of A Christmas Carol, the drama club had prepared {quantity:planned_folding_chairs} for the tickets they had sold. An hour before curtain call, the school's operations manager was called to the hospital for the birth of his third child. It was a joyful event, but without his keys to the supply closet, the crew could not reach {quantity:inaccessible_chairs}. Then the theater teacher got creative and grabbed {quantity:bucket_stools} from their recent plant-a-tree drive for kids to use as stools in the front row, and many said they liked the closer view. Staff members offered to stand for the performance.",
     "causalEvent": "The operations manager had the supply-closet keys when he was called away to the hospital.",
     "closingNoteTemplate": "The seating log closed with {quantity:total_available_seats} ready for the audience."
   },
