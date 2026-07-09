@@ -1,0 +1,24 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Build output ──────────────────────────────────────────────
+dist/
+*.tsbuildinfo
+
+# ── OS / editor junk ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+
+# ── Local Claude Code settings (keep shared config, ignore local) ─
+.claude/settings.local.json
+
+# ── Redundant / stray local files ─────────────────────────────
+# The runnable app bundles its own copies of the art under
+# storymath-change-engine-starter/src/assets/. This top-level folder is the
+# original source art and is kept out of the repo to avoid ~50 MB of duplication.
+/assets/
+# A stray working screenshot and a stale duplicate problem pack (the canonical
+# copy lives in storymath-change-engine-starter/data/problems/).
+/image.png
+/nasa-perseverance-wheel-slip.json

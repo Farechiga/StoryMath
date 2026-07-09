@@ -1,0 +1,539 @@
+/* ==========================================================================
+   Studio — reward stickers, team roster, and the ProjectSpace builder.
+   Reuses the app's tokens, surfaces, and calm typographic system.
+   ========================================================================== */
+
+/* --- Masthead additions --------------------------------------------------- */
+.masthead__right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+.brand--link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.stickers-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  font-weight: 560;
+  font-size: 0.92rem;
+}
+.stickers-btn:hover {
+  border-color: var(--hairline-strong);
+  color: var(--ink);
+}
+.stickers-btn__icon {
+  color: var(--curio-amber);
+  font-size: 1.05rem;
+}
+.stickers-btn__count {
+  font-variant-numeric: tabular-nums;
+  background: var(--accent-tint);
+  color: var(--accent-deep);
+  border-radius: var(--r-pill);
+  padding: 1px 9px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* --- Menu ------------------------------------------------------------------ */
+.menu__progress {
+  color: var(--ink-muted);
+  margin: var(--sp-3) 0 var(--sp-8);
+}
+.problem-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+.problem-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: 16px 20px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  text-align: left;
+  transition: transform 0.16s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.problem-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.problem-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.problem-card__title {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+.problem-card__theme {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+.problem-card__status {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.problem-card__status--solved {
+  color: var(--fit-green);
+  font-weight: 600;
+}
+
+/* --- Team roster + unlock meter -------------------------------------------- */
+.team-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin: var(--sp-4) 0 var(--sp-8);
+}
+.team-chip {
+  margin: 0;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.team-chip img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+.team-chip figcaption {
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.studio-lock {
+  margin: var(--sp-4) 0 var(--sp-6);
+}
+.lock-meter {
+  display: flex;
+  gap: 8px;
+  margin-top: var(--sp-3);
+}
+.lock-pip {
+  width: 36px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--hairline);
+}
+.lock-pip--on {
+  background: var(--accent);
+}
+
+/* --- ProjectSpace builder -------------------------------------------------- */
+.room-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sp-3);
+  margin: var(--sp-4) 0 var(--sp-6);
+}
+.room-tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-md);
+  border: 2px solid var(--hairline);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+.room-tile--active {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.room-tile__name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  color: #fff;
+  text-align: left;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+}
+
+.builder__hint {
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  margin-bottom: var(--sp-3);
+  text-align: center;
+}
+
+.scene-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline-strong);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.scene-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+}
+.scene-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.scene-item--selected {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+  cursor: grabbing;
+}
+.scene-del {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--q-minus);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+.scene-handle {
+  position: absolute;
+  bottom: -9px;
+  right: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  cursor: nwse-resize;
+  box-shadow: var(--shadow-sm);
+  touch-action: none;
+}
+
+.tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+  margin: var(--sp-4) auto;
+  max-width: 720px;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface-quiet);
+}
+.tray__item {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface-strong);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tray__item:hover {
+  border-color: var(--accent);
+}
+.tray__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.builder__save {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--sp-4);
+}
+.text-input {
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--hairline);
+  background: var(--surface-strong);
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-width: 180px;
+}
+.text-input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+/* --- Saved projects -------------------------------------------------------- */
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+.saved-card {
+  margin: 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+}
+.scene-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+}
+.scene-thumb img {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  height: auto;
+}
+.saved-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+}
+.saved-card__name {
+  font-weight: 600;
+  color: var(--ink);
+}
+.saved-card__team {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+.saved-card__actions {
+  display: flex;
+  gap: var(--sp-4);
+  margin-top: 4px;
+}
+.linkish {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 560;
+}
+.linkish--danger {
+  color: var(--q-minus);
+}
+
+/* --- Reward modal ---------------------------------------------------------- */
+.reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+  background: rgba(27, 36, 52, 0.28);
+  backdrop-filter: blur(3px);
+}
+.reward-card {
+  width: min(760px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--white-pure);
+  border-radius: var(--r-xl);
+  padding: clamp(20px, 4vw, 36px);
+  box-shadow: var(--shadow-lg);
+  animation: panel-in 0.4s var(--ease) both;
+}
+.reward-card__title {
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  margin: var(--sp-1) 0 var(--sp-2);
+}
+.reward-card__sub {
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-5);
+}
+/* Peek carousel: one large hero teammate, with the previous/next teammates
+   partially visible at the sides, and bi-directional arrows. */
+.recruit-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin: var(--sp-4) 0 var(--sp-1);
+}
+.recruit-arrow {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  font-size: 1.9rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.recruit-arrow:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.recruit-track {
+  position: relative;
+  flex: 1;
+  height: min(372px, 52vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* Sized by HEIGHT so the whole (portrait) character sits inside the frame. */
+.recruit-hero {
+  position: relative;
+  z-index: 2;
+  height: min(332px, 46vh);
+  width: auto;
+  max-width: 62vw;
+  filter: drop-shadow(0 12px 26px rgba(27, 36, 52, 0.15));
+  animation: panel-in 0.3s var(--ease) both;
+}
+.recruit-peek {
+  position: absolute;
+  top: 50%;
+  height: min(236px, 32vh);
+  width: auto;
+  opacity: 0.4;
+  z-index: 1;
+  cursor: pointer;
+  transition: opacity 0.2s var(--ease);
+}
+.recruit-peek--prev {
+  left: 0;
+  transform: translate(-42%, -50%);
+}
+.recruit-peek--next {
+  right: 0;
+  transform: translate(42%, -50%);
+}
+.recruit-peek:hover {
+  opacity: 0.62;
+}
+.recruit-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  margin-top: var(--sp-1);
+}
+.recruit-count {
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: var(--sp-4);
+}
+
+/* --- Unlock celebration ---------------------------------------------------- */
+.celebrate-card {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.celebrate-body {
+  position: relative;
+  z-index: 1;
+}
+.celebrate-emoji {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: var(--sp-3);
+  animation: celebrate-pop 0.5s var(--ease) both;
+}
+.celebrate-card .reward-card__sub {
+  max-width: 42ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti__bit {
+  position: absolute;
+  top: -18px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-18px) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateY(460px) rotate(540deg); opacity: 0.85; }
+}
+@keyframes celebrate-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti__bit { animation: none; opacity: 0; }
+  .celebrate-emoji { animation: none; }
+}
+
+@media (max-width: 620px) {
+  .recruit-peek {
+    display: none; /* keep the hero uncramped on small screens */
+  }
+  .masthead__right {
+    gap: var(--sp-3);
+  }
+  .masthead__progress {
+    display: none;
+  }
+}

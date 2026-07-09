@@ -1,0 +1,251 @@
+{
+  "id": "puppy-rescue-biscuit-tray",
+  "metadata": {
+    "title": "Moose and the rescue bake sale",
+    "theme": "Puppy-rescue bake sale",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "dogs",
+      "baking",
+      "subtraction",
+      "part-whole"
+    ],
+    "curiosityNote": "Rescue groups often run bake sales because a table of treats draws a friendly crowd."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Rescue table note",
+    "startCta": "Open the bake-sale log",
+    "finishCta": "Close the bake-sale log",
+    "completionTitle": "Bake-sale log closed",
+    "stepProgressVerb": "model the biscuit tray",
+    "groupNoun": "biscuit",
+    "learnerRole": "tray counter"
+  },
+  "story": {
+    "briefTemplate": "At the puppy-rescue bake sale, volunteers set out {quantity:chocolate_biscuits_start} to sell for the fundraiser. Moose the Great Dane saw a family arrive to adopt a puppy, wagged his giant tail, and knocked {quantity:floor_biscuits} onto the floor, which the team had to throw away. Later, volunteers brought an additional tray of {quantity:peanut_butter_biscuits} to sell.",
+    "causalEvent": "Moose's tail knocked some biscuits onto the floor.",
+    "closingNoteTemplate": "The bake-sale table ended the day with {quantity:total_sellable_biscuits} ready for buyers."
+  },
+  "quantities": [
+    {
+      "id": "chocolate_biscuits_start",
+      "label": {
+        "child": "Chocolate biscuits set out to sell",
+        "compact": "Chocolate biscuits",
+        "lowercase": "the chocolate biscuits"
+      },
+      "unit": "biscuits",
+      "value": 236,
+      "visibility": "given"
+    },
+    {
+      "id": "floor_biscuits",
+      "label": {
+        "child": "Biscuits Moose knocked to the floor",
+        "compact": "Floor biscuits",
+        "lowercase": "the biscuits on the floor"
+      },
+      "unit": "biscuits",
+      "value": 59,
+      "visibility": "given"
+    },
+    {
+      "id": "chocolate_biscuits_sellable",
+      "label": {
+        "child": "Chocolate biscuits still sellable",
+        "compact": "Sellable chocolate",
+        "lowercase": "the sellable chocolate biscuits"
+      },
+      "unit": "biscuits",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "chocolate_biscuits_start",
+          "change": "floor_biscuits"
+        }
+      },
+      "expectedValueForFixture": 177
+    },
+    {
+      "id": "peanut_butter_biscuits",
+      "label": {
+        "child": "Peanut-butter biscuits in the fresh tray",
+        "compact": "Peanut-butter biscuits",
+        "lowercase": "the peanut-butter biscuits"
+      },
+      "unit": "biscuits",
+      "value": 48,
+      "visibility": "given"
+    },
+    {
+      "id": "total_sellable_biscuits",
+      "label": {
+        "child": "Sellable biscuits altogether",
+        "compact": "Total sellable",
+        "lowercase": "the sellable biscuits"
+      },
+      "unit": "biscuits",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "chocolate_biscuits_sellable",
+          "partB": "peanut_butter_biscuits"
+        }
+      },
+      "expectedValueForFixture": 225,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_chocolate_biscuits_sellable",
+      "order": 1,
+      "prompt": "How many chocolate biscuits were still sellable?",
+      "reasoningPrompt": "After Moose knocked biscuits onto the floor, did the sellable chocolate biscuit count go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "chocolate_biscuits_start",
+        "change": "floor_biscuits",
+        "end": "chocolate_biscuits_sellable"
+      },
+      "goalQuantityId": "chocolate_biscuits_sellable",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Sweep the floor biscuits back on. Do you reach the starting tray?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_total_sellable_biscuits",
+      "order": 2,
+      "prompt": "How many sellable biscuits were on the table altogether?",
+      "reasoningPrompt": "The sellable chocolate biscuits and peanut-butter biscuits are both on the table. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "chocolate_biscuits_sellable",
+        "partB": "peanut_butter_biscuits",
+        "whole": "total_sellable_biscuits"
+      },
+      "goalQuantityId": "total_sellable_biscuits",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the peanut-butter tray back out. Do you reach the sellable chocolate count?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_chocolate_biscuits_sellable",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:floor_biscuits} more biscuits were carried in instead of dropped."
+    },
+    {
+      "stepId": "find_chocolate_biscuits_sellable",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: Moose knocked {quantity:floor_biscuits} onto the floor, so they leave the table."
+    },
+    {
+      "stepId": "find_chocolate_biscuits_sellable",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:floor_biscuits} trays like {label:chocolate_biscuits_start.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_chocolate_biscuits_sellable",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:chocolate_biscuits_start.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_sellable_biscuits",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:chocolate_biscuits_sellable.lowercase} and {label:peanut_butter_biscuits.lowercase} sit on the table together."
+    },
+    {
+      "stepId": "find_total_sellable_biscuits",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:peanut_butter_biscuits} were carried back to the kitchen instead of added."
+    },
+    {
+      "stepId": "find_total_sellable_biscuits",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:peanut_butter_biscuits} groups like {label:chocolate_biscuits_sellable.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_total_sellable_biscuits",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:chocolate_biscuits_sellable.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the bake-sale table held {quantity:total_sellable_biscuits}",
+    "causalChain": [
+      "Moose knocked away {quantity:floor_biscuits}.",
+      "That left {quantity:chocolate_biscuits_sellable} sellable chocolate biscuits.",
+      "The peanut-butter tray added {quantity:peanut_butter_biscuits}, making {quantity:total_sellable_biscuits}."
+    ],
+    "calcFromStepId": "find_chocolate_biscuits_sellable",
+    "totalVisualStepId": "find_total_sellable_biscuits",
+    "dataQuestion": {
+      "prompt": "What does {quantity:floor_biscuits} represent in the tray model?",
+      "correctQuantityId": "floor_biscuits",
+      "distractorQuantityIds": [
+        "chocolate_biscuits_sellable",
+        "total_sellable_biscuits"
+      ],
+      "correctFeedback": "Right. {quantity:floor_biscuits} is the amount Moose knocked off the table.",
+      "incorrectFeedback": "That amount is the part Moose knocked off the table: {quantity:floor_biscuits}."
+    }
+  }
+}

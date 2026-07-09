@@ -1,0 +1,251 @@
+{
+  "id": "minnesota-birding-v1",
+  "metadata": {
+    "title": "The chickadees found the frozen cattails",
+    "theme": "Minnesota winter birding",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "start-change-end",
+      "part-part-whole",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Black-capped chickadees get chattier when noise and activity pick up around a wetland."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Field recorder note",
+    "startCta": "Start the bird log",
+    "finishCta": "Close the bird log",
+    "completionTitle": "Bird log closed",
+    "stepProgressVerb": "model the bird counts",
+    "groupNoun": "call",
+    "learnerRole": "field birder"
+  },
+  "story": {
+    "briefTemplate": "At a Minnesota wetland, Seraphina set a tiny recorder near rustling cattails. Before lunch it caught {quantity:morning_chickadee_calls}. In the afternoon, extra noise from the bustling nearby neighborhood caused the chickadees to get more vocal, and the recorder caught {quantity:afternoon_chickadee_calls}. It also caught {quantity:nuthatch_taps} from a nuthatch on a dead birch.",
+    "causalEvent": "Neighborhood noise made the chickadees more vocal in the afternoon.",
+    "closingNoteTemplate": "The recorder log closed with {quantity:total_bird_sounds} in all."
+  },
+  "quantities": [
+    {
+      "id": "morning_chickadee_calls",
+      "label": {
+        "child": "Chickadee calls before lunch",
+        "compact": "Morning calls",
+        "lowercase": "the morning calls"
+      },
+      "unit": "calls",
+      "value": 78,
+      "visibility": "given"
+    },
+    {
+      "id": "afternoon_chickadee_calls",
+      "label": {
+        "child": "Chickadee calls in the noisy afternoon",
+        "compact": "Afternoon calls",
+        "lowercase": "the afternoon calls"
+      },
+      "unit": "calls",
+      "value": 146,
+      "visibility": "given"
+    },
+    {
+      "id": "total_chickadee_calls",
+      "label": {
+        "child": "All chickadee calls",
+        "compact": "Chickadee calls",
+        "lowercase": "all the chickadee calls"
+      },
+      "unit": "sounds",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_plus_change_equals_end",
+        "operands": {
+          "start": "morning_chickadee_calls",
+          "change": "afternoon_chickadee_calls"
+        }
+      },
+      "expectedValueForFixture": 224
+    },
+    {
+      "id": "nuthatch_taps",
+      "label": {
+        "child": "Nuthatch taps on the birch",
+        "compact": "Nuthatch taps",
+        "lowercase": "the nuthatch taps"
+      },
+      "unit": "sounds",
+      "value": 93,
+      "visibility": "given"
+    },
+    {
+      "id": "total_bird_sounds",
+      "label": {
+        "child": "All bird sounds the recorder caught",
+        "compact": "All bird sounds",
+        "lowercase": "all the bird sounds"
+      },
+      "unit": "sounds",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "total_chickadee_calls",
+          "partB": "nuthatch_taps"
+        }
+      },
+      "expectedValueForFixture": 317,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_total_chickadee_calls",
+      "order": 1,
+      "prompt": "How many chickadee calls did the recorder catch altogether?",
+      "reasoningPrompt": "The morning calls and afternoon calls are both chickadee calls. How do they make the chickadee total?",
+      "relationshipTemplateId": "start_change_end_increase",
+      "roleToQuantityId": {
+        "start": "morning_chickadee_calls",
+        "change": "afternoon_chickadee_calls",
+        "end": "total_chickadee_calls"
+      },
+      "goalQuantityId": "total_chickadee_calls",
+      "acceptedEquationFormIds": [
+        "start_plus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_plus_change_equals_end",
+      "expectedDirection": "increase",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the afternoon calls back off. Do you land on the morning count?",
+        "acceptedEquationFormIds": [
+          "end_minus_start_equals_change"
+        ]
+      }
+    },
+    {
+      "id": "find_total_bird_sounds",
+      "order": 2,
+      "prompt": "How many bird sounds did the recorder catch altogether?",
+      "reasoningPrompt": "The chickadee calls and nuthatch taps are both sounds in the recorder log. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "total_chickadee_calls",
+        "partB": "nuthatch_taps",
+        "whole": "total_bird_sounds"
+      },
+      "goalQuantityId": "total_bird_sounds",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the nuthatch taps back out. Do you reach the chickadee calls?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_total_chickadee_calls",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the noisy afternoon added {quantity:afternoon_chickadee_calls} to the morning count."
+    },
+    {
+      "stepId": "find_total_chickadee_calls",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where the afternoon lost calls instead of gaining them."
+    },
+    {
+      "stepId": "find_total_chickadee_calls",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:afternoon_chickadee_calls} stretches like {label:morning_chickadee_calls.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_total_chickadee_calls",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:morning_chickadee_calls.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_bird_sounds",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:total_chickadee_calls.lowercase} and {label:nuthatch_taps.lowercase} combine into all the bird sounds."
+    },
+    {
+      "stepId": "find_total_bird_sounds",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:nuthatch_taps} were removed instead of added."
+    },
+    {
+      "stepId": "find_total_bird_sounds",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:nuthatch_taps} groups like {label:total_chickadee_calls.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_total_bird_sounds",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:total_chickadee_calls.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the recorder log reached {quantity:total_bird_sounds}",
+    "causalChain": [
+      "The recorder caught {quantity:morning_chickadee_calls} before lunch.",
+      "Neighborhood noise made the chickadees more vocal, adding {quantity:afternoon_chickadee_calls}.",
+      "The nuthatch added {quantity:nuthatch_taps}, making {quantity:total_bird_sounds}."
+    ],
+    "calcFromStepId": "find_total_chickadee_calls",
+    "totalVisualStepId": "find_total_bird_sounds",
+    "dataQuestion": {
+      "prompt": "What does {quantity:afternoon_chickadee_calls} represent in the chickadee model?",
+      "correctQuantityId": "afternoon_chickadee_calls",
+      "distractorQuantityIds": [
+        "morning_chickadee_calls",
+        "total_bird_sounds"
+      ],
+      "correctFeedback": "Right. {quantity:afternoon_chickadee_calls} is the noisy-afternoon count added to the morning calls.",
+      "incorrectFeedback": "That amount is the noisy-afternoon count: {quantity:afternoon_chickadee_calls}."
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "id": "puppy-rescue-biscuits-v1",
+  "metadata": {
+    "title": "Moose the Great Dane steals the biscuit tray",
+    "theme": "Puppy-rescue bake sale",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": ["start-change-end", "part-part-whole", "two-step", "count"],
+    "curiosityNote": "Great Danes really can sweep a whole tray with one happy tail."
+  },
+
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+
+  "storyChrome": {
+    "openingEyebrow": "Rescue kitchen note",
+    "startCta": "Open the biscuit tray",
+    "finishCta": "Pack the last biscuits",
+    "completionTitle": "Biscuit tray packed",
+    "stepProgressVerb": "model the biscuit counts",
+    "groupNoun": "tray",
+    "learnerRole": "kitchen helper"
+  },
+
+  "story": {
+    "briefTemplate": "At a puppy-rescue bake sale, the volunteers baked {value:pumpkin_biscuits_start} tiny pumpkin dog biscuits. Before the sale opened, Moose the Great Dane bumped the cooling rack with his enormous tail, and {value:biscuits_lost} biscuits slid onto the floor. The volunteers saved the clean ones and set out {value:peanut_butter_biscuits} peanut-butter biscuits from another tray.",
+    "causalEvent": "Moose bumped the cooling rack.",
+    "closingNoteTemplate": "Moose knocked some biscuits down, so fewer pumpkin ones were sellable — then the peanut-butter batch joined them for the total."
+  },
+
+  "quantities": [
+    { "id": "pumpkin_biscuits_start", "semanticRole": "bigger", "label": { "child": "Pumpkin biscuits the volunteers baked", "compact": "Biscuits baked", "lowercase": "the biscuits baked" }, "unit": "biscuits", "value": 212, "visibility": "given" },
+    { "id": "biscuits_lost", "semanticRole": "difference", "label": { "child": "Biscuits Moose knocked to the floor", "compact": "Biscuits lost", "lowercase": "the biscuits lost" }, "unit": "biscuits", "value": 47, "visibility": "given" },
+    {
+      "id": "sellable_pumpkin_biscuits", "semanticRole": "smaller",
+      "label": { "child": "Pumpkin biscuits still sellable", "compact": "Sellable biscuits", "lowercase": "the sellable biscuits" },
+      "unit": "biscuits", "value": null,
+      "derived": { "formulaId": "start_minus_change_equals_end", "operands": { "start": "pumpkin_biscuits_start", "change": "biscuits_lost" } },
+      "expectedValueForFixture": 165, "visibility": "find"
+    },
+    { "id": "peanut_butter_biscuits", "semanticRole": "difference", "label": { "child": "Peanut-butter biscuits from another tray", "compact": "Peanut-butter biscuits", "lowercase": "the peanut-butter biscuits" }, "unit": "biscuits", "value": 36, "visibility": "given" },
+    {
+      "id": "all_sellable_biscuits", "semanticRole": "whole",
+      "label": { "child": "All biscuits ready to sell", "compact": "All sellable biscuits", "lowercase": "all the sellable biscuits" },
+      "unit": "biscuits", "value": null,
+      "derived": { "formulaId": "part_a_plus_part_b_equals_whole", "operands": { "partA": "sellable_pumpkin_biscuits", "partB": "peanut_butter_biscuits" } },
+      "expectedValueForFixture": 201, "visibility": "revealed_after_step"
+    }
+  ],
+
+  "steps": [
+    {
+      "id": "find_sellable_pumpkin_biscuits", "order": 1,
+      "prompt": "How many pumpkin biscuits were still sellable?",
+      "reasoningPrompt": "After Moose knocked some to the floor, how did the sellable count change?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": { "start": "pumpkin_biscuits_start", "change": "biscuits_lost", "end": "sellable_pumpkin_biscuits" },
+      "goalQuantityId": "sellable_pumpkin_biscuits",
+      "acceptedEquationFormIds": ["start_minus_change_equals_end"],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": ["+", "-", "×", "÷"],
+      "backwardCheck": { "prompt": "Can you get back to how many were baked?", "acceptedEquationFormIds": ["end_plus_change_equals_start"] }
+    },
+    {
+      "id": "find_all_sellable_biscuits", "order": 2,
+      "prompt": "How many biscuits were ready to sell in all?",
+      "reasoningPrompt": "Pumpkin biscuits and peanut-butter biscuits are two separate counts — how do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": { "partA": "sellable_pumpkin_biscuits", "partB": "peanut_butter_biscuits", "whole": "all_sellable_biscuits" },
+      "goalQuantityId": "all_sellable_biscuits",
+      "acceptedEquationFormIds": ["part_a_plus_part_b_equals_whole"],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": ["+", "-", "×", "÷"],
+      "backwardCheck": { "prompt": "Use the total to check one count?", "acceptedEquationFormIds": ["whole_minus_part_b_equals_part_a"] }
+    }
+  ],
+
+  "operatorExperiments": [
+    { "stepId": "find_sellable_pumpkin_biscuits", "operator": "-", "narrativeFit": "actual", "alternateWorldTemplate": "This matches the story: the biscuits that fell were taken away from the baked count." },
+    { "stepId": "find_sellable_pumpkin_biscuits", "operator": "+", "narrativeFit": "different_story", "alternateWorldTemplate": "Adding would fit a story where more biscuits appeared, but Moose knocked some down." },
+    { "stepId": "find_sellable_pumpkin_biscuits", "operator": "×", "narrativeFit": "different_question", "alternateWorldTemplate": "Multiplying would fit repeated equal trays, not one spill." },
+    { "stepId": "find_sellable_pumpkin_biscuits", "operator": "÷", "narrativeFit": "different_question", "alternateWorldTemplate": "Dividing would share the biscuits into equal groups — a different question." },
+    { "stepId": "find_all_sellable_biscuits", "operator": "+", "narrativeFit": "actual", "alternateWorldTemplate": "This matches the question: the two batches combine into all the sellable biscuits." },
+    { "stepId": "find_all_sellable_biscuits", "operator": "-", "narrativeFit": "different_question", "alternateWorldTemplate": "Subtracting finds the gap between the batches, not their total." },
+    { "stepId": "find_all_sellable_biscuits", "operator": "×", "narrativeFit": "different_question", "alternateWorldTemplate": "Multiplying would fit equal groups, not two different batches added together." },
+    { "stepId": "find_all_sellable_biscuits", "operator": "÷", "narrativeFit": "different_question", "alternateWorldTemplate": "Dividing would share the biscuits into groups — a different question." }
+  ],
+
+  "recap": {
+    "headline": "Why fewer pumpkin biscuits were sellable",
+    "causalChain": ["Moose bumped the cooling rack", "Biscuits slid onto the floor", "Fewer pumpkin biscuits were sellable"],
+    "calcFromStepId": "find_sellable_pumpkin_biscuits",
+    "totalVisualStepId": "find_all_sellable_biscuits",
+    "dataQuestion": {
+      "prompt": "What does the drop from {label:pumpkin_biscuits_start.compact} to {label:sellable_pumpkin_biscuits.compact} represent?",
+      "correctQuantityId": "biscuits_lost",
+      "distractorQuantityIds": ["all_sellable_biscuits", "pumpkin_biscuits_start"],
+      "correctFeedback": "Right — that drop is how many biscuits Moose knocked off the tray.",
+      "incorrectFeedback": "That drop is the biscuits lost, not a total."
+    }
+  }
+}

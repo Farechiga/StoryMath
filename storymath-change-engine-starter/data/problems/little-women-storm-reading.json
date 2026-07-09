@@ -1,0 +1,251 @@
+{
+  "id": "little-women-storm-reading",
+  "metadata": {
+    "title": "A stormy afternoon with Little Women",
+    "theme": "Cozy classic-book reading day",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "reading",
+      "books",
+      "addition",
+      "part-whole"
+    ],
+    "curiosityNote": "Louisa May Alcott wrote Little Women in a few months at her desk in Concord."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Reading room note",
+    "startCta": "Open the reading log",
+    "finishCta": "Close the reading log",
+    "completionTitle": "Reading log closed",
+    "stepProgressVerb": "model the reading day",
+    "groupNoun": "page",
+    "learnerRole": "reading modeler"
+  },
+  "story": {
+    "briefTemplate": "Seraphina had read {quantity:pages_before_lunch} of Little Women before lunch. An ice storm rattled the windows and canceled the afternoon outing, so she curled under a blanket and read {quantity:afternoon_pages} more. Across the room, Grandma read {quantity:grandma_pages} from Little Men.",
+    "causalEvent": "The ice storm canceled the outing and gave Seraphina extra reading time.",
+    "closingNoteTemplate": "The reading log closed at {quantity:combined_reading_pages} for the stormy afternoon."
+  },
+  "quantities": [
+    {
+      "id": "pages_before_lunch",
+      "label": {
+        "child": "Pages Seraphina read before lunch",
+        "compact": "Pages before lunch",
+        "lowercase": "the pages before lunch"
+      },
+      "unit": "pages",
+      "value": 137,
+      "visibility": "given"
+    },
+    {
+      "id": "afternoon_pages",
+      "label": {
+        "child": "Extra pages read during the storm",
+        "compact": "Afternoon pages",
+        "lowercase": "the afternoon pages"
+      },
+      "unit": "pages",
+      "value": 86,
+      "visibility": "given"
+    },
+    {
+      "id": "seraphina_total_pages",
+      "label": {
+        "child": "Pages Seraphina read in all",
+        "compact": "Seraphina's pages",
+        "lowercase": "Seraphina's pages"
+      },
+      "unit": "pages",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_plus_change_equals_end",
+        "operands": {
+          "start": "pages_before_lunch",
+          "change": "afternoon_pages"
+        }
+      },
+      "expectedValueForFixture": 223
+    },
+    {
+      "id": "grandma_pages",
+      "label": {
+        "child": "Pages Grandma read from Little Men",
+        "compact": "Grandma's pages",
+        "lowercase": "Grandma's pages"
+      },
+      "unit": "pages",
+      "value": 92,
+      "visibility": "given"
+    },
+    {
+      "id": "combined_reading_pages",
+      "label": {
+        "child": "Pages read altogether",
+        "compact": "Combined pages",
+        "lowercase": "the combined pages"
+      },
+      "unit": "pages",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "seraphina_total_pages",
+          "partB": "grandma_pages"
+        }
+      },
+      "expectedValueForFixture": 315,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_seraphina_total_pages",
+      "order": 1,
+      "prompt": "How many total pages did Seraphina read by afternoon?",
+      "reasoningPrompt": "The storm gave Seraphina extra reading time. Did her page total go up or down?",
+      "relationshipTemplateId": "start_change_end_increase",
+      "roleToQuantityId": {
+        "start": "pages_before_lunch",
+        "change": "afternoon_pages",
+        "end": "seraphina_total_pages"
+      },
+      "goalQuantityId": "seraphina_total_pages",
+      "acceptedEquationFormIds": [
+        "start_plus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_plus_change_equals_end",
+      "expectedDirection": "increase",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the afternoon pages back off. Do you land on the before-lunch count?",
+        "acceptedEquationFormIds": [
+          "end_minus_start_equals_change"
+        ]
+      }
+    },
+    {
+      "id": "find_combined_reading_pages",
+      "order": 2,
+      "prompt": "How many pages did Seraphina and Grandma read altogether?",
+      "reasoningPrompt": "Seraphina's pages and Grandma's pages are two parts of the reading day. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "seraphina_total_pages",
+        "partB": "grandma_pages",
+        "whole": "combined_reading_pages"
+      },
+      "goalQuantityId": "combined_reading_pages",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Set Grandma's pages aside. Do you reach Seraphina's total?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_seraphina_total_pages",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the storm gave {quantity:afternoon_pages} of extra reading that join the morning's pages."
+    },
+    {
+      "stepId": "find_seraphina_total_pages",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:afternoon_pages} were skipped instead of read."
+    },
+    {
+      "stepId": "find_seraphina_total_pages",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:afternoon_pages} stretches like {label:pages_before_lunch.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_seraphina_total_pages",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:pages_before_lunch.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_combined_reading_pages",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:seraphina_total_pages.lowercase} and {label:grandma_pages.lowercase} combine into the reading log."
+    },
+    {
+      "stepId": "find_combined_reading_pages",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:grandma_pages} were set aside instead of added."
+    },
+    {
+      "stepId": "find_combined_reading_pages",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:grandma_pages} groups like {label:seraphina_total_pages.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_combined_reading_pages",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:seraphina_total_pages.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the reading log reached {quantity:combined_reading_pages}",
+    "causalChain": [
+      "The storm added {quantity:afternoon_pages} to Seraphina's reading.",
+      "Seraphina reached {quantity:seraphina_total_pages}.",
+      "Grandma's {quantity:grandma_pages} joined that total."
+    ],
+    "calcFromStepId": "find_seraphina_total_pages",
+    "totalVisualStepId": "find_combined_reading_pages",
+    "dataQuestion": {
+      "prompt": "What does {quantity:afternoon_pages} represent in Seraphina's reading model?",
+      "correctQuantityId": "afternoon_pages",
+      "distractorQuantityIds": [
+        "grandma_pages",
+        "combined_reading_pages"
+      ],
+      "correctFeedback": "Right. {quantity:afternoon_pages} is the extra reading from the stormy afternoon.",
+      "incorrectFeedback": "That amount is the extra reading from the stormy afternoon: {quantity:afternoon_pages}."
+    }
+  }
+}

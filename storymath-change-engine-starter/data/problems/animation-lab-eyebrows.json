@@ -1,0 +1,257 @@
+{
+  "id": "animation-lab-eyebrows-v1",
+  "metadata": {
+    "title": "The cagey squirrel's many expressions",
+    "theme": "Animation studio",
+    "gradeBand": "3–4",
+    "factualStatus": "realistic",
+    "tags": [
+      "multiplication",
+      "equal-groups",
+      "combinations",
+      "two-step"
+    ],
+    "curiosityNote": "Character rigs mix small face shapes so a few parts combine into many expressions."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Animation lab note",
+    "startCta": "Open the rig",
+    "finishCta": "Ship the rig",
+    "completionTitle": "Rig shipped",
+    "stepProgressVerb": "model the rig",
+    "groupNoun": "expression",
+    "learnerRole": "rig animator"
+  },
+  "story": {
+    "briefTemplate": "In a tiny animation lab, an animator built a cagey squirrel. Each expression could use a combination of {quantity:eyebrow_shapes}: curious, worried, heroic, sneaky, and more. The team built another {quantity:eye_shapes} for the eyes. Another animator on the team added {quantity:mouth_shapes} for smirks and gasps.",
+    "causalEvent": "Each eye shape can pair with each eyebrow shape, and each of those can pair with each mouth shape.",
+    "closingNoteTemplate": "A few small shapes combined into {quantity:total_face_expressions} for the whole squirrel."
+  },
+  "quantities": [
+    {
+      "id": "eye_shapes",
+      "label": {
+        "child": "Eye shapes the team built",
+        "compact": "Eye shapes",
+        "lowercase": "the eye shapes"
+      },
+      "unit": "shapes",
+      "value": 8,
+      "visibility": "given",
+      "semanticRole": "smaller"
+    },
+    {
+      "id": "eyebrow_shapes",
+      "label": {
+        "child": "Eyebrow shapes for each expression",
+        "compact": "Eyebrow shapes",
+        "lowercase": "the eyebrow shapes"
+      },
+      "unit": "shapes",
+      "value": 12,
+      "visibility": "given",
+      "semanticRole": "difference"
+    },
+    {
+      "id": "eye_eyebrow_expressions",
+      "label": {
+        "child": "Eye-and-eyebrow combinations",
+        "compact": "Eye+eyebrow expressions",
+        "lowercase": "the eye-and-eyebrow combinations"
+      },
+      "unit": "expressions",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "eye_shapes",
+          "itemsPerGroup": "eyebrow_shapes"
+        }
+      },
+      "expectedValueForFixture": 96,
+      "semanticRole": "bigger"
+    },
+    {
+      "id": "mouth_shapes",
+      "label": {
+        "child": "Mouth expressions for smirks and gasps",
+        "compact": "Mouth expressions",
+        "lowercase": "the mouth expressions"
+      },
+      "unit": "expressions",
+      "value": 10,
+      "visibility": "given",
+      "semanticRole": "difference"
+    },
+    {
+      "id": "total_face_expressions",
+      "label": {
+        "child": "All squirrel face expressions",
+        "compact": "Face expressions",
+        "lowercase": "all the face expressions"
+      },
+      "unit": "expressions",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "eye_eyebrow_expressions",
+          "itemsPerGroup": "mouth_shapes"
+        }
+      },
+      "expectedValueForFixture": 960,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_eye_eyebrow_expressions",
+      "order": 1,
+      "prompt": "How many eye-and-eyebrow expression combinations could the team build?",
+      "reasoningPrompt": "Each eye shape can pair with each eyebrow shape. What operation models all the combinations?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "eye_shapes",
+        "itemsPerGroup": "eyebrow_shapes",
+        "total": "eye_eyebrow_expressions"
+      },
+      "goalQuantityId": "eye_eyebrow_expressions",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Split the combinations back into eyebrow shapes for each eye shape. Do you land on the eyebrow count?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_total_face_expressions",
+      "order": 2,
+      "prompt": "How many total squirrel expressions could the two animators build?",
+      "reasoningPrompt": "Each eye-and-eyebrow expression can pair with each mouth shape. What operation models all the face combinations?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "eye_eyebrow_expressions",
+        "itemsPerGroup": "mouth_shapes",
+        "total": "total_face_expressions"
+      },
+      "goalQuantityId": "total_face_expressions",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Split the total back by the mouth expressions. Do you reach the eye-and-eyebrow combinations?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_items_equals_groups"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_eye_eyebrow_expressions",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would just count the separate shapes, not every eye-and-eyebrow combination."
+    },
+    {
+      "stepId": "find_eye_eyebrow_expressions",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where some shapes were removed or retired."
+    },
+    {
+      "stepId": "find_eye_eyebrow_expressions",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each eye shape pairs with every eyebrow shape, so the combinations repeat."
+    },
+    {
+      "stepId": "find_eye_eyebrow_expressions",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the shapes into equal groups."
+    },
+    {
+      "stepId": "find_total_face_expressions",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would just count the two shape sets, not every full-face combination."
+    },
+    {
+      "stepId": "find_total_face_expressions",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where some expressions were removed or retired."
+    },
+    {
+      "stepId": "find_total_face_expressions",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each eye-and-eyebrow expression pairs with every mouth expression."
+    },
+    {
+      "stepId": "find_total_face_expressions",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the expressions into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the squirrel could make {quantity:total_face_expressions}",
+    "causalChain": [
+      "The team paired {quantity:eye_shapes} with {quantity:eyebrow_shapes}.",
+      "That made {value:eye_eyebrow_expressions} eye-and-eyebrow combinations.",
+      "Each one could pair with {quantity:mouth_shapes}, making {quantity:total_face_expressions} squirrel expressions."
+    ],
+    "calcFromStepId": "find_eye_eyebrow_expressions",
+    "totalVisualStepId": "find_total_face_expressions",
+    "dataQuestion": {
+      "prompt": "What does {quantity:eye_eyebrow_expressions} represent in the animation model?",
+      "correctQuantityId": "eye_eyebrow_expressions",
+      "distractorQuantityIds": [
+        "eyebrow_shapes",
+        "total_face_expressions"
+      ],
+      "correctFeedback": "Right. {value:eye_eyebrow_expressions} is the number of eye-and-eyebrow combinations before the mouth expressions are added.",
+      "incorrectFeedback": "That is the number of eye-and-eyebrow combinations: {value:eye_eyebrow_expressions}."
+    }
+  }
+}

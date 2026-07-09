@@ -1,0 +1,244 @@
+{
+  "id": "aikido-sliding-mat-rolls",
+  "metadata": {
+    "title": "Two Ukemi rolls in Aikido class",
+    "theme": "Aikido practice measurement",
+    "gradeBand": "3–4",
+    "factualStatus": "realistic",
+    "tags": [
+      "aikido",
+      "movement",
+      "comparison",
+      "part-whole"
+    ],
+    "curiosityNote": "A smooth Ukemi roll spreads contact across the body so momentum carries you along the mat."
+  },
+  "dimension": {
+    "kind": "distance",
+    "increaseLabel": "Farther",
+    "decreaseLabel": "Shorter",
+    "sameLabel": "The same",
+    "increaseLabelLower": "farther",
+    "decreaseLabelLower": "shorter",
+    "sameLabelLower": "the same",
+    "increaseSentence": "farther than before",
+    "decreaseSentence": "shorter than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Dojo mat note",
+    "startCta": "Open the dojo log",
+    "finishCta": "Close the dojo log",
+    "completionTitle": "Dojo log closed",
+    "stepProgressVerb": "model the mat rolls",
+    "groupNoun": "roll",
+    "learnerRole": "dojo modeler"
+  },
+  "story": {
+    "briefTemplate": "During Aikido class, Seraphina's initial Ukemi forward roll covered {quantity:first_ukemi_roll}. Then Sensei Sara showed her how to plant a second hand for a smoother roll. The new technique allowed Seraphina to roll {quantity:technique_gain} farther than the first attempt.",
+    "causalEvent": "Sensei Sara showed Seraphina a smoother Ukemi technique.",
+    "closingNoteTemplate": "The dojo log closed with {quantity:total_ukemi_distance} of sliding rolls."
+  },
+  "quantities": [
+    {
+      "id": "first_ukemi_roll",
+      "label": {
+        "child": "How far Seraphina's first roll traveled",
+        "compact": "First roll",
+        "lowercase": "the first roll"
+      },
+      "unit": "centimeters",
+      "value": 126,
+      "visibility": "given",
+      "semanticRole": "smaller"
+    },
+    {
+      "id": "technique_gain",
+      "label": {
+        "child": "How much farther the new technique carried the roll",
+        "compact": "Technique gain",
+        "lowercase": "the technique gain"
+      },
+      "unit": "centimeters",
+      "value": 38,
+      "visibility": "given",
+      "semanticRole": "difference"
+    },
+    {
+      "id": "second_ukemi_roll",
+      "label": {
+        "child": "How far Seraphina's second roll traveled",
+        "compact": "Second roll",
+        "lowercase": "the second roll"
+      },
+      "unit": "centimeters",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "smaller_plus_difference_equals_bigger",
+        "operands": {
+          "smaller": "first_ukemi_roll",
+          "difference": "technique_gain"
+        }
+      },
+      "expectedValueForFixture": 164,
+      "semanticRole": "bigger"
+    },
+    {
+      "id": "total_ukemi_distance",
+      "label": {
+        "child": "How far both rolls traveled altogether",
+        "compact": "Total distance",
+        "lowercase": "the total roll distance"
+      },
+      "unit": "centimeters",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "first_ukemi_roll",
+          "partB": "second_ukemi_roll"
+        }
+      },
+      "expectedValueForFixture": 290,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_second_ukemi_roll",
+      "order": 1,
+      "prompt": "How far did Seraphina roll on the second attempt?",
+      "reasoningPrompt": "The new technique helped Seraphina roll farther. Should the second roll be farther, shorter, or the same?",
+      "relationshipTemplateId": "additive_comparison_increase",
+      "roleToQuantityId": {
+        "smaller": "first_ukemi_roll",
+        "difference": "technique_gain",
+        "bigger": "second_ukemi_roll"
+      },
+      "goalQuantityId": "second_ukemi_roll",
+      "acceptedEquationFormIds": [
+        "smaller_plus_difference_equals_bigger"
+      ],
+      "preferredEquationFormId": "smaller_plus_difference_equals_bigger",
+      "expectedDirection": "increase",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Compare the second roll with the first. Do you recover the technique gain?",
+        "acceptedEquationFormIds": [
+          "bigger_minus_smaller_equals_difference",
+          "bigger_minus_difference_equals_smaller"
+        ]
+      }
+    },
+    {
+      "id": "find_total_ukemi_distance",
+      "order": 2,
+      "prompt": "How many centimeters did both Ukemi rolls cover altogether?",
+      "reasoningPrompt": "Seraphina's first roll and second roll are two distances. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "first_ukemi_roll",
+        "partB": "second_ukemi_roll",
+        "whole": "total_ukemi_distance"
+      },
+      "goalQuantityId": "total_ukemi_distance",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the second roll back out. Do you land on the first roll?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_second_ukemi_roll",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the new technique added {quantity:technique_gain} to Seraphina's first roll."
+    },
+    {
+      "stepId": "find_second_ukemi_roll",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where the roll came up {quantity:technique_gain} shorter instead of farther."
+    },
+    {
+      "stepId": "find_second_ukemi_roll",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:technique_gain} rolls like {label:first_ukemi_roll.lowercase}, how far would that reach?"
+    },
+    {
+      "stepId": "find_second_ukemi_roll",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:first_ukemi_roll.lowercase} into equal parts."
+    },
+    {
+      "stepId": "find_total_ukemi_distance",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:first_ukemi_roll.lowercase} and {label:second_ukemi_roll.lowercase} add up to the day's distance."
+    },
+    {
+      "stepId": "find_total_ukemi_distance",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:second_ukemi_roll} were rolled back instead of added."
+    },
+    {
+      "stepId": "find_total_ukemi_distance",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:second_ukemi_roll} rolls like {label:first_ukemi_roll.lowercase}, how far would that reach?"
+    },
+    {
+      "stepId": "find_total_ukemi_distance",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:first_ukemi_roll.lowercase} into equal parts."
+    }
+  ],
+  "recap": {
+    "headline": "Why the dojo log reached {quantity:total_ukemi_distance}",
+    "causalChain": [
+      "The new technique added {quantity:technique_gain} to Seraphina's roll.",
+      "The second roll reached {quantity:second_ukemi_roll}.",
+      "Both rolls together made {quantity:total_ukemi_distance}."
+    ],
+    "calcFromStepId": "find_second_ukemi_roll",
+    "totalVisualStepId": "find_total_ukemi_distance",
+    "dataQuestion": {
+      "prompt": "What does {quantity:technique_gain} represent in the roll comparison?",
+      "correctQuantityId": "technique_gain",
+      "distractorQuantityIds": [
+        "first_ukemi_roll",
+        "total_ukemi_distance"
+      ],
+      "correctFeedback": "Right. {quantity:technique_gain} is how much farther the second roll traveled.",
+      "incorrectFeedback": "That amount is the extra distance from the new technique: {quantity:technique_gain}."
+    }
+  }
+}

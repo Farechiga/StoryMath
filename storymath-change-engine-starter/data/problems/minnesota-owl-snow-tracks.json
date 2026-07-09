@@ -1,0 +1,251 @@
+{
+  "id": "minnesota-owl-snow-tracks",
+  "metadata": {
+    "title": "Owl tracks in the meadow snow",
+    "theme": "Minnesota winter wildlife tracking",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "winter",
+      "tracking",
+      "subtraction",
+      "part-whole"
+    ],
+    "curiosityNote": "Great gray owls hunt by sound and plunge through snow to reach voles below."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Meadow field note",
+    "startCta": "Open the field log",
+    "finishCta": "Close the field log",
+    "completionTitle": "Field log closed",
+    "stepProgressVerb": "model the meadow tracks",
+    "groupNoun": "track",
+    "learnerRole": "field tracker"
+  },
+  "story": {
+    "briefTemplate": "At the edge of a frozen Minnesota meadow, Seraphina and Grandma found {quantity:morning_tracks} in the snow. A gust of powdery wind swept over the trail and buried {quantity:buried_tracks}. Then a great gray owl dropped into the snow after a hidden vole and left {quantity:owl_wing_marks} nearby.",
+    "causalEvent": "A gust of powdery snow buried part of the trail.",
+    "closingNoteTemplate": "The field log closed with {quantity:total_wildlife_tracks} counted at the meadow's edge."
+  },
+  "quantities": [
+    {
+      "id": "morning_tracks",
+      "label": {
+        "child": "Animal tracks found in the morning",
+        "compact": "Morning tracks",
+        "lowercase": "the morning tracks"
+      },
+      "unit": "tracks",
+      "value": 213,
+      "visibility": "given"
+    },
+    {
+      "id": "buried_tracks",
+      "label": {
+        "child": "Tracks the snow gust buried",
+        "compact": "Buried tracks",
+        "lowercase": "the buried tracks"
+      },
+      "unit": "tracks",
+      "value": 68,
+      "visibility": "given"
+    },
+    {
+      "id": "visible_tracks",
+      "label": {
+        "child": "Tracks still visible after the gust",
+        "compact": "Visible tracks",
+        "lowercase": "the visible tracks"
+      },
+      "unit": "tracks",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "morning_tracks",
+          "change": "buried_tracks"
+        }
+      },
+      "expectedValueForFixture": 145
+    },
+    {
+      "id": "owl_wing_marks",
+      "label": {
+        "child": "Wing marks the owl left in the snow",
+        "compact": "Owl wing marks",
+        "lowercase": "the owl wing marks"
+      },
+      "unit": "tracks",
+      "value": 47,
+      "visibility": "given"
+    },
+    {
+      "id": "total_wildlife_tracks",
+      "label": {
+        "child": "Wildlife tracks in the field log",
+        "compact": "Total tracks",
+        "lowercase": "the field log tracks"
+      },
+      "unit": "tracks",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "visible_tracks",
+          "partB": "owl_wing_marks"
+        }
+      },
+      "expectedValueForFixture": 192,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_visible_tracks",
+      "order": 1,
+      "prompt": "How many tracks were still visible after the gust?",
+      "reasoningPrompt": "After the snow covered part of the trail, did the visible track count go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "morning_tracks",
+        "change": "buried_tracks",
+        "end": "visible_tracks"
+      },
+      "goalQuantityId": "visible_tracks",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the buried tracks back. Do you land on the morning count?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_total_wildlife_tracks",
+      "order": 2,
+      "prompt": "How many total wildlife tracks remained?",
+      "reasoningPrompt": "The visible trail tracks and the owl wing marks are both in the field log. How do they relate to the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "visible_tracks",
+        "partB": "owl_wing_marks",
+        "whole": "total_wildlife_tracks"
+      },
+      "goalQuantityId": "total_wildlife_tracks",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the owl marks back out. Do you reach the visible trail tracks?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_visible_tracks",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:buried_tracks} of fresh prints arrived instead of being buried."
+    },
+    {
+      "stepId": "find_visible_tracks",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the gust buried {quantity:buried_tracks}, so those marks leave the trail."
+    },
+    {
+      "stepId": "find_visible_tracks",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:buried_tracks} patches like {label:morning_tracks.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_visible_tracks",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:morning_tracks.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_wildlife_tracks",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:visible_tracks.lowercase} and {label:owl_wing_marks.lowercase} join in the field log."
+    },
+    {
+      "stepId": "find_total_wildlife_tracks",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:owl_wing_marks} were brushed away instead of added."
+    },
+    {
+      "stepId": "find_total_wildlife_tracks",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:owl_wing_marks} groups like {label:visible_tracks.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_total_wildlife_tracks",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:visible_tracks.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the field log ended with {quantity:total_wildlife_tracks}",
+    "causalChain": [
+      "The wind buried {quantity:buried_tracks}.",
+      "That left {quantity:visible_tracks} visible.",
+      "The owl added {quantity:owl_wing_marks}, making {quantity:total_wildlife_tracks} in the field log."
+    ],
+    "calcFromStepId": "find_visible_tracks",
+    "totalVisualStepId": "find_total_wildlife_tracks",
+    "dataQuestion": {
+      "prompt": "What does {quantity:buried_tracks} represent in the first model?",
+      "correctQuantityId": "buried_tracks",
+      "distractorQuantityIds": [
+        "morning_tracks",
+        "total_wildlife_tracks"
+      ],
+      "correctFeedback": "Right. {quantity:buried_tracks} is the part of the trail the snow covered.",
+      "incorrectFeedback": "That amount is the covered part of the trail: {quantity:buried_tracks}."
+    }
+  }
+}

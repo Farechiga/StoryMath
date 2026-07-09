@@ -1,0 +1,215 @@
+{
+  "id": "nasa-perseverance-wheel-slip-v2",
+  "metadata": {
+    "title": "Perseverance’s Sandy Tuesday",
+    "theme": "Mars rover mission",
+    "gradeBand": "2–3",
+    "factualStatus": "fictionalized",
+    "tags": ["NASA-inspired", "comparison", "part-part-whole", "two-step", "bar-model"],
+    "curiosityNote": "This is a fictionalized math mission inspired by Mars rover exploration; it is not a real NASA daily drive log."
+  },
+
+  "dimension": {
+    "kind": "distance",
+    "increaseLabel": "Farther",
+    "decreaseLabel": "Shorter",
+    "sameLabel": "The same",
+    "increaseLabelLower": "farther",
+    "decreaseLabelLower": "shorter",
+    "sameLabelLower": "the same",
+    "increaseSentence": "farther than before",
+    "decreaseSentence": "shorter than before"
+  },
+
+  "storyChrome": {
+    "openingEyebrow": "Rover field note",
+    "startCta": "Start the rover log",
+    "finishCta": "Close the rover log",
+    "completionTitle": "Rover log closed",
+    "stepProgressVerb": "model the rover problem",
+    "groupNoun": "drive",
+    "learnerRole": "mission modeler"
+  },
+
+  "story": {
+    "briefTemplate": "NASA’s Mars rover Perseverance was mapping pale layers of rock near an ancient Martian river delta. It drove {quantity:monday_distance} on Monday. Overnight, one wheel slipped into soft sand, so on Tuesday it drove {value:tuesday_difference} fewer meters while engineers chose a safer path.",
+    "causalEvent": "One wheel slipped into soft sand.",
+    "closingNoteTemplate": "The wheel slipped, so Tuesday had to be shorter — you took away the amount it was shorter, then combined both days, and proved each result backward."
+  },
+
+  "quantities": [
+    {
+      "id": "monday_distance",
+      "semanticRole": "bigger",
+      "label": {
+        "child": "Distance Perseverance traveled on Monday",
+        "compact": "Monday distance",
+        "lowercase": "Monday’s distance"
+      },
+      "unit": "meters",
+      "value": 384,
+      "visibility": "given"
+    },
+    {
+      "id": "tuesday_difference",
+      "semanticRole": "difference",
+      "label": {
+        "child": "How much shorter Tuesday was than Monday",
+        "compact": "Tuesday was shorter by",
+        "lowercase": "the amount Tuesday was shorter"
+      },
+      "unit": "meters",
+      "value": 128,
+      "visibility": "given"
+    },
+    {
+      "id": "tuesday_distance",
+      "semanticRole": "smaller",
+      "label": {
+        "child": "Distance Perseverance traveled on Tuesday",
+        "compact": "Tuesday distance",
+        "lowercase": "Tuesday’s distance"
+      },
+      "unit": "meters",
+      "value": null,
+      "derived": {
+        "formulaId": "bigger_minus_difference_equals_smaller",
+        "operands": { "bigger": "monday_distance", "difference": "tuesday_difference" }
+      },
+      "expectedValueForFixture": 256,
+      "visibility": "find"
+    },
+    {
+      "id": "two_day_total",
+      "semanticRole": "whole",
+      "label": {
+        "child": "Distance Perseverance traveled over both days",
+        "compact": "Two-day total",
+        "lowercase": "the two-day total"
+      },
+      "unit": "meters",
+      "value": null,
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": { "partA": "monday_distance", "partB": "tuesday_distance" }
+      },
+      "expectedValueForFixture": 640,
+      "visibility": "revealed_after_step"
+    }
+  ],
+
+  "steps": [
+    {
+      "id": "find_tuesday_distance",
+      "order": 1,
+      "prompt": "How far did Perseverance travel on Tuesday?",
+      "reasoningPrompt": "After the wheel slipped, how did Tuesday’s distance change?",
+      "relationshipTemplateId": "additive_comparison_decrease",
+      "roleToQuantityId": {
+        "bigger": "monday_distance",
+        "difference": "tuesday_difference",
+        "smaller": "tuesday_distance"
+      },
+      "goalQuantityId": "tuesday_distance",
+      "acceptedEquationFormIds": ["bigger_minus_difference_equals_smaller"],
+      "preferredEquationFormId": "bigger_minus_difference_equals_smaller",
+      "expectedDirection": "decrease",
+      "operatorOptions": ["+", "-", "×", "÷"],
+      "backwardCheck": {
+        "prompt": "Can you prove that Tuesday’s distance fits the story?",
+        "acceptedEquationFormIds": ["smaller_plus_difference_equals_bigger"]
+      }
+    },
+    {
+      "id": "find_two_day_total",
+      "order": 2,
+      "prompt": "How far did Perseverance travel over both days?",
+      "reasoningPrompt": "Monday and Tuesday are two separate distances — how do they relate to the two-day trip?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "monday_distance",
+        "partB": "tuesday_distance",
+        "whole": "two_day_total"
+      },
+      "goalQuantityId": "two_day_total",
+      "acceptedEquationFormIds": ["part_a_plus_part_b_equals_whole"],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": ["+", "-", "×", "÷"],
+      "backwardCheck": {
+        "prompt": "Can you use the total to check the daily distances?",
+        "acceptedEquationFormIds": ["whole_minus_part_b_equals_part_a"]
+      }
+    }
+  ],
+
+  "operatorExperiments": [
+    {
+      "stepId": "find_tuesday_distance",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "A farther Tuesday could fit a different mission: perhaps Perseverance found smoother ground or had more available battery power. But this story says the wheel slipped and Tuesday was shorter."
+    },
+    {
+      "stepId": "find_tuesday_distance",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the wheel slipping into sand meant Perseverance could travel less distance on Tuesday."
+    },
+    {
+      "stepId": "find_tuesday_distance",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "shortReaction": "That’s much farther than Monday.",
+      "alternateWorldTemplate": "This would fit a different story: if Perseverance drove {label:monday_distance.lowercase} for {value:tuesday_difference} days, how far would it travel altogether?"
+    },
+    {
+      "stepId": "find_tuesday_distance",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Division could answer a different question: how many {value:tuesday_difference}-meter sections fit into Monday’s drive? It does not tell Tuesday’s travel distance."
+    },
+    {
+      "stepId": "find_two_day_total",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the question because the two-day total includes both separate daily distances."
+    },
+    {
+      "stepId": "find_two_day_total",
+      "operator": "-",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "That is a useful comparison question, but the mission asks for the distance over both days together."
+    },
+    {
+      "stepId": "find_two_day_total",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Multiplication would fit a repeated-groups situation, not two different daily distances being added together."
+    },
+    {
+      "stepId": "find_two_day_total",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "That is not a total. The question asks us to combine Monday and Tuesday."
+    }
+  ],
+
+  "recap": {
+    "headline": "Why Tuesday was shorter",
+    "causalChain": [
+      "Wheel slipped into soft sand",
+      "Less useful driving time",
+      "Tuesday traveled fewer meters than Monday"
+    ],
+    "calcFromStepId": "find_tuesday_distance",
+    "totalVisualStepId": "find_two_day_total",
+    "dataQuestion": {
+      "prompt": "What does the {label:monday_distance.compact} bar being longer than the {label:tuesday_distance.compact} bar represent?",
+      "correctQuantityId": "tuesday_difference",
+      "distractorQuantityIds": ["two_day_total", "monday_distance"],
+      "correctFeedback": "Right — that extra length is the difference: how much farther Perseverance drove on Monday than on Tuesday.",
+      "incorrectFeedback": "That extra length is the difference between the two daily distances, not a total."
+    }
+  }
+}

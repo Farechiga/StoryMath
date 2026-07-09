@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Generative ornament layer + dev gallery.
+   The page layer is a fixed, inert, right-column atmosphere that sits behind
+   all content; the gallery styles are dev-only.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Page atmosphere layer
+   -------------------------------------------------------------------------- */
+
+.ornament {
+  /* A quiet sculptural ornament in the UPPER-right of the imaginary page, anchored
+     to the centred content area (not the browser edge). Centre the box on the page
+     like .app-shell, then occupy only its right column. Anchored near the top (just
+     under the masthead / "1/2 model the rover problem" zone) with a bounded height,
+     so it sits high and never drifts too low. Whitespace on every side; it sits
+     behind all content (embedded, never a foreground object). */
+  position: fixed;
+  /* Sit high — just under the masthead / "1/2 model the rover problem" zone. */
+  top: clamp(130px, 13vh, 178px);
+  /* Taller box gives the archipelago vertical room to fan out. */
+  height: clamp(340px, 54vh, 580px);
+  left: 50%;
+  /* Right column of the ~1080px content area: push right of centre, widened for
+     more lateral spread but capped so the box stays inside the content column
+     (never against the browser edge). */
+  margin-left: clamp(48px, 13vw, 180px);
+  width: clamp(210px, 26vw, 350px);
+  z-index: -1; /* above the pearl base (also -1, earlier in DOM), below content */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The svg is keyed by seed in React, so it remounts each screen — this one-shot
+   fade then replays, giving a gentle cross-in as the drift changes. Never loops. */
+.ornament__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: ornament-in 900ms var(--ease) both;
+}
+
+@keyframes ornament-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Below the content breakpoint the centred column widens to fill the viewport,
+   so the ornament would sit under the text — retire it to stay out of the way. */
+@media (max-width: 900px) {
+  .ornament {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ornament__svg {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Dev gallery (route: #ornament)
+   -------------------------------------------------------------------------- */
+
+.orn-gallery {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 56px);
+  color: var(--ink);
+}
+
+.orn-gallery__head h1 {
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+}
+
+.orn-gallery__head p {
+  margin-top: var(--sp-3);
+  max-width: 60ch;
+  color: var(--ink-muted);
+}
+
+.orn-gallery code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--ink-soft);
+}
+
+.orn-section {
+  margin-top: var(--sp-12);
+}
+
+.orn-section > h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.orn-section__note {
+  margin-top: var(--sp-2);
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+}
+
+.orn-row {
+  margin-top: var(--sp-8);
+}
+
+.orn-row__label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.orn-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--hairline-strong);
+}
+
+.orn-row__meta {
+  margin-left: var(--sp-2);
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.orn-grid {
+  margin-top: var(--sp-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sp-4);
+}
+
+.orn-card {
+  margin: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface-strong);
+  overflow: hidden;
+}
+
+.orn-card__svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(160deg, var(--white-cool), var(--white-mint));
+}
+
+.orn-card--tall .orn-card__svg {
+  aspect-ratio: 3 / 4;
+}
+
+.orn-card__cap {
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--hairline);
+}

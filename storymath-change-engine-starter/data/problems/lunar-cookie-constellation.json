@@ -1,0 +1,251 @@
+{
+  "id": "lunar-cookie-constellation",
+  "metadata": {
+    "title": "Cookies for the lunar landing watch party",
+    "theme": "School space watch party",
+    "gradeBand": "2–3",
+    "factualStatus": "realistic",
+    "tags": [
+      "cooking",
+      "space",
+      "subtraction",
+      "part-whole"
+    ],
+    "curiosityNote": "People trace constellations by connecting bright stars into remembered patterns."
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Watch-party kitchen note",
+    "startCta": "Open the cookie log",
+    "finishCta": "Close the cookie log",
+    "completionTitle": "Cookie log closed",
+    "stepProgressVerb": "model the cookie trays",
+    "groupNoun": "cookie",
+    "learnerRole": "kitchen modeler"
+  },
+  "story": {
+    "briefTemplate": "The principal brought {quantity:star_cookies_start} for students to enjoy at the NASA lunar landing watch party. Before guests arrived, the middle school classes used {quantity:constellation_cookies} to build a cookie constellation map on blue paper. The science teacher brought an additional tray of {quantity:rocket_cookies}.",
+    "causalEvent": "The middle school classes moved some cookies into a constellation map.",
+    "closingNoteTemplate": "The cookie log closed with {quantity:total_party_cookies} ready for the watch party."
+  },
+  "quantities": [
+    {
+      "id": "star_cookies_start",
+      "label": {
+        "child": "Star cookies the principal brought",
+        "compact": "Star cookies",
+        "lowercase": "the star cookies"
+      },
+      "unit": "cookies",
+      "value": 184,
+      "visibility": "given"
+    },
+    {
+      "id": "constellation_cookies",
+      "label": {
+        "child": "Cookies used for the constellation map",
+        "compact": "Constellation cookies",
+        "lowercase": "the constellation cookies"
+      },
+      "unit": "cookies",
+      "value": 76,
+      "visibility": "given"
+    },
+    {
+      "id": "star_cookies_remaining",
+      "label": {
+        "child": "Star cookies still ready to eat",
+        "compact": "Ready star cookies",
+        "lowercase": "the ready star cookies"
+      },
+      "unit": "cookies",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "star_cookies_start",
+          "change": "constellation_cookies"
+        }
+      },
+      "expectedValueForFixture": 108
+    },
+    {
+      "id": "rocket_cookies",
+      "label": {
+        "child": "Rocket cookies the science teacher brought",
+        "compact": "Rocket cookies",
+        "lowercase": "the rocket cookies"
+      },
+      "unit": "cookies",
+      "value": 58,
+      "visibility": "given"
+    },
+    {
+      "id": "total_party_cookies",
+      "label": {
+        "child": "Cookies ready for the watch party",
+        "compact": "Total cookies",
+        "lowercase": "the watch-party cookies"
+      },
+      "unit": "cookies",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "part_a_plus_part_b_equals_whole",
+        "operands": {
+          "partA": "star_cookies_remaining",
+          "partB": "rocket_cookies"
+        }
+      },
+      "expectedValueForFixture": 166,
+      "semanticRole": "whole"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_star_cookies_remaining",
+      "order": 1,
+      "prompt": "How many star cookies were still ready to eat after the constellation map was built?",
+      "reasoningPrompt": "After the middle school classes moved cookies into the constellation map, did the ready-to-eat star cookie count go up or down?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "star_cookies_start",
+        "change": "constellation_cookies",
+        "end": "star_cookies_remaining"
+      },
+      "goalQuantityId": "star_cookies_remaining",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Move the constellation cookies back. Do you reach the starting tray?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    },
+    {
+      "id": "find_total_party_cookies",
+      "order": 2,
+      "prompt": "How many cookies were ready for the watch party altogether?",
+      "reasoningPrompt": "The remaining star cookies and the rocket cookies are both ready for the party. How do they make the total?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "star_cookies_remaining",
+        "partB": "rocket_cookies",
+        "whole": "total_party_cookies"
+      },
+      "goalQuantityId": "total_party_cookies",
+      "acceptedEquationFormIds": [
+        "part_a_plus_part_b_equals_whole"
+      ],
+      "preferredEquationFormId": "part_a_plus_part_b_equals_whole",
+      "expectedDirection": "combine",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Take the rocket cookies back out. Do you reach the ready star cookies?",
+        "acceptedEquationFormIds": [
+          "whole_minus_part_b_equals_part_a"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_star_cookies_remaining",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a different story where {quantity:constellation_cookies} more cookies were slid onto the tray instead."
+    },
+    {
+      "stepId": "find_star_cookies_remaining",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the classes moved {quantity:constellation_cookies} into the constellation map, so they leave the tray."
+    },
+    {
+      "stepId": "find_star_cookies_remaining",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:constellation_cookies} trays like {label:star_cookies_start.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_star_cookies_remaining",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:star_cookies_start.lowercase} into equal groups."
+    },
+    {
+      "stepId": "find_total_party_cookies",
+      "operator": "+",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: {label:star_cookies_remaining.lowercase} and {label:rocket_cookies.lowercase} are set out together."
+    },
+    {
+      "stepId": "find_total_party_cookies",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a different story where {quantity:rocket_cookies} were carried away instead of added."
+    },
+    {
+      "stepId": "find_total_party_cookies",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This would fit a different question: if there were {value:rocket_cookies} groups like {label:star_cookies_remaining.lowercase}, how many would there be?"
+    },
+    {
+      "stepId": "find_total_party_cookies",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This would fit a different question about sharing {label:star_cookies_remaining.lowercase} into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the watch party had {quantity:total_party_cookies}",
+    "causalChain": [
+      "The classes used {quantity:constellation_cookies} for the constellation map.",
+      "That left {quantity:star_cookies_remaining} star cookies ready to eat.",
+      "The science teacher added {quantity:rocket_cookies}, making {quantity:total_party_cookies}."
+    ],
+    "calcFromStepId": "find_star_cookies_remaining",
+    "totalVisualStepId": "find_total_party_cookies",
+    "dataQuestion": {
+      "prompt": "What does {quantity:constellation_cookies} represent in the first model?",
+      "correctQuantityId": "constellation_cookies",
+      "distractorQuantityIds": [
+        "rocket_cookies",
+        "total_party_cookies"
+      ],
+      "correctFeedback": "Right. {quantity:constellation_cookies} is the part the classes moved into the constellation map.",
+      "incorrectFeedback": "That amount is the part moved into the constellation map: {quantity:constellation_cookies}."
+    }
+  }
+}
