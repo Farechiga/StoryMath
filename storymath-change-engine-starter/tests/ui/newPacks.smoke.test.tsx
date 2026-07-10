@@ -26,7 +26,7 @@ describe("mars dust-storm pack plays on the shared App", () => {
     render(<App problem={problem} />);
 
     expect(screen.getByText(/Rover field note/i)).toBeTruthy(); // storyChrome
-    expect(screen.getByText(/Dust-Storm Photo Target/i)).toBeTruthy(); // title
+    expect(screen.getByText(problem.metadata.title)).toBeTruthy(); // title (read from pack)
     // Story prose is field-merged from tokens (171 morning photos), no NASA rover chrome.
     expect(screen.getByText(/171 photos/i)).toBeTruthy();
 

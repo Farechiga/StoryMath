@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import {
   applyOperator,
   evaluateEquation,
@@ -55,6 +55,25 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
   const rightQuantity = getQuantity(problem, rightId);
 
   const phase = state.phase;
+
+  // Within-problem step navigation (a pure view concern, not game state): the
+  // child can page back to the beginning and forward again, but never past the
+  // furthest step they have reached, so they can never skip into an unsolved step.
+  const [viewStepIndex, setViewStepIndex] = useState(0);
+  useEffect(() => {
+    // Reaching a new step (or resetting) focuses that step.
+    setViewStepIndex(state.currentStepIndex);
+  }, [state.currentStepIndex]);
+  const furthestStepIndex = state.currentStepIndex;
+  const isReviewing = viewStepIndex < furthestStepIndex;
+  const viewStep = problem.steps[viewStepIndex]!;
+  const inStepPhase =
+    phase === "relationship_building" ||
+    phase === "operator_experiment" ||
+    phase === "arithmetic_entry" ||
+    phase === "step_confirmed" ||
+    phase === "backward_check";
+  const showNav = furthestStepIndex > 0 && inStepPhase;
 
   // The ornament's mood follows the story's theme; its seed follows the screen.
   const ornamentVariant = useMemo(
@@ -126,6 +145,20 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
 
         <MissionBrief problem={problem} firstStep={problem.steps[0]!} phase={phase} onBegin={() => dispatch({ type: "BEGIN" })} />
 
+        {showNav && (
+          <StepNav
+            viewIndex={viewStepIndex}
+            furthestIndex={furthestStepIndex}
+            stepCount={state.stepCount}
+            onBack={() => setViewStepIndex(0)}
+            onForward={() => setViewStepIndex(furthestStepIndex)}
+          />
+        )}
+
+        {isReviewing ? (
+          <StepReview problem={problem} step={viewStep} record={state.completedSteps[viewStep.id]!} />
+        ) : (
+        <>
         {/* Context: results established in earlier steps stay visible. */}
         {problem.steps
           .filter((s, i) => i < state.currentStepIndex && state.completedSteps[s.id])
@@ -223,6 +256,8 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
               />
             )}
           </section>
+        )}
+        </>
         )}
 
         {/* --- Stage 9: Causal recap --- */}
@@ -463,6 +498,75 @@ function EstablishedContext({
       </p>
       <ModelCardView problem={problem} step={step} record={record} />
     </section>
+  );
+}
+
+/** Back/forward navigation between the steps the child has already reached. */
+function StepNav({
+  viewIndex,
+  furthestIndex,
+  stepCount,
+  onBack,
+  onForward,
+}: {
+  viewIndex: number;
+  furthestIndex: number;
+  stepCount: number;
+  onBack: () => void;
+  onForward: () => void;
+}) {
+  const atStart = viewIndex === 0;
+  const atLatest = viewIndex === furthestIndex;
+  return (
+    <nav className="stepnav" aria-label="Move between the steps of this problem">
+      <button
+        type="button"
+        className="stepnav__btn"
+        onClick={onBack}
+        disabled={atStart}
+        aria-label="Go back to the beginning"
+      >
+        <span aria-hidden="true">◀</span> Beginning
+      </button>
+      <span className="stepnav__pos">
+        {atLatest ? "" : "Reviewing "}Step {viewIndex + 1} of {stepCount}
+      </span>
+      <button
+        type="button"
+        className="stepnav__btn"
+        onClick={onForward}
+        disabled={atLatest}
+        aria-label="Go forward to your current step"
+      >
+        Current step <span aria-hidden="true">▶</span>
+      </button>
+    </nav>
+  );
+}
+
+/** Read-only review of an already-solved earlier step (its equation + model). */
+function StepReview({
+  problem,
+  step,
+  record,
+}: {
+  problem: ProblemInstance;
+  step: ProblemStep;
+  record: { operator: Operator; answer: number; matchedEquationFormId?: string };
+}) {
+  return (
+    <>
+      <h2 className="stage-title step-question">
+        Step {step.order}: {step.prompt}
+      </h2>
+      <section className="panel panel--muted established">
+        <p className="established__label">
+          Step {step.order}, <span className="established__solved">solved</span>
+        </p>
+        <ModelCardView problem={problem} step={step} record={record} />
+        <BarFigure problem={problem} step={step} />
+      </section>
+    </>
   );
 }
 

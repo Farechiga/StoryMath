@@ -274,6 +274,34 @@
 }
 .given__v--find { color: var(--accent); }
 
+/* --- Within-problem step navigation ----------------------------------------- */
+.stepnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0 var(--sp-6);
+}
+.stepnav__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  font-weight: 560;
+  font-size: 0.9rem;
+}
+.stepnav__btn:hover:not(:disabled) { border-color: var(--hairline-strong); color: var(--ink); }
+.stepnav__btn:disabled { opacity: 0.4; cursor: default; }
+.stepnav__pos {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
 /* --- Choice grid (recap data question) -------------------------------------- */
 .choice-grid {
   display: grid;
