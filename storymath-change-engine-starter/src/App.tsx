@@ -73,7 +73,11 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
     phase === "arithmetic_entry" ||
     phase === "step_confirmed" ||
     phase === "backward_check";
-  const showNav = furthestStepIndex > 0 && inStepPhase;
+  // Visible for the whole problem once the child starts working, so the controls
+  // are always discoverable; each button is simply disabled at its own limit
+  // (Back at the beginning, Forward at the furthest step reached). Only shown for
+  // multi-step problems, where there is somewhere to navigate.
+  const showNav = inStepPhase && state.stepCount > 1;
 
   // The ornament's mood follows the story's theme; its seed follows the screen.
   const ornamentVariant = useMemo(

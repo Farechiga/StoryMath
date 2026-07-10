@@ -22,6 +22,10 @@ describe("within-problem step navigation (NASA pack)", () => {
 
     // Solve step 1 (384 - 128 = 256) and advance to step 2.
     await user.click(screen.getByRole("button", { name: /Start the rover log/i }));
+    // Nav is visible from the first step; both directions are disabled at the start.
+    expect(
+      (screen.getByRole("button", { name: /back to the beginning/i }) as HTMLButtonElement).disabled,
+    ).toBe(true);
     await user.click(await screen.findByRole("button", { name: "Try -" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
     await digit(user, "Answer for .*Tuesday", "hundreds", "2");
