@@ -10,22 +10,44 @@ type U = ReturnType<typeof userEvent.setup>;
 const digit = (user: U, name: string, place: string, value: string) =>
   user.type(screen.getByRole("textbox", { name: new RegExp(`${name}.*${place} place`, "i") }), value);
 
+const backBtn = () =>
+  screen.getByRole("button", { name: /back to the beginning/i }) as HTMLButtonElement;
+const fwdBtn = () =>
+  screen.getByRole("button", { name: /forward to your current step/i }) as HTMLButtonElement;
+
 /**
- * Within-problem navigation: once the child reaches step 2, a Back button jumps
- * to the beginning to review earlier steps and a Forward button returns to the
- * current step. Forward never reaches a step the child has not yet reached.
+ * Within-problem navigation: Back goes to the beginning to re-read the story and
+ * review solved steps; Forward returns to the step being worked. Both buttons do
+ * something from step 1, and Forward never reveals an unsolved step.
  */
-describe("within-problem step navigation (NASA pack)", () => {
-  it("reviews the first step and returns to the current one", async () => {
+describe("within-problem navigation (NASA pack)", () => {
+  it("Back reviews the beginning from step 1, and Forward resumes work", async () => {
     const user = userEvent.setup();
     render(<App />);
+    await user.click(screen.getByRole("button", { name: /Start the rover log/i }));
 
+    // Step 1: builder is showing; Back is available, Forward is at the current step.
+    expect(await screen.findByRole("button", { name: "Try -" })).toBeTruthy();
+    expect(backBtn().disabled).toBe(false);
+    expect(fwdBtn().disabled).toBe(true);
+
+    // Back → the beginning: the builder is hidden and the buttons swap availability.
+    await user.click(backBtn());
+    expect(screen.getByText(/Reviewing the beginning/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Try -" })).toBeNull();
+    expect(backBtn().disabled).toBe(true);
+    expect(fwdBtn().disabled).toBe(false);
+
+    // Forward → resume step 1.
+    await user.click(fwdBtn());
+    expect(await screen.findByRole("button", { name: "Try -" })).toBeTruthy();
+  });
+
+  it("from step 2, Back reviews the already-solved step 1", async () => {
+    const user = userEvent.setup();
+    render(<App />);
     // Solve step 1 (384 - 128 = 256) and advance to step 2.
     await user.click(screen.getByRole("button", { name: /Start the rover log/i }));
-    // Nav is visible from the first step; both directions are disabled at the start.
-    expect(
-      (screen.getByRole("button", { name: /back to the beginning/i }) as HTMLButtonElement).disabled,
-    ).toBe(true);
     await user.click(await screen.findByRole("button", { name: "Try -" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
     await digit(user, "Answer for .*Tuesday", "hundreds", "2");
@@ -34,25 +56,16 @@ describe("within-problem step navigation (NASA pack)", () => {
     await user.click(screen.getByRole("button", { name: /Enter answer/i }));
     await user.click(await screen.findByRole("button", { name: /Next step/i }));
 
-    // Step 2 is active: the builder is showing and nav is available.
     expect(await screen.findByRole("button", { name: "Try +" })).toBeTruthy();
-    const back = screen.getByRole("button", { name: /back to the beginning/i }) as HTMLButtonElement;
-    const fwd = screen.getByRole("button", { name: /forward to your current step/i }) as HTMLButtonElement;
-    expect(back.disabled).toBe(false);
-    expect(fwd.disabled).toBe(true); // already at the furthest step
 
-    // Go back to the beginning → step 1 review; the step-2 builder is hidden.
-    await user.click(back);
-    expect(screen.getByText(/Reviewing Step 1 of 2/i)).toBeTruthy();
+    // Back → review shows solved step 1; the step-2 builder is hidden.
+    await user.click(backBtn());
+    expect(screen.getByText(/Step 1,/i)).toBeTruthy(); // "Step 1, solved"
     expect(screen.getByText(/How far did Perseverance travel on Tuesday/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Try +" })).toBeNull();
-    expect(
-      (screen.getByRole("button", { name: /back to the beginning/i }) as HTMLButtonElement).disabled,
-    ).toBe(true);
 
-    // Forward returns to the current step → the builder is back.
-    await user.click(screen.getByRole("button", { name: /forward to your current step/i }));
+    // Forward → back to step 2's active work.
+    await user.click(fwdBtn());
     expect(await screen.findByRole("button", { name: "Try +" })).toBeTruthy();
-    expect(screen.queryByText(/Reviewing Step/i)).toBeNull();
   });
 });

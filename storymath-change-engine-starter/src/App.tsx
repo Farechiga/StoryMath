@@ -56,28 +56,25 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
 
   const phase = state.phase;
 
-  // Within-problem step navigation (a pure view concern, not game state): the
-  // child can page back to the beginning and forward again, but never past the
-  // furthest step they have reached, so they can never skip into an unsolved step.
-  const [viewStepIndex, setViewStepIndex] = useState(0);
+  // Within-problem navigation (a pure view concern, not game state): Back takes
+  // the child to the beginning to re-read the story and review already-solved
+  // steps; Forward returns to the step they are working on. It never reveals an
+  // unsolved step.
+  const [reviewing, setReviewing] = useState(false);
   useEffect(() => {
-    // Reaching a new step (or resetting) focuses that step.
-    setViewStepIndex(state.currentStepIndex);
+    // Reaching a new step (or resetting) returns to active work.
+    setReviewing(false);
   }, [state.currentStepIndex]);
-  const furthestStepIndex = state.currentStepIndex;
-  const isReviewing = viewStepIndex < furthestStepIndex;
-  const viewStep = problem.steps[viewStepIndex]!;
   const inStepPhase =
     phase === "relationship_building" ||
     phase === "operator_experiment" ||
     phase === "arithmetic_entry" ||
     phase === "step_confirmed" ||
     phase === "backward_check";
-  // Visible for the whole problem once the child starts working, so the controls
-  // are always discoverable; each button is simply disabled at its own limit
-  // (Back at the beginning, Forward at the furthest step reached). Only shown for
-  // multi-step problems, where there is somewhere to navigate.
   const showNav = inStepPhase && state.stepCount > 1;
+  const solvedEarlierSteps = problem.steps.filter(
+    (s, i) => i < state.currentStepIndex && state.completedSteps[s.id],
+  );
 
   // The ornament's mood follows the story's theme; its seed follows the screen.
   const ornamentVariant = useMemo(
@@ -151,16 +148,16 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
 
         {showNav && (
           <StepNav
-            viewIndex={viewStepIndex}
-            furthestIndex={furthestStepIndex}
+            reviewing={reviewing}
+            stepIndex={state.currentStepIndex}
             stepCount={state.stepCount}
-            onBack={() => setViewStepIndex(0)}
-            onForward={() => setViewStepIndex(furthestStepIndex)}
+            onBack={() => setReviewing(true)}
+            onForward={() => setReviewing(false)}
           />
         )}
 
-        {isReviewing ? (
-          <StepReview problem={problem} step={viewStep} record={state.completedSteps[viewStep.id]!} />
+        {reviewing ? (
+          <ReviewView problem={problem} steps={solvedEarlierSteps} completedSteps={state.completedSteps} />
         ) : (
         <>
         {/* Context: results established in earlier steps stay visible. */}
@@ -505,46 +502,74 @@ function EstablishedContext({
   );
 }
 
-/** Back/forward navigation between the steps the child has already reached. */
+/**
+ * Back/forward navigation within a problem: Back goes to the beginning (re-read
+ * the story, review solved steps); Forward returns to the step being worked.
+ */
 function StepNav({
-  viewIndex,
-  furthestIndex,
+  reviewing,
+  stepIndex,
   stepCount,
   onBack,
   onForward,
 }: {
-  viewIndex: number;
-  furthestIndex: number;
+  reviewing: boolean;
+  stepIndex: number;
   stepCount: number;
   onBack: () => void;
   onForward: () => void;
 }) {
-  const atStart = viewIndex === 0;
-  const atLatest = viewIndex === furthestIndex;
   return (
-    <nav className="stepnav" aria-label="Move between the steps of this problem">
+    <nav className="stepnav" aria-label="Move between the beginning and your current step">
       <button
         type="button"
         className="stepnav__btn"
         onClick={onBack}
-        disabled={atStart}
+        disabled={reviewing}
         aria-label="Go back to the beginning"
       >
         <span aria-hidden="true">◀</span> Beginning
       </button>
       <span className="stepnav__pos">
-        {atLatest ? "" : "Reviewing "}Step {viewIndex + 1} of {stepCount}
+        {reviewing ? "Reviewing the beginning" : `Step ${stepIndex + 1} of ${stepCount}`}
       </span>
       <button
         type="button"
         className="stepnav__btn"
         onClick={onForward}
-        disabled={atLatest}
+        disabled={!reviewing}
         aria-label="Go forward to your current step"
       >
         Current step <span aria-hidden="true">▶</span>
       </button>
     </nav>
+  );
+}
+
+/** The "beginning" review: the story stays above; solved steps are shown here. */
+function ReviewView({
+  problem,
+  steps,
+  completedSteps,
+}: {
+  problem: ProblemInstance;
+  steps: ProblemStep[];
+  completedSteps: Record<string, { operator: Operator; answer: number; matchedEquationFormId?: string }>;
+}) {
+  if (steps.length === 0) {
+    return (
+      <p className="prose stepnav__note">
+        You&rsquo;re back at the beginning. The story is above. Press{" "}
+        <b>Current step</b> to keep working.
+      </p>
+    );
+  }
+  return (
+    <>
+      {steps.map((s) => (
+        <StepReview key={s.id} problem={problem} step={s} record={completedSteps[s.id]!} />
+      ))}
+    </>
   );
 }
 
