@@ -14,7 +14,7 @@ import { TEAM_STICKERS } from "./assets";
 import { loadStudioState, saveStudioState } from "./storage";
 import { STICKER_GOAL, type Placement, type SavedProject, type StudioState } from "./types";
 
-export type StudioView = "menu" | "play" | "studio";
+export type StudioView = "menu" | "play" | "studio" | "authoring";
 
 type Action =
   | { type: "MARK_SOLVED"; problemId: string }
@@ -81,6 +81,7 @@ export interface StudioContextValue {
   selectedProblemId: string | null;
   openMenu: () => void;
   openStudio: () => void;
+  openAuthoring: () => void;
   playProblem: (id: string) => void;
 }
 
@@ -108,6 +109,7 @@ const DEFAULT: StudioContextValue = {
   selectedProblemId: null,
   openMenu: noop,
   openStudio: noop,
+  openAuthoring: noop,
   playProblem: noop,
 };
 
@@ -179,6 +181,7 @@ export function StudioProvider({ children, initialView = "menu" }: { children: R
       selectedProblemId,
       openMenu: () => setView("menu"),
       openStudio: () => setView("studio"),
+      openAuthoring: () => setView("authoring"),
       playProblem: (id) => {
         setSelectedProblemId(id);
         setView("play");

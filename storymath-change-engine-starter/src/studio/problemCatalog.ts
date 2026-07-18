@@ -22,17 +22,37 @@ import birding from "../../data/problems/minnesota-birding.json";
 import animation from "../../data/problems/animation-lab-eyebrows.json";
 import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
 
-const SPECS: ProblemSpec[] = [
+const IMPORTED_SPECS: ProblemSpec[] = [
   // The five new add/subtract stories surface first on the menu.
   marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
   nasa, owl, littleWomen, aikido, lunar, birding, animation, puppyBiscuits,
 ].map((s) => s as unknown as ProblemSpec);
+
+function catalogRank(spec: ProblemSpec, fallbackOrder: number): number {
+  if (typeof spec.metadata.catalogOrder === "number") return spec.metadata.catalogOrder;
+  if (spec.metadata.publishedAt) {
+    const time = Date.parse(spec.metadata.publishedAt);
+    if (Number.isFinite(time)) return time;
+  }
+  return fallbackOrder;
+}
+
+export function orderProblemSpecs(specs: ProblemSpec[]): ProblemSpec[] {
+  return specs
+    .map((spec, index) => ({ spec, rank: catalogRank(spec, specs.length - index), index }))
+    .sort((a, b) => b.rank - a.rank || a.index - b.index)
+    .map(({ spec }) => spec);
+}
+
+const SPECS = orderProblemSpecs(IMPORTED_SPECS);
 
 export interface ProblemSummary {
   id: string;
   title: string;
   theme: string;
   gradeBand: string;
+  catalogOrder?: number;
+  publishedAt?: string;
 }
 
 export const PROBLEMS: ProblemSummary[] = SPECS.map((s) => ({
@@ -40,6 +60,8 @@ export const PROBLEMS: ProblemSummary[] = SPECS.map((s) => ({
   title: s.metadata.title,
   theme: s.metadata.theme,
   gradeBand: s.metadata.gradeBand,
+  ...(s.metadata.catalogOrder !== undefined ? { catalogOrder: s.metadata.catalogOrder } : {}),
+  ...(s.metadata.publishedAt ? { publishedAt: s.metadata.publishedAt } : {}),
 }));
 
 const SPEC_BY_ID = new Map(SPECS.map((s) => [s.id, s]));

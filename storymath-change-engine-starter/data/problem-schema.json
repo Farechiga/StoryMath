@@ -1,322 +1,302 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "StoryMath Problem Instance",
+  "$id": "https://storymath.local/problem-schema.json",
+  "title": "StoryMath ProblemSpec",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "id",
     "metadata",
+    "dimension",
+    "storyChrome",
     "story",
     "quantities",
     "steps",
     "operatorExperiments",
-    "visualizations"
+    "recap"
   ],
   "properties": {
-    "id": {
-      "type": "string"
-    },
-    "metadata": {
-      "type": "object",
-      "required": [
-        "title",
-        "theme",
-        "gradeBand",
-        "factualStatus"
-      ],
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "theme": {
-          "type": "string"
-        },
-        "gradeBand": {
-          "type": "string"
-        },
-        "factualStatus": {
-          "enum": [
-            "verified",
-            "fictionalized",
-            "inspired_by"
-          ]
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "story": {
-      "type": "object",
-      "required": [
-        "brief",
-        "causalEvent",
-        "causalChain"
-      ],
-      "properties": {
-        "brief": {
-          "type": "string"
-        },
-        "causalEvent": {
-          "type": "string"
-        },
-        "causalChain": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 2
-        },
-        "curiosityNote": {
-          "type": "string"
-        }
-      }
-    },
+    "id": { "type": "string", "minLength": 1 },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "dimension": { "$ref": "#/$defs/dimension" },
+    "storyChrome": { "$ref": "#/$defs/storyChrome" },
+    "story": { "$ref": "#/$defs/story" },
     "quantities": {
       "type": "array",
-      "minItems": 3,
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "semanticRole",
-          "label",
-          "unit",
-          "value",
-          "visibility"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "semanticRole": {
-            "type": "string"
-          },
-          "label": {
-            "type": "object",
-            "required": [
-              "child",
-              "compact",
-              "semanticChips"
-            ],
-            "properties": {
-              "child": {
-                "type": "string"
-              },
-              "compact": {
-                "type": "string"
-              },
-              "semanticChips": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "unit": {
-            "type": "string"
-          },
-          "value": {
-            "type": "number"
-          },
-          "visibility": {
-            "enum": [
-              "given",
-              "find",
-              "revealed_after_step"
-            ]
-          }
-        }
-      }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/quantity" }
     },
     "steps": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "order",
-          "goalQuantityId",
-          "relationshipTemplateId",
-          "acceptedEquationFormIds",
-          "preferredEquationFormId",
-          "operatorOptions",
-          "expectedDirection",
-          "prompt",
-          "backwardCheck"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "goalQuantityId": {
-            "type": "string"
-          },
-          "relationshipTemplateId": {
-            "type": "string"
-          },
-          "acceptedEquationFormIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "preferredEquationFormId": {
-            "type": "string"
-          },
-          "operatorOptions": {
-            "type": "array",
-            "items": {
-              "enum": [
-                "+",
-                "-",
-                "\u00d7",
-                "\u00f7"
-              ]
-            },
-            "minItems": 2
-          },
-          "expectedDirection": {
-            "enum": [
-              "increase",
-              "decrease",
-              "combine",
-              "split",
-              "scale"
-            ]
-          },
-          "prompt": {
-            "type": "string"
-          },
-          "reasoningPrompt": {
-            "type": "string"
-          },
-          "backwardCheck": {
-            "type": "object",
-            "required": [
-              "required",
-              "prompt",
-              "acceptedEquationFormIds"
-            ],
-            "properties": {
-              "required": {
-                "type": "boolean"
-              },
-              "prompt": {
-                "type": "string"
-              },
-              "acceptedEquationFormIds": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
+      "items": { "$ref": "#/$defs/step" }
     },
     "operatorExperiments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/operatorExperiment" }
+    },
+    "recap": { "$ref": "#/$defs/recap" }
+  },
+  "$defs": {
+    "operator": {
+      "enum": ["+", "-", "×", "÷"]
+    },
+    "direction": {
+      "enum": ["increase", "decrease", "same", "combine", "scale", "split", "unknown"]
+    },
+    "formulaId": {
+      "enum": [
+        "bigger_minus_difference_equals_smaller",
+        "smaller_plus_difference_equals_bigger",
+        "bigger_minus_smaller_equals_difference",
+        "part_a_plus_part_b_equals_whole",
+        "whole_minus_part_a_equals_part_b",
+        "whole_minus_part_b_equals_part_a",
+        "start_plus_change_equals_end",
+        "start_minus_change_equals_end",
+        "end_minus_start_equals_change",
+        "end_plus_change_equals_start",
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total",
+        "total_divided_by_groups_equals_items",
+        "total_divided_by_items_equals_groups"
+      ]
+    },
+    "relationshipTemplateId": {
+      "enum": [
+        "additive_comparison_decrease",
+        "additive_comparison_increase",
+        "part_part_whole",
+        "start_change_end_increase",
+        "start_change_end_decrease",
+        "multiplication_equal_groups",
+        "division_equal_sharing"
+      ]
+    },
+    "visualModel": {
+      "enum": [
+        "comparison_gap_bar",
+        "part_whole_bar",
+        "before_change_after_bridge",
+        "number_line_jump",
+        "repeated_groups_grid",
+        "equal_shares_tray",
+        "array_grid",
+        "ratio_strip",
+        "causal_chain_formula",
+        "data_table",
+        "dot_plot",
+        "pictograph",
+        "line_over_time"
+      ]
+    },
+    "metadata": {
       "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "required": [
-          "operator",
-          "stepId",
-          "operandQuantityIds",
-          "hypotheticalTargetQuantityId",
-          "narrativeFit",
-          "directionProduced",
-          "headline",
-          "explanation",
-          "worldIfTrue"
-        ],
-        "properties": {
-          "operator": {
-            "enum": [
-              "+",
-              "-",
-              "\u00d7",
-              "\u00f7"
-            ]
-          },
-          "stepId": {
-            "type": "string"
-          },
-          "operandQuantityIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "minItems": 2,
-            "maxItems": 2
-          },
-          "hypotheticalTargetQuantityId": {
-            "type": "string"
-          },
-          "narrativeFit": {
-            "enum": [
-              "actual",
-              "counterfactual",
-              "different_question"
-            ]
-          },
-          "directionProduced": {
-            "enum": [
-              "increase",
-              "decrease",
-              "combine",
-              "split",
-              "scale"
-            ]
-          },
-          "headline": {
-            "type": "string"
-          },
-          "explanation": {
-            "type": "string"
-          },
-          "worldIfTrue": {
-            "type": "string"
-          }
+      "additionalProperties": false,
+      "required": ["title", "theme", "gradeBand", "tags"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "theme": { "type": "string", "minLength": 1 },
+        "gradeBand": { "type": "string", "minLength": 1 },
+        "factualStatus": {
+          "enum": ["fictionalized", "inspired_by_real_world", "realistic"]
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "curiosityNote": { "type": "string" },
+        "catalogOrder": { "type": "number" },
+        "publishedAt": { "type": "string", "format": "date" }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "increaseLabel", "decreaseLabel", "sameLabel"],
+      "properties": {
+        "kind": { "type": "string" },
+        "increaseLabel": { "type": "string" },
+        "decreaseLabel": { "type": "string" },
+        "sameLabel": { "type": "string" },
+        "increaseLabelLower": { "type": "string" },
+        "decreaseLabelLower": { "type": "string" },
+        "sameLabelLower": { "type": "string" },
+        "increaseSentence": { "type": "string" },
+        "decreaseSentence": { "type": "string" }
+      }
+    },
+    "storyChrome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["openingEyebrow", "startCta", "finishCta"],
+      "properties": {
+        "openingEyebrow": { "type": "string" },
+        "startCta": { "type": "string" },
+        "finishCta": { "type": "string" },
+        "completionTitle": { "type": "string" },
+        "stepProgressVerb": { "type": "string" },
+        "groupNoun": { "type": "string" },
+        "learnerRole": { "type": "string" }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["briefTemplate"],
+      "properties": {
+        "briefTemplate": { "type": "string" },
+        "causalEvent": { "type": "string" },
+        "closingNoteTemplate": { "type": "string" }
+      }
+    },
+    "label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["child", "compact"],
+      "properties": {
+        "child": { "type": "string" },
+        "compact": { "type": "string" },
+        "lowercase": { "type": "string" }
+      }
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formulaId", "operands"],
+      "properties": {
+        "formulaId": { "$ref": "#/$defs/formulaId" },
+        "operands": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
         }
       }
     },
-    "visualizations": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "type",
-          "quantityIds"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "comparison_bar",
-              "part_whole_bar",
-              "change_bar"
-            ]
-          },
-          "quantityIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "unit", "value", "visibility"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "$ref": "#/$defs/label" },
+        "unit": { "type": "string" },
+        "unitSingular": { "type": "string" },
+        "unitPlural": { "type": "string" },
+        "value": { "type": ["number", "null"] },
+        "expectedValueForFixture": { "type": "number" },
+        "derived": { "$ref": "#/$defs/derived" },
+        "semanticRole": { "type": "string" },
+        "visibility": {
+          "enum": ["given", "find", "revealed_after_step"]
+        },
+        "allowLiteralNumbers": { "type": "boolean" }
+      }
+    },
+    "backwardCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt", "acceptedEquationFormIds"],
+      "properties": {
+        "prompt": { "type": "string" },
+        "acceptedEquationFormIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/formulaId" }
         }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "order",
+        "prompt",
+        "reasoningPrompt",
+        "relationshipTemplateId",
+        "roleToQuantityId",
+        "goalQuantityId",
+        "acceptedEquationFormIds",
+        "preferredEquationFormId",
+        "expectedDirection",
+        "operatorOptions",
+        "backwardCheck"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "order": { "type": "integer", "minimum": 1 },
+        "prompt": { "type": "string" },
+        "reasoningPrompt": { "type": "string" },
+        "relationshipTemplateId": { "$ref": "#/$defs/relationshipTemplateId" },
+        "roleToQuantityId": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "goalQuantityId": { "type": "string" },
+        "acceptedEquationFormIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/formulaId" }
+        },
+        "preferredEquationFormId": { "$ref": "#/$defs/formulaId" },
+        "expectedDirection": { "$ref": "#/$defs/direction" },
+        "operatorOptions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/operator" }
+        },
+        "backwardCheck": { "$ref": "#/$defs/backwardCheck" }
+      }
+    },
+    "operatorExperiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepId", "operator", "narrativeFit"],
+      "properties": {
+        "stepId": { "type": "string" },
+        "operator": { "$ref": "#/$defs/operator" },
+        "narrativeFit": {
+          "enum": ["actual", "different_story", "different_question"]
+        },
+        "visualModel": { "$ref": "#/$defs/visualModel" },
+        "shortReaction": { "type": "string" },
+        "alternateWorldTemplate": { "type": "string" },
+        "groupNoun": { "type": "string" }
+      }
+    },
+    "dataQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "correctQuantityId",
+        "distractorQuantityIds",
+        "correctFeedback",
+        "incorrectFeedback"
+      ],
+      "properties": {
+        "prompt": { "type": "string" },
+        "correctQuantityId": { "type": "string" },
+        "distractorQuantityIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "correctFeedback": { "type": "string" },
+        "incorrectFeedback": { "type": "string" }
+      }
+    },
+    "recap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headline", "causalChain", "calcFromStepId", "dataQuestion"],
+      "properties": {
+        "headline": { "type": "string" },
+        "causalChain": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "calcFromStepId": { "type": "string" },
+        "totalVisualStepId": { "type": "string" },
+        "dataQuestion": { "$ref": "#/$defs/dataQuestion" }
       }
     }
   }

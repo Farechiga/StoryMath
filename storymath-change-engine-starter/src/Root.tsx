@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import App from "./App";
 import { PearlBackground } from "./components/PearlBackground";
 import { StudioProvider, useStudio } from "./studio/StudioContext";
+import { AuthoringView } from "./studio/AuthoringView";
 import { MenuView } from "./studio/MenuView";
 import { StudioView } from "./studio/StudioView";
 import { StickerRewardModal } from "./studio/StickerRewardModal";
@@ -26,6 +27,7 @@ function RootView() {
     <>
       {view !== "play" && <PearlBackground />}
       {view === "menu" && <MenuView />}
+      {view === "authoring" && <AuthoringView />}
       {view === "studio" && <StudioView />}
       {view === "play" && problem && <App key={problem.id} problem={problem} />}
       <StickerRewardModal />

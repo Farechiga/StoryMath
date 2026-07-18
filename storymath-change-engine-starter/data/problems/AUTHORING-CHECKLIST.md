@@ -3,6 +3,8 @@
 Every new pack under `data/problems/` must satisfy these rules before it ships.
 `validateProblem` and the governance suites (`tests/governance/`) enforce most of
 them — run `npm test` and `npm run build` before considering a pack complete.
+Use the internal Authoring link on the problem menu for a structured draft,
+relationship selection, naming checklist, and starter JSON outline.
 
 ## Numbers and story nouns
 
@@ -56,9 +58,14 @@ them — run `npm test` and `npm run build` before considering a pack complete.
     division may relate different units, while each quantity still needs
     story-specific `unitSingular` / `unitPlural` nouns when the rendered noun is
     more specific than the arithmetic unit.
+12. **Set menu ordering metadata.** Use `metadata.catalogOrder` for deliberate
+    launch order, or `metadata.publishedAt` as a newest-first fallback. Higher
+    `catalogOrder` values appear earlier.
 
 ## Before you ship
 
-12. `npm test` passes — including `tests/governance/storyNoun.test.ts` (story-noun
+13. `data/problem-schema.json` matches the live `ProblemSpec`; update both when
+    adding schema-level fields.
+14. `npm test` passes — including `tests/governance/storyNoun.test.ts` (story-noun
     preservation) and `tests/governance/copyGovernance.test.ts` (no chrome/filler).
-13. `npm run build` typechecks and builds.
+15. `npm run build` typechecks and builds.

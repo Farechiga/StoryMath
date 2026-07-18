@@ -11,7 +11,7 @@ import { BrandMark } from "../components/BrandMark";
 import { CubeOrnament } from "../ornament/CubeOrnament";
 
 export function MenuView() {
-  const { solvedProblemIds, playProblem, earned, goal, unlocked } = useStudio();
+  const { solvedProblemIds, playProblem, earned, goal, unlocked, openAuthoring } = useStudio();
 
   // A fresh cube arrangement every time the home page mounts — never hard-coded
   // to one configuration. Held in state so it stays put across re-renders within
@@ -47,6 +47,9 @@ export function MenuView() {
           ? "Your ProjectSpace is unlocked — open Your stickers to build it."
           : `Recruit ${Math.max(0, goal - earned.length)} more teammate${goal - earned.length === 1 ? "" : "s"} to unlock your ProjectSpace.`}
       </p>
+      <button type="button" className="authoring-link" onClick={openAuthoring}>
+        Authoring
+      </button>
 
       <ul className="problem-list">
         {orderedProblems.map((p) => {

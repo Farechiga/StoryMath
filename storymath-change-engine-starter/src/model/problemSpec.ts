@@ -126,6 +126,10 @@ export interface ProblemMetadataSpec {
   factualStatus?: "fictionalized" | "inspired_by_real_world" | "realistic";
   tags: string[];
   curiosityNote?: string;
+  /** Larger numbers appear earlier in the menu. Use for deliberate launch order. */
+  catalogOrder?: number;
+  /** ISO date used as a secondary newest-first ordering signal. */
+  publishedAt?: string;
 }
 
 export interface ProblemSpec {
