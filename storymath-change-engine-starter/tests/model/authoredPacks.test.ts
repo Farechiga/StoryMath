@@ -10,9 +10,10 @@ import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
 import tidePool from "../../data/problems/tide-pool-rising-water.json";
 import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
 import carol from "../../data/problems/christmas-carol-seat-crisis.json";
+import animation from "../../data/problems/animation-lab-eyebrows.json";
 
 /**
- * The authored add/subtract packs. Proves each one loads, validates, computes
+ * The authored operation packs. Proves each one loads, validates, computes
  * its derived values to the authored expectations, exposes exactly one "actual"
  * operator experiment per step with full operator coverage, and never bakes a
  * modeled number into field-merged prose.
@@ -27,6 +28,7 @@ const PACKS: Array<[string, ProblemSpec]> = [
   ["tide-pool-rising-water", tidePool as unknown as ProblemSpec],
   ["sourdough-armadillo-rolls", sourdough as unknown as ProblemSpec],
   ["christmas-carol-seat-crisis", carol as unknown as ProblemSpec],
+  ["animation-lab-eyebrows", animation as unknown as ProblemSpec],
 ];
 
 /** Every field the engine field-merges (tokens allowed, raw numbers not). */
@@ -59,7 +61,7 @@ describe.each(PACKS)("authored pack: %s", (_name, spec) => {
       const computed = inst.quantities.find((x) => x.id === q.id);
       expect(computed?.value).toBe(q.expectedValueForFixture);
     }
-    // Two steps, both goals solved to finite numbers.
+    // Every authored step has a goal solved to a finite number.
     expect(spec.steps).toHaveLength(2);
     for (const step of spec.steps) {
       const goal = inst.quantities.find((x) => x.id === step.goalQuantityId);

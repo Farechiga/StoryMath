@@ -92,12 +92,14 @@ export function validateProblem(spec: ProblemSpec): ValidationIssue[] {
       err(`Step ${step.id} should have exactly one "actual" operator experiment (has ${actuals.length}).`);
     }
 
-    // unit compatibility of the preferred operands
+    // Unit compatibility of the preferred operands. Addition and subtraction
+    // combine comparable quantities; multiplication and division may relate
+    // different units, such as kids × stickers-per-kid or bowls ÷ bowls-per-root.
     if (validForm(step.preferredEquationFormId)) {
       const form = getEquationForm(step.preferredEquationFormId);
       const l = spec.quantities.find((q) => q.id === step.roleToQuantityId[form.leftRole]);
       const r = spec.quantities.find((q) => q.id === step.roleToQuantityId[form.rightRole]);
-      if (l && r && !unitsCompatible(l.unit, r.unit)) {
+      if (l && r && (form.operator === "+" || form.operator === "-") && !unitsCompatible(l.unit, r.unit)) {
         err(`Step ${step.id}: operands have incompatible units (${l.unit} vs ${r.unit}).`);
       }
     }

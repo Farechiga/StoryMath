@@ -38,8 +38,10 @@ them — run `npm test` and `npm run build` before considering a pack complete.
 ## Structure and flow
 
 7. **Each step has exactly one** prompt, one reasoning prompt, one goal quantity,
-   one preferred equation form, and one backward check. Actual solution steps use
-   addition / subtraction only.
+   one preferred equation form, and one backward check. Actual solution steps may
+   use addition, subtraction, multiplication, or division when the relationship
+   template, equation forms, role mappings, and operator experiments match the
+   story.
 8. **Offer `["+", "-", "×", "÷"]`** so the counterfactual operator experiments can
    render, with **exactly one `actual`** experiment per step and one experiment
    per offered operator.
@@ -49,9 +51,14 @@ them — run `npm test` and `npm run build` before considering a pack complete.
    "combine them", "compare them", or "repeat them".
 10. **Derived quantities use a `derived` formula spec** plus
     `expectedValueForFixture`; values are computed, never hand-typed.
+11. **Units are checked differently by operation.** Addition and subtraction
+    operands must share a compatible arithmetic `unit`. Multiplication and
+    division may relate different units, while each quantity still needs
+    story-specific `unitSingular` / `unitPlural` nouns when the rendered noun is
+    more specific than the arithmetic unit.
 
 ## Before you ship
 
-11. `npm test` passes — including `tests/governance/storyNoun.test.ts` (story-noun
+12. `npm test` passes — including `tests/governance/storyNoun.test.ts` (story-noun
     preservation) and `tests/governance/copyGovernance.test.ts` (no chrome/filler).
-12. `npm run build` typechecks and builds.
+13. `npm run build` typechecks and builds.
