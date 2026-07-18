@@ -1,0 +1,264 @@
+{
+  "id": "planning-pudding-treats-v1",
+  "metadata": {
+    "title": "Planning pudding treats for Jo's boys",
+    "theme": "Market planning for a school celebration",
+    "gradeBand": "3-4",
+    "factualStatus": "fictionalized",
+    "tags": [
+      "division",
+      "multiplication",
+      "money",
+      "two-step"
+    ],
+    "curiosityNote": "Recipes often turn into math models because servings, ingredients, and cost all have to match.",
+    "catalogOrder": 3003,
+    "publishedAt": "2026-07-18"
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Market list",
+    "startCta": "Open the market list",
+    "finishCta": "Close the market list",
+    "completionTitle": "Market list ready",
+    "stepProgressVerb": "model the pudding plan",
+    "groupNoun": "arrowroot",
+    "learnerRole": "market planner"
+  },
+  "story": {
+    "briefTemplate": "Jo is planning a special party for her Plumfield students. She wants to make enough Blancmange, a special kind of pudding, for the whole school to celebrate winning the regional debate tournament. She will need {quantity:needed_blancmange_bowls}. When ground into powder, each arrowroot can make {quantity:bowls_per_arrowroot}. Each arrowroot costs {quantity:cost_per_arrowroot}.",
+    "causalEvent": "The number of bowls determines how many arrowroots Jo needs, and the arrowroots determine the cost.",
+    "closingNoteTemplate": "Jo needs to bring {quantity:market_money_cents} to the market."
+  },
+  "quantities": [
+    {
+      "id": "needed_blancmange_bowls",
+      "label": {
+        "child": "Bowls of Blancmange needed",
+        "compact": "Blancmange bowls",
+        "lowercase": "the bowls of Blancmange"
+      },
+      "unit": "bowls",
+      "unitSingular": "bowl of Blancmange",
+      "unitPlural": "bowls of Blancmange",
+      "value": 48,
+      "visibility": "given"
+    },
+    {
+      "id": "bowls_per_arrowroot",
+      "label": {
+        "child": "Bowls each arrowroot can make",
+        "compact": "Bowls per arrowroot",
+        "lowercase": "the bowls each arrowroot can make"
+      },
+      "unit": "bowls",
+      "unitSingular": "bowl of Blancmange",
+      "unitPlural": "bowls of Blancmange",
+      "value": 6,
+      "visibility": "given"
+    },
+    {
+      "id": "needed_arrowroots",
+      "label": {
+        "child": "Arrowroots Jo needs",
+        "compact": "Arrowroots needed",
+        "lowercase": "the arrowroots Jo needs"
+      },
+      "unit": "arrowroots",
+      "unitSingular": "arrowroot",
+      "unitPlural": "arrowroots",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "total_divided_by_items_equals_groups",
+        "operands": {
+          "total": "needed_blancmange_bowls",
+          "itemsPerGroup": "bowls_per_arrowroot"
+        }
+      },
+      "expectedValueForFixture": 8
+    },
+    {
+      "id": "cost_per_arrowroot",
+      "label": {
+        "child": "Cost of each arrowroot",
+        "compact": "Cost each",
+        "lowercase": "the cost of each arrowroot"
+      },
+      "unit": "cents",
+      "unitSingular": "cent",
+      "unitPlural": "cents",
+      "value": 5,
+      "visibility": "given"
+    },
+    {
+      "id": "market_money_cents",
+      "label": {
+        "child": "Money Jo needs for the market",
+        "compact": "Market money",
+        "lowercase": "the money Jo needs"
+      },
+      "unit": "cents",
+      "unitSingular": "cent",
+      "unitPlural": "cents",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "needed_arrowroots",
+          "itemsPerGroup": "cost_per_arrowroot"
+        }
+      },
+      "expectedValueForFixture": 40
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_needed_arrowroots",
+      "order": 1,
+      "prompt": "How many arrowroots will Jo need?",
+      "reasoningPrompt": "Jo knows the total bowls and how many bowls each arrowroot can make. What operation finds the number of arrowroots?",
+      "relationshipTemplateId": "division_equal_sharing",
+      "roleToQuantityId": {
+        "total": "needed_blancmange_bowls",
+        "groups": "needed_arrowroots",
+        "itemsPerGroup": "bowls_per_arrowroot"
+      },
+      "goalQuantityId": "needed_arrowroots",
+      "acceptedEquationFormIds": [
+        "total_divided_by_items_equals_groups"
+      ],
+      "preferredEquationFormId": "total_divided_by_items_equals_groups",
+      "expectedDirection": "split",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Multiply the arrowroots by the bowls each can make. Do you return to the needed bowls?",
+        "acceptedEquationFormIds": [
+          "groups_times_items_equals_total"
+        ]
+      }
+    },
+    {
+      "id": "find_market_money_cents",
+      "order": 2,
+      "prompt": "How much money will Jo need to bring to the market?",
+      "reasoningPrompt": "Each arrowroot costs the same amount. What operation models the total cost?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "needed_arrowroots",
+        "itemsPerGroup": "cost_per_arrowroot",
+        "total": "market_money_cents"
+      },
+      "goalQuantityId": "market_money_cents",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Divide the total cost by the arrowroots. Do you land on the cost of each arrowroot?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_needed_arrowroots",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count bowls and bowls-per-arrowroot as separate amounts, not find how many arrowroots are needed."
+    },
+    {
+      "stepId": "find_needed_arrowroots",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some bowls were removed from the party plan."
+    },
+    {
+      "stepId": "find_needed_arrowroots",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about many batches of pudding bowls."
+    },
+    {
+      "stepId": "find_needed_arrowroots",
+      "operator": "÷",
+      "narrativeFit": "actual",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "This matches the story: the bowls are grouped by how many bowls each arrowroot can make."
+    },
+    {
+      "stepId": "find_market_money_cents",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count arrowroots and cents as separate amounts, not the total cost."
+    },
+    {
+      "stepId": "find_market_money_cents",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where Jo got a discount."
+    },
+    {
+      "stepId": "find_market_money_cents",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each arrowroot costs the same number of cents."
+    },
+    {
+      "stepId": "find_market_money_cents",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about splitting the market money into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why Jo needs {quantity:market_money_cents}",
+    "causalChain": [
+      "Jo needs {quantity:needed_blancmange_bowls}.",
+      "Each arrowroot makes {quantity:bowls_per_arrowroot}, so Jo needs {quantity:needed_arrowroots}.",
+      "Each arrowroot costs {quantity:cost_per_arrowroot}, so the market money is {quantity:market_money_cents}."
+    ],
+    "calcFromStepId": "find_needed_arrowroots",
+    "totalVisualStepId": "find_market_money_cents",
+    "dataQuestion": {
+      "prompt": "What does {quantity:needed_arrowroots} represent in Jo's market model?",
+      "correctQuantityId": "needed_arrowroots",
+      "distractorQuantityIds": [
+        "needed_blancmange_bowls",
+        "bowls_per_arrowroot",
+        "market_money_cents"
+      ],
+      "correctFeedback": "Right. {quantity:needed_arrowroots} is the number of arrowroots Jo needs.",
+      "incorrectFeedback": "That amount is the number of arrowroots Jo needs: {quantity:needed_arrowroots}."
+    }
+  }
+}

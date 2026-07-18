@@ -1,0 +1,264 @@
+{
+  "id": "lego-architects-periwinkle-blueprint-v1",
+  "metadata": {
+    "title": "The LEGO architects and the periwinkle blueprint",
+    "theme": "LEGO architecture design",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "LEGO",
+      "architecture",
+      "subtraction",
+      "two-step",
+      "count"
+    ],
+    "curiosityNote": "Architects often count materials before building so they know what is available for the next design.",
+    "catalogOrder": 3005,
+    "publishedAt": "2026-07-18"
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Architecture studio note",
+    "startCta": "Open the blueprint",
+    "finishCta": "Close the blueprint",
+    "completionTitle": "Blueprint complete",
+    "stepProgressVerb": "model the LEGO pieces",
+    "groupNoun": "piece",
+    "learnerRole": "LEGO architect"
+  },
+  "story": {
+    "briefTemplate": "Seraphina and Autumn want to design a new library and computer lab building with periwinkle LEGO pieces. They determine they will need {quantity:library_lab_periwinkle_pieces} for their design. They got their pieces from a LEGO Friends set which has {quantity:lego_set_total_pieces}. {quantity:not_periwinkle_pieces} from that set are not periwinkle.",
+    "causalEvent": "Only the periwinkle pieces from the set can be used for the periwinkle parts of the design.",
+    "closingNoteTemplate": "After the building was finished, the architects had {quantity:extra_periwinkle_pieces} for a water fountain."
+  },
+  "quantities": [
+    {
+      "id": "lego_set_total_pieces",
+      "label": {
+        "child": "Total pieces in the LEGO Friends set",
+        "compact": "Total set pieces",
+        "lowercase": "the total set pieces"
+      },
+      "unit": "pieces",
+      "unitSingular": "LEGO piece",
+      "unitPlural": "LEGO pieces",
+      "value": 208,
+      "visibility": "given"
+    },
+    {
+      "id": "not_periwinkle_pieces",
+      "label": {
+        "child": "Pieces that are not periwinkle",
+        "compact": "Not periwinkle",
+        "lowercase": "the pieces that are not periwinkle"
+      },
+      "unit": "pieces",
+      "unitSingular": "non-periwinkle LEGO piece",
+      "unitPlural": "non-periwinkle LEGO pieces",
+      "value": 132,
+      "visibility": "given"
+    },
+    {
+      "id": "available_periwinkle_pieces",
+      "label": {
+        "child": "Periwinkle LEGO pieces in the set",
+        "compact": "Periwinkle pieces",
+        "lowercase": "the periwinkle LEGO pieces"
+      },
+      "unit": "pieces",
+      "unitSingular": "periwinkle LEGO piece",
+      "unitPlural": "periwinkle LEGO pieces",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "whole_minus_part_b_equals_part_a",
+        "operands": {
+          "whole": "lego_set_total_pieces",
+          "partB": "not_periwinkle_pieces"
+        }
+      },
+      "expectedValueForFixture": 76
+    },
+    {
+      "id": "library_lab_periwinkle_pieces",
+      "label": {
+        "child": "Periwinkle pieces needed for the building",
+        "compact": "Building pieces",
+        "lowercase": "the periwinkle pieces needed for the building"
+      },
+      "unit": "pieces",
+      "unitSingular": "periwinkle LEGO piece",
+      "unitPlural": "periwinkle LEGO pieces",
+      "value": 60,
+      "visibility": "given"
+    },
+    {
+      "id": "extra_periwinkle_pieces",
+      "label": {
+        "child": "Extra periwinkle pieces for the fountain",
+        "compact": "Extra periwinkle pieces",
+        "lowercase": "the extra periwinkle pieces"
+      },
+      "unit": "pieces",
+      "unitSingular": "periwinkle LEGO piece",
+      "unitPlural": "periwinkle LEGO pieces",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "available_periwinkle_pieces",
+          "change": "library_lab_periwinkle_pieces"
+        }
+      },
+      "expectedValueForFixture": 16
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_available_periwinkle_pieces",
+      "order": 1,
+      "prompt": "How many periwinkle LEGO pieces were in the set?",
+      "reasoningPrompt": "The full set includes periwinkle pieces and pieces that are not periwinkle. Which operation finds the periwinkle part?",
+      "relationshipTemplateId": "part_part_whole",
+      "roleToQuantityId": {
+        "partA": "available_periwinkle_pieces",
+        "partB": "not_periwinkle_pieces",
+        "whole": "lego_set_total_pieces"
+      },
+      "goalQuantityId": "available_periwinkle_pieces",
+      "acceptedEquationFormIds": [
+        "whole_minus_part_b_equals_part_a"
+      ],
+      "preferredEquationFormId": "whole_minus_part_b_equals_part_a",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Put the periwinkle and non-periwinkle pieces back together. Do they make the whole set?",
+        "acceptedEquationFormIds": [
+          "part_a_plus_part_b_equals_whole"
+        ]
+      }
+    },
+    {
+      "id": "find_extra_periwinkle_pieces",
+      "order": 2,
+      "prompt": "After building the library and computer lab, how many extra periwinkle pieces would they have left for a water fountain?",
+      "reasoningPrompt": "The building uses some of the periwinkle pieces. What operation shows what remains?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "available_periwinkle_pieces",
+        "change": "library_lab_periwinkle_pieces",
+        "end": "extra_periwinkle_pieces"
+      },
+      "goalQuantityId": "extra_periwinkle_pieces",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the building pieces back to the extras. Do you return to the periwinkle count?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_available_periwinkle_pieces",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count the whole set and the non-periwinkle pieces together, not find the periwinkle part."
+    },
+    {
+      "stepId": "find_available_periwinkle_pieces",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: removing {quantity:not_periwinkle_pieces} from the whole set leaves the periwinkle pieces."
+    },
+    {
+      "stepId": "find_available_periwinkle_pieces",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about many equal sets of LEGO pieces."
+    },
+    {
+      "stepId": "find_available_periwinkle_pieces",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the set into equal groups."
+    },
+    {
+      "stepId": "find_extra_periwinkle_pieces",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a story where {quantity:library_lab_periwinkle_pieces} were delivered instead of used."
+    },
+    {
+      "stepId": "find_extra_periwinkle_pieces",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the building uses some periwinkle pieces, leaving fewer for the fountain."
+    },
+    {
+      "stepId": "find_extra_periwinkle_pieces",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about equal groups of building pieces."
+    },
+    {
+      "stepId": "find_extra_periwinkle_pieces",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the periwinkle pieces into equal groups."
+    }
+  ],
+  "recap": {
+    "headline": "Why the architects had {quantity:extra_periwinkle_pieces}",
+    "causalChain": [
+      "The LEGO Friends set had {quantity:lego_set_total_pieces}.",
+      "{quantity:not_periwinkle_pieces} were not periwinkle, leaving {quantity:available_periwinkle_pieces}.",
+      "The building used {quantity:library_lab_periwinkle_pieces}, leaving {quantity:extra_periwinkle_pieces}."
+    ],
+    "calcFromStepId": "find_available_periwinkle_pieces",
+    "totalVisualStepId": "find_extra_periwinkle_pieces",
+    "dataQuestion": {
+      "prompt": "What does {quantity:available_periwinkle_pieces} represent in the blueprint model?",
+      "correctQuantityId": "available_periwinkle_pieces",
+      "distractorQuantityIds": [
+        "not_periwinkle_pieces",
+        "library_lab_periwinkle_pieces",
+        "extra_periwinkle_pieces"
+      ],
+      "correctFeedback": "Right. {quantity:available_periwinkle_pieces} is the number of periwinkle pieces in the set.",
+      "incorrectFeedback": "That amount is the periwinkle pieces in the set: {quantity:available_periwinkle_pieces}."
+    }
+  }
+}

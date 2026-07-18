@@ -1,0 +1,265 @@
+{
+  "id": "canine-feline-spirit-day-showdown-v1",
+  "metadata": {
+    "title": "Canine vs. feline Spirit Day showdown",
+    "theme": "School spirit sticker battle",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "stickers",
+      "school",
+      "multiplication",
+      "comparison",
+      "two-step"
+    ],
+    "curiosityNote": "Sticker boards make comparison problems visible because each team can see the totals grow.",
+    "catalogOrder": 3004,
+    "publishedAt": "2026-07-18"
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same",
+    "increaseSentence": "more than before",
+    "decreaseSentence": "fewer than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Spirit Day tally",
+    "startCta": "Open the sticker board",
+    "finishCta": "Close the sticker board",
+    "completionTitle": "Sticker board counted",
+    "stepProgressVerb": "model the sticker battle",
+    "groupNoun": "kid",
+    "learnerRole": "sticker announcer"
+  },
+  "story": {
+    "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker battle between team cat and team dog to decorate a board in the entryway. Team cat brought the spirit with {quantity:cat_stickers}. Team dog had {quantity:dog_team_kids}, and each dog-team kid brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
+    "causalEvent": "Each dog-team kid brought the same number of dog stickers.",
+    "closingNoteTemplate": "Seraphina and Dorothy announced that team dog had {quantity:more_dog_stickers} more dog stickers."
+  },
+  "quantities": [
+    {
+      "id": "dog_team_kids",
+      "label": {
+        "child": "Dog-team kids",
+        "compact": "Dog-team kids",
+        "lowercase": "the dog-team kids"
+      },
+      "unit": "kids",
+      "unitSingular": "dog-team kid",
+      "unitPlural": "dog-team kids",
+      "value": 67,
+      "visibility": "given"
+    },
+    {
+      "id": "dog_stickers_per_kid",
+      "label": {
+        "child": "Dog stickers each kid brought",
+        "compact": "Dog stickers each",
+        "lowercase": "the dog stickers each kid brought"
+      },
+      "unit": "stickers",
+      "unitSingular": "dog sticker",
+      "unitPlural": "dog stickers",
+      "value": 10,
+      "visibility": "given"
+    },
+    {
+      "id": "dog_stickers",
+      "label": {
+        "child": "Dog stickers on the board",
+        "compact": "Dog stickers",
+        "lowercase": "the dog stickers"
+      },
+      "unit": "stickers",
+      "unitSingular": "dog sticker",
+      "unitPlural": "dog stickers",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "dog_team_kids",
+          "itemsPerGroup": "dog_stickers_per_kid"
+        }
+      },
+      "expectedValueForFixture": 670
+    },
+    {
+      "id": "cat_stickers",
+      "label": {
+        "child": "Cat stickers on the board",
+        "compact": "Cat stickers",
+        "lowercase": "the cat stickers"
+      },
+      "unit": "stickers",
+      "unitSingular": "cat sticker",
+      "unitPlural": "cat stickers",
+      "value": 327,
+      "visibility": "given"
+    },
+    {
+      "id": "more_dog_stickers",
+      "label": {
+        "child": "How many more dog stickers",
+        "compact": "More dog stickers",
+        "lowercase": "the extra dog stickers"
+      },
+      "unit": "stickers",
+      "unitSingular": "dog sticker",
+      "unitPlural": "dog stickers",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "bigger_minus_smaller_equals_difference",
+        "operands": {
+          "bigger": "dog_stickers",
+          "smaller": "cat_stickers"
+        }
+      },
+      "expectedValueForFixture": 343
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_dog_stickers",
+      "order": 1,
+      "prompt": "How many dog stickers did team dog bring in all?",
+      "reasoningPrompt": "Each dog-team kid brought the same number of stickers. What operation models equal groups?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "dog_team_kids",
+        "itemsPerGroup": "dog_stickers_per_kid",
+        "total": "dog_stickers"
+      },
+      "goalQuantityId": "dog_stickers",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Split the dog stickers by the number of kids. Do you land on the stickers each kid brought?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_more_dog_stickers",
+      "order": 2,
+      "prompt": "How many more dog stickers were there than cat stickers?",
+      "reasoningPrompt": "Team dog has the larger sticker total. What operation finds the gap between the teams?",
+      "relationshipTemplateId": "additive_comparison_decrease",
+      "roleToQuantityId": {
+        "bigger": "dog_stickers",
+        "smaller": "cat_stickers",
+        "difference": "more_dog_stickers"
+      },
+      "goalQuantityId": "more_dog_stickers",
+      "acceptedEquationFormIds": [
+        "bigger_minus_smaller_equals_difference"
+      ],
+      "preferredEquationFormId": "bigger_minus_smaller_equals_difference",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the difference to the cat stickers. Do you reach the dog sticker total?",
+        "acceptedEquationFormIds": [
+          "smaller_plus_difference_equals_bigger"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_dog_stickers",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count kids and stickers as separate things, not equal groups of stickers."
+    },
+    {
+      "stepId": "find_dog_stickers",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where stickers were taken away from the dog team."
+    },
+    {
+      "stepId": "find_dog_stickers",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each dog-team kid brought the same number of dog stickers."
+    },
+    {
+      "stepId": "find_dog_stickers",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing dog stickers into equal groups."
+    },
+    {
+      "stepId": "find_more_dog_stickers",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would find a combined sticker total, not how many more dog stickers there were."
+    },
+    {
+      "stepId": "find_more_dog_stickers",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: subtracting the cat stickers from the dog stickers finds the gap."
+    },
+    {
+      "stepId": "find_more_dog_stickers",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about equal groups of stickers."
+    },
+    {
+      "stepId": "find_more_dog_stickers",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the stickers."
+    }
+  ],
+  "recap": {
+    "headline": "Why team dog had {quantity:more_dog_stickers} more",
+    "causalChain": [
+      "{quantity:dog_team_kids} each brought {quantity:dog_stickers_per_kid}.",
+      "That made {quantity:dog_stickers} on the dog side.",
+      "Team cat had {quantity:cat_stickers}, so team dog had {quantity:more_dog_stickers} more."
+    ],
+    "calcFromStepId": "find_dog_stickers",
+    "totalVisualStepId": "find_more_dog_stickers",
+    "dataQuestion": {
+      "prompt": "What does {quantity:more_dog_stickers} represent in the Spirit Day model?",
+      "correctQuantityId": "more_dog_stickers",
+      "distractorQuantityIds": [
+        "dog_team_kids",
+        "dog_stickers",
+        "cat_stickers"
+      ],
+      "correctFeedback": "Right. {quantity:more_dog_stickers} is the gap between dog stickers and cat stickers.",
+      "incorrectFeedback": "That amount is the gap between the teams: {quantity:more_dog_stickers}."
+    }
+  }
+}

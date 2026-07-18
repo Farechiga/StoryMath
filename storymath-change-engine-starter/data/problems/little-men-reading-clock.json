@@ -1,0 +1,265 @@
+{
+  "id": "little-men-reading-clock-v1",
+  "metadata": {
+    "title": "Reading against the clock",
+    "theme": "Drive-time reading plan",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "reading",
+      "multiplication",
+      "subtraction",
+      "time",
+      "two-step"
+    ],
+    "curiosityNote": "Readers often estimate time by multiplying pages by minutes per page.",
+    "catalogOrder": 3001,
+    "publishedAt": "2026-07-18"
+  },
+  "dimension": {
+    "kind": "time",
+    "increaseLabel": "More time",
+    "decreaseLabel": "Less time",
+    "sameLabel": "The same time",
+    "increaseLabelLower": "more time",
+    "decreaseLabelLower": "less time",
+    "sameLabelLower": "the same time",
+    "increaseSentence": "more time than before",
+    "decreaseSentence": "less time than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Reading plan",
+    "startCta": "Open the reading plan",
+    "finishCta": "Close the reading plan",
+    "completionTitle": "Reading plan ready",
+    "stepProgressVerb": "model the reading time",
+    "groupNoun": "page",
+    "learnerRole": "reading planner"
+  },
+  "story": {
+    "briefTemplate": "Seraphina is about to start the final chapter of Little Men, but wants to make sure she can finish the whole chapter on the drive to Singapore Math. There are {quantity:pages_left} left in the book, and Seraphina can read one page at this difficulty every {quantity:minutes_per_page}. The drive takes {quantity:drive_minutes}.",
+    "causalEvent": "Each page takes the same amount of reading time, and any drive time left after reading is extra time.",
+    "closingNoteTemplate": "After finishing the book, Seraphina would have {quantity:extra_drive_minutes} left."
+  },
+  "quantities": [
+    {
+      "id": "pages_left",
+      "label": {
+        "child": "Full pages left in the book",
+        "compact": "Pages left",
+        "lowercase": "the full pages left"
+      },
+      "unit": "pages",
+      "unitSingular": "full page",
+      "unitPlural": "full pages",
+      "value": 9,
+      "visibility": "given"
+    },
+    {
+      "id": "minutes_per_page",
+      "label": {
+        "child": "Minutes for each page",
+        "compact": "Minutes per page",
+        "lowercase": "the minutes for each page"
+      },
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": 4,
+      "visibility": "given"
+    },
+    {
+      "id": "reading_minutes_needed",
+      "label": {
+        "child": "Minutes needed to finish reading",
+        "compact": "Reading minutes",
+        "lowercase": "the minutes needed to finish reading"
+      },
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "pages_left",
+          "itemsPerGroup": "minutes_per_page"
+        }
+      },
+      "expectedValueForFixture": 36
+    },
+    {
+      "id": "drive_minutes",
+      "label": {
+        "child": "Minutes in the drive",
+        "compact": "Drive minutes",
+        "lowercase": "the drive minutes"
+      },
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": 40,
+      "visibility": "given"
+    },
+    {
+      "id": "extra_drive_minutes",
+      "label": {
+        "child": "Extra minutes after finishing",
+        "compact": "Extra minutes",
+        "lowercase": "the extra minutes after finishing"
+      },
+      "unit": "minutes",
+      "unitSingular": "extra minute",
+      "unitPlural": "extra minutes",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "drive_minutes",
+          "change": "reading_minutes_needed"
+        }
+      },
+      "expectedValueForFixture": 4
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_reading_minutes_needed",
+      "order": 1,
+      "prompt": "How many minutes would Seraphina need to finish the chapter?",
+      "reasoningPrompt": "Each page takes the same number of minutes. What operation models the total reading time?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "pages_left",
+        "itemsPerGroup": "minutes_per_page",
+        "total": "reading_minutes_needed"
+      },
+      "goalQuantityId": "reading_minutes_needed",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Divide the reading minutes by the pages. Do you land on the minutes for each page?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_extra_drive_minutes",
+      "order": 2,
+      "prompt": "How many extra minutes would she have after finishing the book?",
+      "reasoningPrompt": "The reading time uses part of the drive. What operation finds the time left over?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "drive_minutes",
+        "change": "reading_minutes_needed",
+        "end": "extra_drive_minutes"
+      },
+      "goalQuantityId": "extra_drive_minutes",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the reading minutes back to the extra minutes. Do you return to the drive time?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_reading_minutes_needed",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count pages and minutes-per-page as separate amounts, not the total reading time."
+    },
+    {
+      "stepId": "find_reading_minutes_needed",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some pages or minutes were taken away."
+    },
+    {
+      "stepId": "find_reading_minutes_needed",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each full page takes the same number of minutes."
+    },
+    {
+      "stepId": "find_reading_minutes_needed",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about splitting minutes across pages."
+    },
+    {
+      "stepId": "find_extra_drive_minutes",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a story where the reading minutes were added onto the drive time."
+    },
+    {
+      "stepId": "find_extra_drive_minutes",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: the reading time uses part of the drive, leaving extra minutes."
+    },
+    {
+      "stepId": "find_extra_drive_minutes",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about repeated drives or reading blocks."
+    },
+    {
+      "stepId": "find_extra_drive_minutes",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the drive minutes."
+    }
+  ],
+  "recap": {
+    "headline": "Why Seraphina would have {quantity:extra_drive_minutes}",
+    "causalChain": [
+      "There are {quantity:pages_left}.",
+      "Each page takes {quantity:minutes_per_page}, so finishing takes {quantity:reading_minutes_needed}.",
+      "The drive is {quantity:drive_minutes}, leaving {quantity:extra_drive_minutes}."
+    ],
+    "calcFromStepId": "find_reading_minutes_needed",
+    "totalVisualStepId": "find_extra_drive_minutes",
+    "dataQuestion": {
+      "prompt": "What does {quantity:reading_minutes_needed} represent in the reading model?",
+      "correctQuantityId": "reading_minutes_needed",
+      "distractorQuantityIds": [
+        "pages_left",
+        "drive_minutes",
+        "extra_drive_minutes"
+      ],
+      "correctFeedback": "Right. {quantity:reading_minutes_needed} is the time needed to finish the chapter.",
+      "incorrectFeedback": "That amount is the time needed to finish the chapter: {quantity:reading_minutes_needed}."
+    }
+  }
+}

@@ -11,6 +11,11 @@ import tidePool from "../../data/problems/tide-pool-rising-water.json";
 import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
 import carol from "../../data/problems/christmas-carol-seat-crisis.json";
 import animation from "../../data/problems/animation-lab-eyebrows.json";
+import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
+import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
+import puddingTreats from "../../data/problems/planning-pudding-treats.json";
+import woodenRacers from "../../data/problems/mini-wooden-racers.json";
+import readingClock from "../../data/problems/little-men-reading-clock.json";
 
 /**
  * The authored operation packs. Proves each one loads, validates, computes
@@ -19,6 +24,11 @@ import animation from "../../data/problems/animation-lab-eyebrows.json";
  * modeled number into field-merged prose.
  */
 const PACKS: Array<[string, ProblemSpec]> = [
+  ["lego-architects-periwinkle-blueprint", legoArchitects as unknown as ProblemSpec],
+  ["canine-feline-spirit-day-showdown", spiritDay as unknown as ProblemSpec],
+  ["planning-pudding-treats", puddingTreats as unknown as ProblemSpec],
+  ["mini-wooden-racers", woodenRacers as unknown as ProblemSpec],
+  ["little-men-reading-clock", readingClock as unknown as ProblemSpec],
   ["minnesota-owl-snow-tracks", owl as unknown as ProblemSpec],
   ["little-women-storm-reading", women as unknown as ProblemSpec],
   ["aikido-sliding-mat-rolls", aikido as unknown as ProblemSpec],

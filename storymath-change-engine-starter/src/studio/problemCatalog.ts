@@ -8,6 +8,11 @@ import { instantiateProblem } from "../model/instantiateProblem";
 import type { ProblemSpec } from "../model/problemSpec";
 import type { ProblemInstance } from "../domain/types";
 
+import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
+import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
+import puddingTreats from "../../data/problems/planning-pudding-treats.json";
+import woodenRacers from "../../data/problems/mini-wooden-racers.json";
+import readingClock from "../../data/problems/little-men-reading-clock.json";
 import marsDustStorm from "../../data/problems/mars-rover-versatility-dust-storm.json";
 import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
 import tidePool from "../../data/problems/tide-pool-rising-water.json";
@@ -23,7 +28,8 @@ import animation from "../../data/problems/animation-lab-eyebrows.json";
 import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
 
 const IMPORTED_SPECS: ProblemSpec[] = [
-  // The five new add/subtract stories surface first on the menu.
+  // New authored packs use catalogOrder/publishedAt and sort above older packs.
+  legoArchitects, spiritDay, puddingTreats, woodenRacers, readingClock,
   marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
   nasa, owl, littleWomen, aikido, lunar, birding, animation, puppyBiscuits,
 ].map((s) => s as unknown as ProblemSpec);

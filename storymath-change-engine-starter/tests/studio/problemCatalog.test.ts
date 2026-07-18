@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orderProblemSpecs } from "../../src/studio/problemCatalog";
+import { orderProblemSpecs, PROBLEMS } from "../../src/studio/problemCatalog";
 import type { ProblemSpec } from "../../src/domain";
 
 function spec(id: string, metadata: Partial<ProblemSpec["metadata"]> = {}): ProblemSpec {
@@ -61,5 +61,17 @@ describe("orderProblemSpecs", () => {
     ]);
 
     expect(ordered.map((s) => s.id)).toEqual(["march", "january"]);
+  });
+});
+
+describe("PROBLEMS catalog", () => {
+  it("surfaces the newest authored packs first", () => {
+    expect(PROBLEMS.slice(0, 5).map((p) => p.id)).toEqual([
+      "lego-architects-periwinkle-blueprint-v1",
+      "canine-feline-spirit-day-showdown-v1",
+      "planning-pudding-treats-v1",
+      "mini-wooden-racers-v1",
+      "little-men-reading-clock-v1",
+    ]);
   });
 });
