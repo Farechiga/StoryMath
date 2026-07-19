@@ -62,6 +62,9 @@ export function AuthoringView() {
   const [error, setError] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
   const [theme, setTheme] = useState("Classroom story");
+  const [problemParagraph, setProblemParagraph] = useState(
+    "Write the full word problem paragraph here. Use tokens like {quantity:items_given} for every modeled number.",
+  );
   const [gradeBand, setGradeBand] = useState("3-4");
   const [storyNoun, setStoryNoun] = useState("items");
   const [singularNoun, setSingularNoun] = useState("item");
@@ -103,7 +106,8 @@ export function AuthoringView() {
         learnerRole: "model builder",
       },
       story: {
-        briefTemplate: `Write the story with tokens like {quantity:${quantityStem}_given}.`,
+        briefTemplate:
+          problemParagraph.trim() || `Write the story with tokens like {quantity:${quantityStem}_given}.`,
       },
       quantities: [
         {
@@ -159,7 +163,7 @@ export function AuthoringView() {
         },
       },
     }),
-    [genericUnit, gradeBand, problemId, quantityStem, relationship, singularNoun, storyNoun, theme, title, today],
+    [genericUnit, gradeBand, problemId, problemParagraph, quantityStem, relationship, singularNoun, storyNoun, theme, title, today],
   );
 
   const qaItems = [
@@ -247,8 +251,22 @@ export function AuthoringView() {
             <input className="text-input" value={title} onChange={(event) => setTitle(event.target.value)} />
           </label>
           <label className="authoring-field">
-            <span>Theme</span>
+            <span>Story theme</span>
+            <span className="authoring-help">
+              Used as the menu subtitle and to choose the background ornament mood by keyword: space/rover, nature/forest, or design/studio.
+            </span>
             <input className="text-input" value={theme} onChange={(event) => setTheme(event.target.value)} />
+          </label>
+          <label className="authoring-field">
+            <span>Word problem paragraph</span>
+            <span className="authoring-help">
+              This becomes story.briefTemplate. Replace every modeled number with a quantity token so the interfaces stay parameterized.
+            </span>
+            <textarea
+              className="text-input authoring-textarea"
+              value={problemParagraph}
+              onChange={(event) => setProblemParagraph(event.target.value)}
+            />
           </label>
           <label className="authoring-field">
             <span>Grade band</span>

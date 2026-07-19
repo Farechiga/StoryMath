@@ -171,6 +171,17 @@
 .authoring-field .text-input {
   width: 100%;
 }
+.authoring-help {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  font-weight: 460;
+  line-height: 1.35;
+}
+.authoring-textarea {
+  min-height: 136px;
+  resize: vertical;
+  line-height: 1.45;
+}
 .authoring-error {
   color: var(--q-minus);
   font-weight: 560;

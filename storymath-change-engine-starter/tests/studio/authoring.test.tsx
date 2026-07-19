@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StudioProvider, useStudio } from "../../src/studio/StudioContext";
 import { AuthoringView } from "../../src/studio/AuthoringView";
@@ -48,6 +48,16 @@ describe("AuthoringView", () => {
     expect(await screen.findByText(/Build a clean problem pack/i)).toBeTruthy();
     expect(screen.getByText(/Start, remove, end/i)).toBeTruthy();
     expect(screen.getByText(/QA built into onboarding/i)).toBeTruthy();
+    expect(screen.getByText(/Used as the menu subtitle/i)).toBeTruthy();
+
+    const paragraph = "Seraphina has {quantity:items_given} items to model.";
+    fireEvent.change(screen.getByLabelText(/Word problem paragraph/i), { target: { value: paragraph } });
+
+    expect(
+      screen
+        .getAllByText((_, node) => node?.textContent?.includes(paragraph) ?? false)
+        .some((node) => node.classList.contains("authoring-json")),
+    ).toBe(true);
     expect(screen.getAllByText(/catalogOrder/i).length).toBeGreaterThan(0);
   });
 });
