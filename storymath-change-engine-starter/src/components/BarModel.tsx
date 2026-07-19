@@ -213,10 +213,10 @@ export function PartWholeBarModel({
 }) {
   const max = whole.value || 1;
   const scale = (v: number) => (v / max) * TRACK_W;
-  const yA = rowY(0);
-  const yB = rowY(1);
-  const yWhole = rowY(2);
-  const height = yWhole + BAR_H + 30;
+  const yWhole = rowY(0);
+  const yA = rowY(1);
+  const yB = rowY(2);
+  const height = yB + BAR_H + 30;
 
   const aW = scale(partA.value);
   const bW = scale(partB.value);
@@ -228,26 +228,7 @@ export function PartWholeBarModel({
       role="img"
       aria-label={`Part-part-whole bar model. ${partA.label}: ${partA.value} ${partA.unit}. ${partB.label}: ${partB.value} ${partB.unit}. Combined ${whole.label}: ${whole.value} ${whole.unit}.`}
     >
-      <BarRow
-        y={yA}
-        label={partA.label}
-        value={partA.value}
-        unit={partA.unit}
-        width={aW}
-        fill={ROLE_FILL.bigger!}
-        textFill={ROLE_TEXT.bigger!}
-      />
-      <BarRow
-        y={yB}
-        label={partB.label}
-        value={partB.value}
-        unit={partB.unit}
-        width={bW}
-        fill={ROLE_FILL.smaller!}
-        textFill={ROLE_TEXT.smaller!}
-      />
-
-      {/* The whole is one segmented bar: part A joined to part B. */}
+      {/* The whole reference span comes first, with its parts aligned below. */}
       <BarRow
         y={yWhole}
         label={whole.label}
@@ -279,6 +260,24 @@ export function PartWholeBarModel({
           {whole.unit}
         </tspan>
       </text>
+      <BarRow
+        y={yA}
+        label={partA.label}
+        value={partA.value}
+        unit={partA.unit}
+        width={aW}
+        fill={ROLE_FILL.bigger!}
+        textFill={ROLE_TEXT.bigger!}
+      />
+      <BarRow
+        y={yB}
+        label={partB.label}
+        value={partB.value}
+        unit={partB.unit}
+        width={bW}
+        fill={ROLE_FILL.smaller!}
+        textFill={ROLE_TEXT.smaller!}
+      />
     </svg>
   );
 }
