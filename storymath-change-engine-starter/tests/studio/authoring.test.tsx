@@ -2,12 +2,35 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { StudioProvider } from "../../src/studio/StudioContext";
+import { StudioProvider, useStudio } from "../../src/studio/StudioContext";
 import { AuthoringView } from "../../src/studio/AuthoringView";
+import { MenuView } from "../../src/studio/MenuView";
 
 afterEach(cleanup);
 
+function CurrentViewProbe() {
+  const { view } = useStudio();
+  return <output aria-label="Current view">{view}</output>;
+}
+
 describe("AuthoringView", () => {
+  it("is reachable from the bottom authoring portal button on the menu", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudioProvider initialView="menu">
+        <MenuView />
+        <CurrentViewProbe />
+      </StudioProvider>,
+    );
+
+    const portal = screen.getByRole("button", { name: "Authoring portal" });
+    const problemList = screen.getByRole("list");
+    expect(problemList.compareDocumentPosition(portal) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await user.click(portal);
+    expect(screen.getByLabelText("Current view").textContent).toBe("authoring");
+  });
+
   it("requires the internal passcode before showing the problem-pack tool", async () => {
     const user = userEvent.setup();
     render(

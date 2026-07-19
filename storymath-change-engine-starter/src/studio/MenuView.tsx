@@ -47,10 +47,6 @@ export function MenuView() {
           ? "Your ProjectSpace is unlocked — open Your stickers to build it."
           : `Recruit ${Math.max(0, goal - earned.length)} more teammate${goal - earned.length === 1 ? "" : "s"} to unlock your ProjectSpace.`}
       </p>
-      <button type="button" className="authoring-link" onClick={openAuthoring}>
-        Authoring
-      </button>
-
       <ul className="problem-list">
         {orderedProblems.map((p) => {
           const solved = solvedProblemIds.includes(p.id);
@@ -69,6 +65,12 @@ export function MenuView() {
           );
         })}
       </ul>
+
+      <div className="authoring-portal">
+        <button type="button" className="authoring-portal__button" onClick={openAuthoring}>
+          Authoring portal
+        </button>
+      </div>
     </main>
   );
 }

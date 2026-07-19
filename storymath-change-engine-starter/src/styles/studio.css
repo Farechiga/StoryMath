@@ -111,18 +111,27 @@
   color: var(--fit-green);
   font-weight: 600;
 }
-.authoring-link {
+.authoring-portal {
   position: relative;
   z-index: 1;
-  margin: 0 0 var(--sp-4);
-  padding: 0;
-  border: 0;
-  background: none;
+  max-width: 640px;
+  margin: var(--sp-7) 0 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  justify-content: flex-end;
+}
+.authoring-portal__button {
+  padding: 8px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-strong);
   color: var(--ink-faint);
   font-size: 0.84rem;
   font-weight: 560;
 }
-.authoring-link:hover {
+.authoring-portal__button:hover {
+  border-color: var(--accent);
   color: var(--accent);
 }
 
