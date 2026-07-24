@@ -7,6 +7,7 @@ import { loadProblemSpec } from "../../src/domain";
 import type { ProblemSpec } from "../../src/domain";
 import birding from "../../data/problems/minnesota-birding.json";
 import animation from "../../data/problems/animation-lab-eyebrows.json";
+import readingClock from "../../data/problems/little-men-reading-clock.json";
 
 afterEach(cleanup);
 
@@ -101,5 +102,28 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     expect(screen.queryByText(/0\.67/)).toBeNull();
     // A wrong operator outlines the groups in the shared "does not match" red.
     expect(document.querySelector(".shares--wrong")).toBeTruthy();
+  });
+});
+
+describe("reading clock multiplication visual", () => {
+  const problem = loadProblemSpec(readingClock as unknown as ProblemSpec);
+
+  it("shows one page block per page, with each block worth the minutes per page", async () => {
+    const user = userEvent.setup();
+    render(<App problem={problem} />);
+
+    await user.click(screen.getByRole("button", { name: /Open the reading plan/i }));
+    await user.click(await screen.findByRole("button", { name: "Try ×" }));
+
+    expect(
+      await screen.findByRole("img", {
+        name: /9 blocks, each one 4 minutes page/i,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getAllByText((_, node) => node?.textContent?.replace(/\s+/g, " ").includes("9 blocks = ? minutes") ?? false)
+        .some((node) => node.classList.contains("groups__total")),
+    ).toBe(true);
   });
 });

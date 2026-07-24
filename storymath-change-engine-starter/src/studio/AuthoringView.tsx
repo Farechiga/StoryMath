@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "../components/BrandMark";
 import { useStudio } from "./StudioContext";
+import { AUTHORING_PROBLEM_SPECS } from "./problemCatalog";
 
 const PASSCODE = "0511";
 
@@ -70,11 +71,28 @@ export function AuthoringView() {
   const [singularNoun, setSingularNoun] = useState("item");
   const [genericUnit, setGenericUnit] = useState("items");
   const [relationshipId, setRelationshipId] = useState<typeof RELATIONSHIPS[number]["id"]>("start_change_end_decrease");
+  const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
   const relationship = RELATIONSHIPS.find((r) => r.id === relationshipId)!;
+  const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
   const today = new Date().toISOString().slice(0, 10);
+  const loadSelectedProblem = () => {
+    if (!selectedProblem) return;
+    const firstQuantity = selectedProblem.quantities[0];
+    const firstStep = selectedProblem.steps[0];
+    const matchingRelationship = RELATIONSHIPS.find((item) => item.id === firstStep?.relationshipTemplateId);
+
+    setTitle(selectedProblem.metadata.title);
+    setTheme(selectedProblem.metadata.theme);
+    setGradeBand(selectedProblem.metadata.gradeBand);
+    setProblemParagraph(selectedProblem.story.briefTemplate);
+    setStoryNoun(firstQuantity?.unitPlural ?? firstQuantity?.unit ?? storyNoun);
+    setSingularNoun(firstQuantity?.unitSingular ?? singularNoun);
+    setGenericUnit(firstQuantity?.unit ?? genericUnit);
+    if (matchingRelationship) setRelationshipId(matchingRelationship.id);
+  };
 
   const scaffold = useMemo(
     () => ({
@@ -242,6 +260,34 @@ export function AuthoringView() {
 
       <p className="eyebrow">Internal authoring</p>
       <h1 className="stage-title">Build a clean problem pack</h1>
+
+      <section className="panel authoring-panel authoring-loader" aria-label="Load an existing problem">
+        <h2 className="authoring-title">Load existing wording</h2>
+        <label className="authoring-field">
+          <span>Existing problem</span>
+          <select
+            className="text-input"
+            value={selectedProblemId}
+            onChange={(event) => setSelectedProblemId(event.target.value)}
+          >
+            {AUTHORING_PROBLEM_SPECS.map((spec) => (
+              <option key={spec.id} value={spec.id}>
+                {spec.metadata.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selectedProblem && (
+          <p className="authoring-help">
+            {selectedProblem.metadata.theme} · {selectedProblem.metadata.gradeBand}
+          </p>
+        )}
+        <div className="btn-row">
+          <button type="button" className="btn btn--primary" onClick={loadSelectedProblem}>
+            Load wording
+          </button>
+        </div>
+      </section>
 
       <section className="authoring-layout">
         <div className="panel authoring-panel">

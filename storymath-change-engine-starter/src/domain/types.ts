@@ -72,6 +72,10 @@ export interface OperatorExperimentResult {
   /** Optional authored short reaction; the panel falls back to a generic one. */
   shortReaction?: string;
   visualModel: import("../model/relationshipRegistry").VisualModelType;
+  repeatedGroups?: {
+    groupCount: number;
+    groupSize: number;
+  };
   groupNoun?: string;
   fitsStory: boolean;
 }

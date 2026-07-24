@@ -75,8 +75,8 @@ export function OperatorExperimentPanel({
   if (result.visualModel === "repeated_groups_grid") {
     viz = (
       <RepeatedGroupsModel
-        groupSize={leftVal}
-        groupCount={rightVal}
+        groupSize={result.repeatedGroups?.groupSize ?? leftVal}
+        groupCount={result.repeatedGroups?.groupCount ?? rightVal}
         total={result.computed}
         unit={unit}
         groupNoun={result.groupNoun ?? "group"}

@@ -62,6 +62,15 @@ export function runOperatorExperiment(
   const form = experimentFormId ? getEquationForm(experimentFormId) : undefined;
   const directionProduced = form?.directionProduced ?? step.expectedDirection;
   const visualModel = experiment.visualModel ?? form?.defaultVisualModel ?? "comparison_gap_bar";
+  const groupQuantityId = step.roleToQuantityId.groups;
+  const itemsPerGroupQuantityId = step.roleToQuantityId.itemsPerGroup;
+  const repeatedGroups =
+    visualModel === "repeated_groups_grid" && groupQuantityId && itemsPerGroupQuantityId
+      ? {
+          groupCount: getQuantity(problem, groupQuantityId).value,
+          groupSize: getQuantity(problem, itemsPerGroupQuantityId).value,
+        }
+      : undefined;
 
   const worldSentence = experiment.alternateWorldTemplate
     ? resolveTemplate(experiment.alternateWorldTemplate, mergeMap(problem))
@@ -78,6 +87,7 @@ export function runOperatorExperiment(
     worldSentence,
     ...(experiment.shortReaction ? { shortReaction: experiment.shortReaction } : {}),
     visualModel,
+    ...(repeatedGroups ? { repeatedGroups } : {}),
     ...(groupNoun ? { groupNoun } : {}),
     fitsStory: experiment.narrativeFit === "actual",
   };

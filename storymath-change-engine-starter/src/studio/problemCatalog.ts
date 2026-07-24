@@ -52,6 +52,8 @@ export function orderProblemSpecs(specs: ProblemSpec[]): ProblemSpec[] {
 
 const SPECS = orderProblemSpecs(IMPORTED_SPECS);
 
+export const AUTHORING_PROBLEM_SPECS: readonly ProblemSpec[] = SPECS;
+
 export interface ProblemSummary {
   id: string;
   title: string;
