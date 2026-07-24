@@ -91,6 +91,41 @@ describe("AuthoringView", () => {
     expect(relationships[1]!.value).toBe("start_change_end_decrease");
   });
 
+  it("analyzes a hand-written equal-groups subtraction story into a two-step draft", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudioProvider initialView="authoring">
+        <AuthoringView />
+      </StudioProvider>,
+    );
+
+    await user.type(screen.getByLabelText(/Authoring passcode/i), "0511");
+    await user.click(screen.getByRole("button", { name: "Unlock" }));
+
+    fireEvent.change(screen.getByLabelText(/Raw word problem/i), {
+      target: {
+        value:
+          "Fashion Show Fundraiser Frenzy\n\nSeraphina one of three student designers for her school's Fashion Show Fundraiser! After splitting up the school models evenly Seraphina was tasked with making designs for 11 people. She made 3 design sketches for each model. Each designer was asked to pick their top 5 design sketches to be turned into real outfits that would be auctioned off. How many design sketches did Seraphina have to eliminate?",
+      },
+    });
+    await user.click(screen.getByRole("button", { name: /Analyze and prefill draft/i }));
+
+    expect((screen.getByLabelText(/^Title$/i) as HTMLInputElement).value).toBe("Fashion Show Fundraiser Frenzy");
+    const relationships = screen.getAllByRole("combobox", { name: /^Relationship$/i }) as HTMLSelectElement[];
+    expect(relationships).toHaveLength(2);
+    expect(relationships[0]!.value).toBe("multiplication_equal_groups");
+    expect(relationships[1]!.value).toBe("start_change_end_decrease");
+    expect(screen.getByText(/Generated a two-step parameterized draft/i)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
+    const saved = JSON.parse(localStorage.getItem("storymath_authoring_draft_v1") ?? "{}");
+    expect(saved.story.briefTemplate).toContain("{quantity:models_to_design_for}");
+    expect(saved.story.briefTemplate).toContain("{quantity:sketches_per_model}");
+    expect(saved.story.briefTemplate).toContain("{quantity:top_sketches}");
+    expect(saved.quantities.find((q: { id: string }) => q.id === "total_sketches").expectedValueForFixture).toBe(33);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "eliminated_sketches").expectedValueForFixture).toBe(28);
+  });
+
   it("saves an edited existing problem draft and exposes updated JSON for download", async () => {
     const user = userEvent.setup();
     render(

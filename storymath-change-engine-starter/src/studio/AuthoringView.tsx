@@ -137,6 +137,295 @@ function recapDraftFor(spec: ProblemSpec): RecapDraft {
   };
 }
 
+function singularize(noun: string): string {
+  const trimmed = noun.trim();
+  if (trimmed.endsWith("ies")) return `${trimmed.slice(0, -3)}y`;
+  if (trimmed.endsWith("s") && !trimmed.endsWith("ss")) return trimmed.slice(0, -1);
+  return trimmed;
+}
+
+function titleCaseFirst(value: string): string {
+  return value ? `${value[0]!.toUpperCase()}${value.slice(1)}` : value;
+}
+
+function replaceFirst(text: string, literal: string, replacement: string): string {
+  return text.replace(literal, replacement);
+}
+
+function extractAfterTitle(raw: string): { title: string; story: string } {
+  const lines = raw.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length >= 2 && !/[?.!]$/.test(lines[0]!)) {
+    return { title: lines[0]!, story: lines.slice(1).join(" ") };
+  }
+  return { title: "", story: raw.trim().replace(/\s+/g, " ") };
+}
+
+function buildEqualGroupsThenSubtractGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
+  const { title: titleFromText, story } = extractAfterTitle(rawInput);
+  const storyTitle = titleFromText || fallbackTitle || "Generated StoryMath problem";
+  const id = `${slugify(storyTitle) || "generated_storymath_problem"}-v1`;
+  const eachMatch = story.match(/(\d+)\s+([a-z][a-z -]*?)\s+for each\s+([a-z][a-z -]*)/i);
+  const topMatch = story.match(/top\s+(\d+)\s+([a-z][a-z -]*?)(?=\s+to\b|\s+that\b|[.?!,]|$)/i);
+  if (!eachMatch || !topMatch) return null;
+
+  const itemsPerGroupValue = Number(eachMatch[1]);
+  const itemPlural = eachMatch[2]!.trim();
+  const groupSingular = singularize(eachMatch[3]!.trim().replace(/\bthat\b.*$/i, ""));
+  const groupPattern = new RegExp(`(?:for|designs for|making designs for)\\s+(\\d+)\\s+([a-z][a-z -]*?)(?=[.,]|\\s+She\\b|\\s+he\\b|\\s+they\\b|$)`, "i");
+  const groupMatch = story.match(groupPattern);
+  const groupValue = Number(groupMatch?.[1] ?? 0);
+  if (!Number.isFinite(groupValue) || groupValue <= 0) return null;
+
+  const selectedValue = Number(topMatch[1]);
+  const selectedPlural = topMatch[2]!.trim();
+  const normalizedItemPlural = selectedPlural.includes(itemPlural) ? selectedPlural : itemPlural;
+  const itemSingular = singularize(normalizedItemPlural);
+  const groupPlural = groupSingular.endsWith("s") ? groupSingular : `${groupSingular}s`;
+  const totalValue = groupValue * itemsPerGroupValue;
+  const eliminatedValue = totalValue - selectedValue;
+  const firstName = story.match(/^([A-Z][a-z]+)/)?.[1] ?? "the student";
+  const theme = storyTitle.includes("Fashion") ? "Fashion show design fundraiser" : "Generated two-step model";
+
+  let tokenized = story;
+  if (groupMatch) tokenized = replaceFirst(tokenized, `${groupValue} ${groupMatch[2]!.trim()}`, "{quantity:models_to_design_for}");
+  tokenized = replaceFirst(tokenized, eachMatch[0], eachMatch[0].replace(`${itemsPerGroupValue} ${itemPlural}`, "{quantity:sketches_per_model}"));
+  tokenized = replaceFirst(tokenized, topMatch[0], topMatch[0].replace(`${selectedValue} ${selectedPlural}`, "{quantity:top_sketches}"));
+
+  return {
+    id,
+    metadata: {
+      title: storyTitle,
+      theme,
+      gradeBand: "3-4",
+      factualStatus: "realistic",
+      tags: ["multiplication", "subtraction", "equal groups", "two-step"],
+      catalogOrder: 1000,
+      publishedAt: new Date().toISOString().slice(0, 10),
+    },
+    dimension: {
+      kind: "count",
+      increaseLabel: "More",
+      decreaseLabel: "Fewer",
+      sameLabel: "The same",
+      increaseLabelLower: "more",
+      decreaseLabelLower: "fewer",
+      sameLabelLower: "the same",
+    },
+    storyChrome: {
+      openingEyebrow: "Design studio tally",
+      startCta: "Open the design board",
+      finishCta: "Close the design board",
+      completionTitle: "Design tally complete",
+      stepProgressVerb: "model the design sketches",
+      groupNoun: groupSingular,
+      learnerRole: "design planner",
+    },
+    story: {
+      briefTemplate: tokenized,
+      causalEvent: `Each ${groupSingular} needed the same number of ${normalizedItemPlural}.`,
+      closingNoteTemplate: `${firstName} had to eliminate {quantity:eliminated_sketches}.`,
+    },
+    quantities: [
+      {
+        id: "models_to_design_for",
+        label: {
+          child: `${titleCaseFirst(groupPlural)} Seraphina designed for`,
+          compact: `${titleCaseFirst(groupPlural)}`,
+          lowercase: `${groupPlural} Seraphina designed for`,
+        },
+        unit: groupPlural,
+        unitSingular: groupSingular,
+        unitPlural: groupPlural,
+        value: groupValue,
+        visibility: "given",
+      },
+      {
+        id: "sketches_per_model",
+        label: {
+          child: `${titleCaseFirst(normalizedItemPlural)} for each ${groupSingular}`,
+          compact: `${titleCaseFirst(normalizedItemPlural)} each`,
+          lowercase: `${normalizedItemPlural} for each ${groupSingular}`,
+        },
+        unit: normalizedItemPlural,
+        unitSingular: itemSingular,
+        unitPlural: normalizedItemPlural,
+        value: itemsPerGroupValue,
+        visibility: "given",
+      },
+      {
+        id: "total_sketches",
+        label: {
+          child: `Total ${normalizedItemPlural}`,
+          compact: `Total ${normalizedItemPlural}`,
+          lowercase: `the total ${normalizedItemPlural}`,
+        },
+        unit: normalizedItemPlural,
+        unitSingular: itemSingular,
+        unitPlural: normalizedItemPlural,
+        value: null,
+        visibility: "find",
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            groups: "models_to_design_for",
+            itemsPerGroup: "sketches_per_model",
+          },
+        },
+        expectedValueForFixture: totalValue,
+      },
+      {
+        id: "top_sketches",
+        label: {
+          child: `Top ${normalizedItemPlural}`,
+          compact: `Top ${normalizedItemPlural}`,
+          lowercase: `the top ${normalizedItemPlural}`,
+        },
+        unit: normalizedItemPlural,
+        unitSingular: itemSingular,
+        unitPlural: normalizedItemPlural,
+        value: selectedValue,
+        visibility: "given",
+      },
+      {
+        id: "eliminated_sketches",
+        label: {
+          child: `Eliminated ${normalizedItemPlural}`,
+          compact: `Eliminated ${normalizedItemPlural}`,
+          lowercase: `the eliminated ${normalizedItemPlural}`,
+        },
+        unit: normalizedItemPlural,
+        unitSingular: itemSingular,
+        unitPlural: normalizedItemPlural,
+        value: null,
+        visibility: "revealed_after_step",
+        derived: {
+          formulaId: "start_minus_change_equals_end",
+          operands: {
+            start: "total_sketches",
+            change: "top_sketches",
+          },
+        },
+        expectedValueForFixture: eliminatedValue,
+      },
+    ],
+    steps: [
+      {
+        id: "find_total_sketches",
+        order: 1,
+        prompt: `How many ${normalizedItemPlural} did ${firstName} make in all?`,
+        reasoningPrompt: `Each ${groupSingular} gets the same number of ${normalizedItemPlural}. What operation models equal groups?`,
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          groups: "models_to_design_for",
+          itemsPerGroup: "sketches_per_model",
+          total: "total_sketches",
+        },
+        goalQuantityId: "total_sketches",
+        acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: `Divide the total ${normalizedItemPlural} by the ${groupPlural}. Do you land on the sketches for each ${groupSingular}?`,
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+      {
+        id: "find_eliminated_sketches",
+        order: 2,
+        prompt: `How many ${normalizedItemPlural} did ${firstName} have to eliminate?`,
+        reasoningPrompt: `The top ${selectedValue} ${normalizedItemPlural} are kept. What operation finds the sketches left out?`,
+        relationshipTemplateId: "start_change_end_decrease",
+        roleToQuantityId: {
+          start: "total_sketches",
+          change: "top_sketches",
+          end: "eliminated_sketches",
+        },
+        goalQuantityId: "eliminated_sketches",
+        acceptedEquationFormIds: ["start_minus_change_equals_end"],
+        preferredEquationFormId: "start_minus_change_equals_end",
+        expectedDirection: "decrease",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: `Add the top ${normalizedItemPlural} back to the eliminated ${normalizedItemPlural}. Do you return to the total?`,
+          acceptedEquationFormIds: ["end_plus_change_equals_start"],
+        },
+      },
+    ],
+    operatorExperiments: [
+      {
+        stepId: "find_total_sketches",
+        operator: "+",
+        narrativeFit: "different_question",
+        alternateWorldTemplate: `Adding would count ${groupPlural} and ${normalizedItemPlural} as separate things, not equal groups.`,
+      },
+      {
+        stepId: "find_total_sketches",
+        operator: "-",
+        narrativeFit: "different_story",
+        alternateWorldTemplate: `Subtracting would fit a story where some ${normalizedItemPlural} were removed before counting the total.`,
+      },
+      {
+        stepId: "find_total_sketches",
+        operator: "×",
+        narrativeFit: "actual",
+        visualModel: "repeated_groups_grid",
+        alternateWorldTemplate: `This matches the story: each ${groupSingular} gets the same number of ${normalizedItemPlural}.`,
+      },
+      {
+        stepId: "find_total_sketches",
+        operator: "÷",
+        narrativeFit: "different_question",
+        visualModel: "equal_shares_tray",
+        alternateWorldTemplate: `Dividing would fit a different question about sharing ${normalizedItemPlural} equally.`,
+      },
+      {
+        stepId: "find_eliminated_sketches",
+        operator: "+",
+        narrativeFit: "different_story",
+        alternateWorldTemplate: `Adding would fit a story where the top ${normalizedItemPlural} were added onto the total.`,
+      },
+      {
+        stepId: "find_eliminated_sketches",
+        operator: "-",
+        narrativeFit: "actual",
+        alternateWorldTemplate: `This matches the story: subtracting the top ${normalizedItemPlural} from all the ${normalizedItemPlural} finds what was eliminated.`,
+      },
+      {
+        stepId: "find_eliminated_sketches",
+        operator: "×",
+        narrativeFit: "different_question",
+        visualModel: "repeated_groups_grid",
+        alternateWorldTemplate: `Multiplying would fit a different question about equal groups of ${normalizedItemPlural}.`,
+      },
+      {
+        stepId: "find_eliminated_sketches",
+        operator: "÷",
+        narrativeFit: "different_question",
+        visualModel: "equal_shares_tray",
+        alternateWorldTemplate: `Dividing would fit a different question about sharing the ${normalizedItemPlural}.`,
+      },
+    ],
+    recap: {
+      headline: `Why ${firstName} eliminated {quantity:eliminated_sketches}`,
+      causalChain: [
+        `{quantity:models_to_design_for} each needed {quantity:sketches_per_model}.`,
+        `That made {quantity:total_sketches}.`,
+        `${firstName} kept {quantity:top_sketches}, leaving {quantity:eliminated_sketches} to eliminate.`,
+      ],
+      calcFromStepId: "find_total_sketches",
+      totalVisualStepId: "find_eliminated_sketches",
+      dataQuestion: {
+        prompt: `What does {quantity:eliminated_sketches} represent in the design model?`,
+        correctQuantityId: "eliminated_sketches",
+        distractorQuantityIds: ["models_to_design_for", "total_sketches", "top_sketches"],
+        correctFeedback: `Right. {quantity:eliminated_sketches} is the number of sketches not chosen for outfits.`,
+        incorrectFeedback: `That amount is the sketches left after the top choices: {quantity:eliminated_sketches}.`,
+      },
+    },
+  };
+}
+
 export function AuthoringView() {
   const { openMenu } = useStudio();
   const [passcode, setPasscode] = useState("");
@@ -144,6 +433,7 @@ export function AuthoringView() {
   const [error, setError] = useState("");
   const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
+  const [rawProblemInput, setRawProblemInput] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
   const [theme, setTheme] = useState("Classroom story");
   const [problemParagraph, setProblemParagraph] = useState(
@@ -192,6 +482,14 @@ export function AuthoringView() {
   const loadSelectedProblem = () => {
     if (!selectedProblem) return;
     applySpecToEditor(selectedProblem, "Loaded existing problem wording.");
+  };
+  const analyzeRawProblem = () => {
+    const guess = buildEqualGroupsThenSubtractGuess(rawProblemInput || problemParagraph, title);
+    if (!guess) {
+      setSaveMessage("Analyzer needs an equal-groups story followed by a top/kept amount.");
+      return;
+    }
+    applySpecToEditor(guess, "Generated a two-step parameterized draft. Review the fields, then save or download.");
   };
 
   const editedSpec = useMemo(
@@ -460,6 +758,27 @@ export function AuthoringView() {
 
       <p className="eyebrow">Internal authoring</p>
       <h1 className="stage-title">Build a clean problem pack</h1>
+
+      <section className="panel authoring-panel authoring-loader" aria-label="Analyze a hand-written problem">
+        <h2 className="authoring-title">Start from a hand-written problem</h2>
+        <label className="authoring-field">
+          <span>Raw word problem</span>
+          <span className="authoring-help">
+            Paste the title and story here, then generate an editable parameterized draft.
+          </span>
+          <textarea
+            className="text-input authoring-textarea"
+            value={rawProblemInput}
+            onChange={(event) => setRawProblemInput(event.target.value)}
+            placeholder="Fashion Show Fundraiser Frenzy&#10;&#10;Seraphina was tasked with making designs for 11 models..."
+          />
+        </label>
+        <div className="btn-row">
+          <button type="button" className="btn btn--primary" onClick={analyzeRawProblem}>
+            Analyze and prefill draft
+          </button>
+        </div>
+      </section>
 
       <section className="panel authoring-panel authoring-loader" aria-label="Load an existing problem">
         <h2 className="authoring-title">Load existing wording</h2>
