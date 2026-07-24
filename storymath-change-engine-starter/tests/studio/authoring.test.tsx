@@ -110,11 +110,25 @@ describe("AuthoringView", () => {
     fireEvent.change(screen.getByLabelText(/Word problem paragraph/i), {
       target: { value: "Updated {quantity:cat_stickers} wording." },
     });
-    await user.click(screen.getByRole("button", { name: /Save draft/i }));
+    fireEvent.change(screen.getByLabelText(/Story plural noun/i), {
+      target: { value: "dog-team students" },
+    });
+    fireEvent.change(screen.getByLabelText(/Story singular noun/i), {
+      target: { value: "dog-team student" },
+    });
+    fireEvent.change(screen.getByLabelText(/Arithmetic unit/i), {
+      target: { value: "students" },
+    });
+    await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
 
-    expect(screen.getByText(/Draft saved in this browser/i)).toBeTruthy();
-    expect(localStorage.getItem("storymath_authoring_draft_v1")).toContain("Updated {quantity:cat_stickers} wording.");
-    expect(screen.getByRole("link", { name: /Download JSON/i }).getAttribute("download")).toBe(
+    const saved = localStorage.getItem("storymath_authoring_draft_v1") ?? "";
+    const savedJson = JSON.parse(saved);
+    expect(screen.getByText(/Browser draft saved/i)).toBeTruthy();
+    expect(saved).toContain("Updated {quantity:cat_stickers} wording.");
+    expect(savedJson.quantities[0].unit).toBe("students");
+    expect(savedJson.quantities[0].unitSingular).toBe("dog-team student");
+    expect(savedJson.quantities[0].unitPlural).toBe("dog-team students");
+    expect(screen.getByRole("link", { name: /Download JSON for repo/i }).getAttribute("download")).toBe(
       "canine-feline-spirit-day-showdown-v1.json",
     );
   });

@@ -123,6 +123,14 @@ export function AuthoringView() {
         spec.story.briefTemplate =
           problemParagraph.trim() || "Write the story with quantity tokens.";
         spec.storyChrome.groupNoun = singularNoun;
+        if (spec.quantities[0]) {
+          spec.quantities[0] = {
+            ...spec.quantities[0],
+            unit: genericUnit,
+            unitSingular: singularNoun,
+            unitPlural: storyNoun,
+          };
+        }
         spec.steps = spec.steps.map((step, index) => ({
           ...step,
           relationshipTemplateId: relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId).id,
@@ -225,7 +233,7 @@ export function AuthoringView() {
   const downloadName = `${baseSpec?.id ?? editedSpec.id}.json`;
   const saveDraft = () => {
     localStorage.setItem(AUTHORING_DRAFT_KEY, editedJson);
-    setSaveMessage("Draft saved in this browser.");
+    setSaveMessage("Browser draft saved. Download JSON to update the repository.");
   };
   const loadDraft = () => {
     const raw = localStorage.getItem(AUTHORING_DRAFT_KEY);
@@ -448,12 +456,15 @@ export function AuthoringView() {
         </div>
         <div className="panel authoring-panel">
           <h2 className="authoring-title">Updated problem JSON</h2>
+          <p className="authoring-help">
+            Browser drafts stay on this device. To update the live game, download this JSON and replace the matching file in data/problems before committing.
+          </p>
           <div className="btn-row">
             <button type="button" className="btn btn--primary" onClick={saveDraft}>
-              Save draft
+              Save browser draft
             </button>
             <a className="btn btn--ghost" href={downloadHref} download={downloadName}>
-              Download JSON
+              Download JSON for repo
             </a>
           </div>
           <pre className="authoring-json">{editedJson}</pre>
