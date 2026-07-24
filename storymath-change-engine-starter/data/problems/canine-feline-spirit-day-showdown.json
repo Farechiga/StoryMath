@@ -37,7 +37,7 @@
     "learnerRole": "sticker announcer"
   },
   "story": {
-    "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker contest between team cat and team dog to decorate a board in the entryway. Team cat brought the spirit with {quantity:cat_stickers}. Team dog had {quantity:kids_on_team_dog}, and each kid on team dog brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
+    "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker contest between team cat and team dog to decorate a board in the entryway. Team cat brought the spirit with {quantity:cat_stickers}. There were {quantity:kids_on_team_dog}, and each kid on team dog brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
     "causalEvent": "Each dog-team kid brought the same number of dog stickers.",
     "closingNoteTemplate": "Seraphina and Dorothy announced that team dog had {quantity:more_dog_stickers} more dog stickers."
   },
