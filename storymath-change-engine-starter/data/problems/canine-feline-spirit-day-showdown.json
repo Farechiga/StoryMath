@@ -2,7 +2,7 @@
   "id": "canine-feline-spirit-day-showdown-v1",
   "metadata": {
     "title": "Canine vs. feline Spirit Day showdown",
-    "theme": "School spirit sticker battle",
+    "theme": "School spirit sticker contest",
     "gradeBand": "3-4",
     "factualStatus": "realistic",
     "tags": [
@@ -32,22 +32,22 @@
     "startCta": "Open the sticker board",
     "finishCta": "Close the sticker board",
     "completionTitle": "Sticker board counted",
-    "stepProgressVerb": "model the sticker battle",
+    "stepProgressVerb": "model the sticker contest",
     "groupNoun": "kid",
     "learnerRole": "sticker announcer"
   },
   "story": {
-    "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker battle between team cat and team dog to decorate a board in the entryway. Team cat brought the spirit with {quantity:cat_stickers}. Team dog had {quantity:dog_team_kids}, and each dog-team kid brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
+    "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker contest between team cat and team dog to decorate a board in the entryway. Team cat brought the spirit with {quantity:cat_stickers}. Team dog had {quantity:kids_on_team_dog}, and each kid on team dog brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
     "causalEvent": "Each dog-team kid brought the same number of dog stickers.",
     "closingNoteTemplate": "Seraphina and Dorothy announced that team dog had {quantity:more_dog_stickers} more dog stickers."
   },
   "quantities": [
     {
-      "id": "dog_team_kids",
+      "id": "kids_on_team_dog",
       "label": {
-        "child": "Dog-team kids",
-        "compact": "Dog-team kids",
-        "lowercase": "the dog-team kids"
+        "child": "kids on team dog",
+        "compact": "kids on team dog",
+        "lowercase": "kids on team dog"
       },
       "unit": "kids",
       "unitSingular": "dog-team kid",
