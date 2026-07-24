@@ -1,0 +1,261 @@
+{
+  "id": "fashion_show_fundraiser_frenzy-v1",
+  "metadata": {
+    "title": "Fashion Show Fundraiser Frenzy",
+    "theme": "Fashion show design fundraiser",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "multiplication",
+      "subtraction",
+      "equal groups",
+      "two-step"
+    ],
+    "catalogOrder": 1000,
+    "publishedAt": "2026-07-24"
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Design studio tally",
+    "startCta": "Open the design board",
+    "finishCta": "Close the design board",
+    "completionTitle": "Design tally complete",
+    "stepProgressVerb": "model the design sketches",
+    "groupNoun": "model",
+    "learnerRole": "design planner"
+  },
+  "story": {
+    "briefTemplate": "Seraphina one of three student designers for her school’s Fashion Show Fundraiser! After splitting up the school models evenly Seraphina was tasked with making designs for {quantity:models_to_design_for}. She made {quantity:sketches_per_model} for each model. Each designer was asked to pick their top {quantity:top_sketches} to be turned into real outfits that would be auctioned off. How many design sketches did Seraphina have to eliminate?",
+    "causalEvent": "Each model needed the same number of design sketches.",
+    "closingNoteTemplate": "Seraphina had to eliminate {quantity:eliminated_sketches}."
+  },
+  "quantities": [
+    {
+      "id": "models_to_design_for",
+      "label": {
+        "child": "Models Seraphina designed for",
+        "compact": "Models",
+        "lowercase": "models Seraphina designed for"
+      },
+      "unit": "models",
+      "unitSingular": "model",
+      "unitPlural": "models",
+      "value": 11,
+      "visibility": "given"
+    },
+    {
+      "id": "sketches_per_model",
+      "label": {
+        "child": "Design sketches for each model",
+        "compact": "Design sketches each",
+        "lowercase": "design sketches for each model"
+      },
+      "unit": "design sketches",
+      "unitSingular": "design sketche",
+      "unitPlural": "design sketches",
+      "value": 3,
+      "visibility": "given"
+    },
+    {
+      "id": "total_sketches",
+      "label": {
+        "child": "Total design sketches",
+        "compact": "Total design sketches",
+        "lowercase": "the total design sketches"
+      },
+      "unit": "design sketches",
+      "unitSingular": "design sketche",
+      "unitPlural": "design sketches",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "models_to_design_for",
+          "itemsPerGroup": "sketches_per_model"
+        }
+      },
+      "expectedValueForFixture": 33
+    },
+    {
+      "id": "top_sketches",
+      "label": {
+        "child": "Top design sketches",
+        "compact": "Top design sketches",
+        "lowercase": "the top design sketches"
+      },
+      "unit": "design sketches",
+      "unitSingular": "design sketche",
+      "unitPlural": "design sketches",
+      "value": 5,
+      "visibility": "given"
+    },
+    {
+      "id": "eliminated_sketches",
+      "label": {
+        "child": "Eliminated design sketches",
+        "compact": "Eliminated design sketches",
+        "lowercase": "the eliminated design sketches"
+      },
+      "unit": "design sketches",
+      "unitSingular": "design sketche",
+      "unitPlural": "design sketches",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "total_sketches",
+          "change": "top_sketches"
+        }
+      },
+      "expectedValueForFixture": 28
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_total_sketches",
+      "order": 1,
+      "prompt": "How many design sketches did Seraphina make in all?",
+      "reasoningPrompt": "Each model gets the same number of design sketches. What operation models equal groups?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "models_to_design_for",
+        "itemsPerGroup": "sketches_per_model",
+        "total": "total_sketches"
+      },
+      "goalQuantityId": "total_sketches",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Divide the total design sketches by the models. Do you land on the sketches for each model?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_eliminated_sketches",
+      "order": 2,
+      "prompt": "How many design sketches did Seraphina have to eliminate?",
+      "reasoningPrompt": "The top 5 design sketches are kept. What operation finds the sketches left out?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "total_sketches",
+        "change": "top_sketches",
+        "end": "eliminated_sketches"
+      },
+      "goalQuantityId": "eliminated_sketches",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the top design sketches back to the eliminated design sketches. Do you return to the total?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_total_sketches",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count models and design sketches as separate things, not equal groups."
+    },
+    {
+      "stepId": "find_total_sketches",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some design sketches were removed before counting the total."
+    },
+    {
+      "stepId": "find_total_sketches",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each model gets the same number of design sketches."
+    },
+    {
+      "stepId": "find_total_sketches",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing design sketches equally."
+    },
+    {
+      "stepId": "find_eliminated_sketches",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a story where the top design sketches were added onto the total."
+    },
+    {
+      "stepId": "find_eliminated_sketches",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: subtracting the top design sketches from all the design sketches finds what was eliminated."
+    },
+    {
+      "stepId": "find_eliminated_sketches",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about equal groups of design sketches."
+    },
+    {
+      "stepId": "find_eliminated_sketches",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the design sketches."
+    }
+  ],
+  "recap": {
+    "headline": "Why Seraphina eliminated {quantity:eliminated_sketches}",
+    "causalChain": [
+      "{quantity:models_to_design_for} each needed {quantity:sketches_per_model}.",
+      "That made {quantity:total_sketches}.",
+      "Seraphina kept {quantity:top_sketches}, leaving {quantity:eliminated_sketches} to eliminate."
+    ],
+    "calcFromStepId": "find_total_sketches",
+    "totalVisualStepId": "find_eliminated_sketches",
+    "dataQuestion": {
+      "prompt": "What does {quantity:eliminated_sketches} represent in the design model?",
+      "correctQuantityId": "eliminated_sketches",
+      "distractorQuantityIds": [
+        "models_to_design_for",
+        "total_sketches",
+        "top_sketches"
+      ],
+      "correctFeedback": "Right. {quantity:eliminated_sketches} is the number of sketches not chosen for outfits.",
+      "incorrectFeedback": "That amount is the sketches left after the top choices: {quantity:eliminated_sketches}."
+    }
+  }
+}
