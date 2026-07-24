@@ -9,6 +9,22 @@ const AUTHORING_DRAFT_KEY = "storymath_authoring_draft_v1";
 
 const RELATIONSHIPS = [
   {
+    id: "additive_comparison_decrease",
+    title: "Compare, find gap",
+    operation: "-",
+    roles: "bigger, difference, smaller",
+    formula: "bigger - smaller = difference",
+    visual: "Comparison gap bar",
+  },
+  {
+    id: "additive_comparison_increase",
+    title: "Compare, build bigger",
+    operation: "+",
+    roles: "smaller, difference, bigger",
+    formula: "smaller + difference = bigger",
+    visual: "Comparison gap bar",
+  },
+  {
     id: "start_change_end_decrease",
     title: "Start, remove, end",
     operation: "-",
@@ -51,6 +67,28 @@ const RELATIONSHIPS = [
 ] as const;
 
 type RelationshipId = typeof RELATIONSHIPS[number]["id"];
+type QuantityDraft = {
+  id: string;
+  child: string;
+  compact: string;
+  lowercase: string;
+  unit: string;
+  unitSingular: string;
+  unitPlural: string;
+};
+type StepDraft = {
+  id: string;
+  prompt: string;
+  reasoningPrompt: string;
+  backwardPrompt: string;
+};
+type RecapDraft = {
+  headline: string;
+  causalChain: string;
+  dataQuestionPrompt: string;
+  correctFeedback: string;
+  incorrectFeedback: string;
+};
 
 function slugify(value: string): string {
   return value
@@ -66,6 +104,37 @@ function cloneSpec(spec: ProblemSpec): ProblemSpec {
 
 function relationshipFor(id: string) {
   return RELATIONSHIPS.find((item) => item.id === id) ?? RELATIONSHIPS[0];
+}
+
+function quantityDraftsFor(spec: ProblemSpec): QuantityDraft[] {
+  return spec.quantities.map((quantity) => ({
+    id: quantity.id,
+    child: quantity.label.child,
+    compact: quantity.label.compact,
+    lowercase: quantity.label.lowercase ?? quantity.label.compact.toLowerCase(),
+    unit: quantity.unit,
+    unitSingular: quantity.unitSingular ?? quantity.unit,
+    unitPlural: quantity.unitPlural ?? quantity.unit,
+  }));
+}
+
+function stepDraftsFor(spec: ProblemSpec): StepDraft[] {
+  return spec.steps.map((step) => ({
+    id: step.id,
+    prompt: step.prompt,
+    reasoningPrompt: step.reasoningPrompt,
+    backwardPrompt: step.backwardCheck.prompt,
+  }));
+}
+
+function recapDraftFor(spec: ProblemSpec): RecapDraft {
+  return {
+    headline: spec.recap.headline,
+    causalChain: spec.recap.causalChain.join("\n"),
+    dataQuestionPrompt: spec.recap.dataQuestion.prompt,
+    correctFeedback: spec.recap.dataQuestion.correctFeedback,
+    incorrectFeedback: spec.recap.dataQuestion.incorrectFeedback,
+  };
 }
 
 export function AuthoringView() {
@@ -85,6 +154,15 @@ export function AuthoringView() {
   const [singularNoun, setSingularNoun] = useState("item");
   const [genericUnit, setGenericUnit] = useState("items");
   const [relationshipIds, setRelationshipIds] = useState<RelationshipId[]>(["start_change_end_decrease"]);
+  const [quantityDrafts, setQuantityDrafts] = useState<QuantityDraft[]>([]);
+  const [stepDrafts, setStepDrafts] = useState<StepDraft[]>([]);
+  const [recapDraft, setRecapDraft] = useState<RecapDraft>({
+    headline: "Why the answer works",
+    causalChain: "Use field-merge tokens here.",
+    dataQuestionPrompt: "Ask what one modeled number represents.",
+    correctFeedback: "Right.",
+    incorrectFeedback: "Look back at the model.",
+  });
   const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
   const primaryRelationship = relationshipFor(relationshipIds[0] ?? "start_change_end_decrease");
@@ -103,6 +181,9 @@ export function AuthoringView() {
     setStoryNoun(firstQuantity?.unitPlural ?? firstQuantity?.unit ?? "items");
     setSingularNoun(firstQuantity?.unitSingular ?? "item");
     setGenericUnit(firstQuantity?.unit ?? "items");
+    setQuantityDrafts(quantityDraftsFor(spec));
+    setStepDrafts(stepDraftsFor(spec));
+    setRecapDraft(recapDraftFor(spec));
     setRelationshipIds(
       spec.steps.map((step) => relationshipFor(step.relationshipTemplateId).id),
     );
@@ -123,18 +204,60 @@ export function AuthoringView() {
         spec.story.briefTemplate =
           problemParagraph.trim() || "Write the story with quantity tokens.";
         spec.storyChrome.groupNoun = singularNoun;
-        if (spec.quantities[0]) {
-          spec.quantities[0] = {
-            ...spec.quantities[0],
-            unit: genericUnit,
-            unitSingular: singularNoun,
-            unitPlural: storyNoun,
+        const quantityDraftById = new Map(quantityDrafts.map((draft) => [draft.id, draft]));
+        spec.quantities = spec.quantities.map((quantity, index) => {
+          const draft = quantityDraftById.get(quantity.id);
+          const firstQuantityFallback =
+            index === 0
+              ? {
+                  unit: genericUnit,
+                  unitSingular: singularNoun,
+                  unitPlural: storyNoun,
+                }
+              : {};
+          if (!draft) return { ...quantity, ...firstQuantityFallback };
+          return {
+            ...quantity,
+            label: {
+              child: draft.child,
+              compact: draft.compact,
+              lowercase: draft.lowercase,
+            },
+            unit: draft.unit,
+            unitSingular: draft.unitSingular,
+            unitPlural: draft.unitPlural,
+            ...firstQuantityFallback,
           };
-        }
+        });
+        const stepDraftById = new Map(stepDrafts.map((draft) => [draft.id, draft]));
         spec.steps = spec.steps.map((step, index) => ({
           ...step,
+          ...(stepDraftById.get(step.id)
+            ? {
+                prompt: stepDraftById.get(step.id)!.prompt,
+                reasoningPrompt: stepDraftById.get(step.id)!.reasoningPrompt,
+                backwardCheck: {
+                  ...step.backwardCheck,
+                  prompt: stepDraftById.get(step.id)!.backwardPrompt,
+                },
+              }
+            : {}),
           relationshipTemplateId: relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId).id,
         }));
+        spec.recap = {
+          ...spec.recap,
+          headline: recapDraft.headline,
+          causalChain: recapDraft.causalChain
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean),
+          dataQuestion: {
+            ...spec.recap.dataQuestion,
+            prompt: recapDraft.dataQuestionPrompt,
+            correctFeedback: recapDraft.correctFeedback,
+            incorrectFeedback: recapDraft.incorrectFeedback,
+          },
+        };
         return spec;
       }
 
@@ -226,7 +349,7 @@ export function AuthoringView() {
         },
       } as unknown as ProblemSpec;
     },
-    [baseSpec, genericUnit, gradeBand, primaryRelationship, problemId, problemParagraph, quantityStem, relationshipIds, singularNoun, storyNoun, theme, title, today],
+    [baseSpec, genericUnit, gradeBand, primaryRelationship, problemId, problemParagraph, quantityDrafts, quantityStem, recapDraft, relationshipIds, singularNoun, stepDrafts, storyNoun, theme, title, today],
   );
   const editedJson = useMemo(() => JSON.stringify(editedSpec, null, 2), [editedSpec]);
   const downloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(`${editedJson}\n`)}`;
@@ -249,6 +372,16 @@ export function AuthoringView() {
   };
   const setStepRelationship = (index: number, id: RelationshipId) => {
     setRelationshipIds((current) => current.map((value, i) => (i === index ? id : value)));
+  };
+  const updateQuantityDraft = (id: string, field: keyof Omit<QuantityDraft, "id">, value: string) => {
+    setQuantityDrafts((current) =>
+      current.map((draft) => (draft.id === id ? { ...draft, [field]: value } : draft)),
+    );
+  };
+  const updateStepDraft = (id: string, field: keyof Omit<StepDraft, "id">, value: string) => {
+    setStepDrafts((current) =>
+      current.map((draft) => (draft.id === id ? { ...draft, [field]: value } : draft)),
+    );
   };
 
   const qaItems = [
@@ -410,10 +543,40 @@ export function AuthoringView() {
           <div className="authoring-steps">
             {editedSpec.steps.map((step, index) => {
               const relationship = relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId);
+              const stepDraft = stepDrafts.find((draft) => draft.id === step.id);
               return (
                 <section className="authoring-step" key={step.id}>
                   <h3 className="authoring-step__title">Step {index + 1}</h3>
-                  <p className="authoring-step__prompt">{step.prompt}</p>
+                  {stepDraft ? (
+                    <>
+                      <label className="authoring-field">
+                        <span>Question prompt</span>
+                        <textarea
+                          className="text-input authoring-textarea"
+                          value={stepDraft.prompt}
+                          onChange={(event) => updateStepDraft(step.id, "prompt", event.target.value)}
+                        />
+                      </label>
+                      <label className="authoring-field">
+                        <span>Reasoning prompt</span>
+                        <textarea
+                          className="text-input authoring-textarea"
+                          value={stepDraft.reasoningPrompt}
+                          onChange={(event) => updateStepDraft(step.id, "reasoningPrompt", event.target.value)}
+                        />
+                      </label>
+                      <label className="authoring-field">
+                        <span>Backward check prompt</span>
+                        <textarea
+                          className="text-input authoring-textarea"
+                          value={stepDraft.backwardPrompt}
+                          onChange={(event) => updateStepDraft(step.id, "backwardPrompt", event.target.value)}
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <p className="authoring-step__prompt">{step.prompt}</p>
+                  )}
                   <label className="authoring-field">
                     <span>Relationship</span>
                     <select
@@ -442,6 +605,116 @@ export function AuthoringView() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="authoring-layout">
+        <div className="panel authoring-panel">
+          <h2 className="authoring-title">Quantity wording</h2>
+          {quantityDrafts.length === 0 ? (
+            <p className="authoring-help">Load an existing problem to edit all quantity labels.</p>
+          ) : (
+            <div className="authoring-steps">
+              {quantityDrafts.map((quantity) => (
+                <section className="authoring-step" key={quantity.id}>
+                  <h3 className="authoring-step__title">{quantity.id}</h3>
+                  <label className="authoring-field">
+                    <span>Answer choice label</span>
+                    <input
+                      className="text-input"
+                      value={quantity.child}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "child", event.target.value)}
+                    />
+                  </label>
+                  <label className="authoring-field">
+                    <span>Short label</span>
+                    <input
+                      className="text-input"
+                      value={quantity.compact}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "compact", event.target.value)}
+                    />
+                  </label>
+                  <label className="authoring-field">
+                    <span>Sentence label</span>
+                    <input
+                      className="text-input"
+                      value={quantity.lowercase}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "lowercase", event.target.value)}
+                    />
+                  </label>
+                  <label className="authoring-field">
+                    <span>Quantity arithmetic unit</span>
+                    <input
+                      className="text-input"
+                      value={quantity.unit}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "unit", event.target.value)}
+                    />
+                  </label>
+                  <label className="authoring-field">
+                    <span>Singular display noun</span>
+                    <input
+                      className="text-input"
+                      value={quantity.unitSingular}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "unitSingular", event.target.value)}
+                    />
+                  </label>
+                  <label className="authoring-field">
+                    <span>Plural display noun</span>
+                    <input
+                      className="text-input"
+                      value={quantity.unitPlural}
+                      onChange={(event) => updateQuantityDraft(quantity.id, "unitPlural", event.target.value)}
+                    />
+                  </label>
+                </section>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="panel authoring-panel">
+          <h2 className="authoring-title">Recap wording</h2>
+          <label className="authoring-field">
+            <span>Recap headline</span>
+            <input
+              className="text-input"
+              value={recapDraft.headline}
+              onChange={(event) => setRecapDraft((current) => ({ ...current, headline: event.target.value }))}
+            />
+          </label>
+          <label className="authoring-field">
+            <span>Causal chain</span>
+            <span className="authoring-help">One recap bubble per line. Use tokens for quantities and labels.</span>
+            <textarea
+              className="text-input authoring-textarea"
+              value={recapDraft.causalChain}
+              onChange={(event) => setRecapDraft((current) => ({ ...current, causalChain: event.target.value }))}
+            />
+          </label>
+          <label className="authoring-field">
+            <span>Data question</span>
+            <input
+              className="text-input"
+              value={recapDraft.dataQuestionPrompt}
+              onChange={(event) => setRecapDraft((current) => ({ ...current, dataQuestionPrompt: event.target.value }))}
+            />
+          </label>
+          <label className="authoring-field">
+            <span>Correct feedback</span>
+            <input
+              className="text-input"
+              value={recapDraft.correctFeedback}
+              onChange={(event) => setRecapDraft((current) => ({ ...current, correctFeedback: event.target.value }))}
+            />
+          </label>
+          <label className="authoring-field">
+            <span>Try-again feedback</span>
+            <input
+              className="text-input"
+              value={recapDraft.incorrectFeedback}
+              onChange={(event) => setRecapDraft((current) => ({ ...current, incorrectFeedback: event.target.value }))}
+            />
+          </label>
         </div>
       </section>
 

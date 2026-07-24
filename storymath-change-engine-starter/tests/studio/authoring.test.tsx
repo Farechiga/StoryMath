@@ -116,8 +116,23 @@ describe("AuthoringView", () => {
     fireEvent.change(screen.getByLabelText(/Story singular noun/i), {
       target: { value: "dog-team student" },
     });
-    fireEvent.change(screen.getByLabelText(/Arithmetic unit/i), {
+    fireEvent.change(screen.getByLabelText(/^Arithmetic unit$/i), {
       target: { value: "students" },
+    });
+    fireEvent.change(screen.getAllByLabelText(/Answer choice label/i)[0]!, {
+      target: { value: "Kids on Team Dog" },
+    });
+    fireEvent.change(screen.getAllByLabelText(/Sentence label/i)[0]!, {
+      target: { value: "kids on Team Dog" },
+    });
+    fireEvent.change(screen.getByLabelText(/Recap headline/i), {
+      target: { value: "Why Team Dog had {quantity:more_dog_stickers} more" },
+    });
+    fireEvent.change(screen.getByLabelText(/Causal chain/i), {
+      target: {
+        value:
+          "{quantity:kids_on_team_dog} each brought {quantity:dog_stickers_per_kid}.\nTeam Cat had {quantity:cat_stickers}, so Team Dog had {quantity:more_dog_stickers} more.",
+      },
     });
     await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
 
@@ -128,6 +143,13 @@ describe("AuthoringView", () => {
     expect(savedJson.quantities[0].unit).toBe("students");
     expect(savedJson.quantities[0].unitSingular).toBe("dog-team student");
     expect(savedJson.quantities[0].unitPlural).toBe("dog-team students");
+    expect(savedJson.quantities[0].label.child).toBe("Kids on Team Dog");
+    expect(savedJson.quantities[0].label.lowercase).toBe("kids on Team Dog");
+    expect(savedJson.recap.headline).toBe("Why Team Dog had {quantity:more_dog_stickers} more");
+    expect(savedJson.recap.causalChain).toEqual([
+      "{quantity:kids_on_team_dog} each brought {quantity:dog_stickers_per_kid}.",
+      "Team Cat had {quantity:cat_stickers}, so Team Dog had {quantity:more_dog_stickers} more.",
+    ]);
     expect(screen.getByRole("link", { name: /Download JSON for repo/i }).getAttribute("download")).toBe(
       "canine-feline-spirit-day-showdown-v1.json",
     );

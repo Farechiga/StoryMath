@@ -9,6 +9,7 @@ import type { ProblemSpec } from "../model/problemSpec";
 import type { ProblemInstance } from "../domain/types";
 
 import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
+import escapeRoom from "../../data/problems/escape-room-countdown.json";
 import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
 import puddingTreats from "../../data/problems/planning-pudding-treats.json";
 import woodenRacers from "../../data/problems/mini-wooden-racers.json";
@@ -29,7 +30,7 @@ import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
 
 const IMPORTED_SPECS: ProblemSpec[] = [
   // New authored packs use catalogOrder/publishedAt and sort above older packs.
-  legoArchitects, spiritDay, puddingTreats, woodenRacers, readingClock,
+  escapeRoom, legoArchitects, spiritDay, puddingTreats, woodenRacers, readingClock,
   marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
   nasa, owl, littleWomen, aikido, lunar, birding, animation, puppyBiscuits,
 ].map((s) => s as unknown as ProblemSpec);

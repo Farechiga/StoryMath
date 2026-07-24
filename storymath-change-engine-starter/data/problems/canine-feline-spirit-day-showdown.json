@@ -39,15 +39,15 @@
   "story": {
     "briefTemplate": "For Fall Spirit Day, Ave Maria Academy is having a sticker contest between Team Cat and Team Dog to decorate a board in the entryway. Team Cat brought the spirit with {quantity:cat_stickers}. There were {quantity:kids_on_team_dog}, and each kid on Team Dog brought {quantity:dog_stickers_per_kid}. Mrs. Walz asked Seraphina and Dorothy to announce how many more dog stickers there were than cat stickers on the board.",
     "causalEvent": "Each dog-team kid brought the same number of dog stickers.",
-    "closingNoteTemplate": "Seraphina and Dorothy announced that team dog had {quantity:more_dog_stickers} more dog stickers."
+    "closingNoteTemplate": "Seraphina and Dorothy announced that Team Dog had {quantity:more_dog_stickers} more dog stickers."
   },
   "quantities": [
     {
       "id": "kids_on_team_dog",
       "label": {
-        "child": "kids on team dog",
-        "compact": "kids on team dog",
-        "lowercase": "kids on team dog"
+        "child": "Kids on Team Dog",
+        "compact": "Kids on Team Dog",
+        "lowercase": "kids on Team Dog"
       },
       "unit": "kids",
       "unitSingular": "kid on Team Dog",
@@ -128,7 +128,7 @@
     {
       "id": "find_dog_stickers",
       "order": 1,
-      "prompt": "How many dog stickers did team dog bring in all?",
+      "prompt": "How many dog stickers did Team Dog bring in all?",
       "reasoningPrompt": "Each dog-team kid brought the same number of stickers. What operation models equal groups?",
       "relationshipTemplateId": "multiplication_equal_groups",
       "roleToQuantityId": {
@@ -160,8 +160,8 @@
       "id": "find_more_dog_stickers",
       "order": 2,
       "prompt": "How many more dog stickers were there than cat stickers?",
-      "reasoningPrompt": "Team dog has the larger sticker total. What operation finds the gap between the teams?",
-      "relationshipTemplateId": "start_change_end_decrease",
+      "reasoningPrompt": "Team Dog has the larger sticker total. What operation finds the gap between the teams?",
+      "relationshipTemplateId": "additive_comparison_decrease",
       "roleToQuantityId": {
         "bigger": "dog_stickers",
         "smaller": "cat_stickers",
@@ -242,11 +242,11 @@
     }
   ],
   "recap": {
-    "headline": "Why team dog had {quantity:more_dog_stickers} more",
+    "headline": "Why Team Dog had {quantity:more_dog_stickers} more",
     "causalChain": [
       "{quantity:kids_on_team_dog} each brought {quantity:dog_stickers_per_kid}.",
-      "That made {quantity:dog_stickers} on the dog side.",
-      "Team cat had {quantity:cat_stickers}, so team dog had {quantity:more_dog_stickers} more."
+      "That made {quantity:dog_stickers} on the Team Dog side.",
+      "Team Cat had {quantity:cat_stickers}, so Team Dog had {quantity:more_dog_stickers} more."
     ],
     "calcFromStepId": "find_dog_stickers",
     "totalVisualStepId": "find_more_dog_stickers",

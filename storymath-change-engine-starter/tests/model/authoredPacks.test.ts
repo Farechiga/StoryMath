@@ -12,6 +12,7 @@ import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
 import carol from "../../data/problems/christmas-carol-seat-crisis.json";
 import animation from "../../data/problems/animation-lab-eyebrows.json";
 import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
+import escapeRoom from "../../data/problems/escape-room-countdown.json";
 import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
 import puddingTreats from "../../data/problems/planning-pudding-treats.json";
 import woodenRacers from "../../data/problems/mini-wooden-racers.json";
@@ -24,6 +25,7 @@ import readingClock from "../../data/problems/little-men-reading-clock.json";
  * modeled number into field-merged prose.
  */
 const PACKS: Array<[string, ProblemSpec]> = [
+  ["escape-room-countdown", escapeRoom as unknown as ProblemSpec],
   ["lego-architects-periwinkle-blueprint", legoArchitects as unknown as ProblemSpec],
   ["canine-feline-spirit-day-showdown", spiritDay as unknown as ProblemSpec],
   ["planning-pudding-treats", puddingTreats as unknown as ProblemSpec],

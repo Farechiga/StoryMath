@@ -67,11 +67,11 @@ describe("orderProblemSpecs", () => {
 describe("PROBLEMS catalog", () => {
   it("surfaces the newest authored packs first", () => {
     expect(PROBLEMS.slice(0, 5).map((p) => p.id)).toEqual([
+      "escape-room-countdown-v1",
       "lego-architects-periwinkle-blueprint-v1",
       "canine-feline-spirit-day-showdown-v1",
       "planning-pudding-treats-v1",
       "mini-wooden-racers-v1",
-      "little-men-reading-clock-v1",
     ]);
   });
 });
