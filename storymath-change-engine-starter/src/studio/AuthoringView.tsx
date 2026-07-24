@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "../components/BrandMark";
+import type { ProblemSpec } from "../model/problemSpec";
 import { useStudio } from "./StudioContext";
 import { AUTHORING_PROBLEM_SPECS } from "./problemCatalog";
 
 const PASSCODE = "0511";
+const AUTHORING_DRAFT_KEY = "storymath_authoring_draft_v1";
 
 const RELATIONSHIPS = [
   {
@@ -48,6 +50,8 @@ const RELATIONSHIPS = [
   },
 ] as const;
 
+type RelationshipId = typeof RELATIONSHIPS[number]["id"];
+
 function slugify(value: string): string {
   return value
     .trim()
@@ -56,11 +60,21 @@ function slugify(value: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
+function cloneSpec(spec: ProblemSpec): ProblemSpec {
+  return JSON.parse(JSON.stringify(spec)) as ProblemSpec;
+}
+
+function relationshipFor(id: string) {
+  return RELATIONSHIPS.find((item) => item.id === id) ?? RELATIONSHIPS[0];
+}
+
 export function AuthoringView() {
   const { openMenu } = useStudio();
   const [passcode, setPasscode] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState("");
+  const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
+  const [saveMessage, setSaveMessage] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
   const [theme, setTheme] = useState("Classroom story");
   const [problemParagraph, setProblemParagraph] = useState(
@@ -70,119 +84,164 @@ export function AuthoringView() {
   const [storyNoun, setStoryNoun] = useState("items");
   const [singularNoun, setSingularNoun] = useState("item");
   const [genericUnit, setGenericUnit] = useState("items");
-  const [relationshipId, setRelationshipId] = useState<typeof RELATIONSHIPS[number]["id"]>("start_change_end_decrease");
+  const [relationshipIds, setRelationshipIds] = useState<RelationshipId[]>(["start_change_end_decrease"]);
   const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
-  const relationship = RELATIONSHIPS.find((r) => r.id === relationshipId)!;
+  const primaryRelationship = relationshipFor(relationshipIds[0] ?? "start_change_end_decrease");
   const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
   const today = new Date().toISOString().slice(0, 10);
+  const applySpecToEditor = (spec: ProblemSpec, message: string) => {
+    const firstQuantity = spec.quantities[0];
+
+    setBaseSpec(cloneSpec(spec));
+    setTitle(spec.metadata.title);
+    setTheme(spec.metadata.theme);
+    setGradeBand(spec.metadata.gradeBand);
+    setProblemParagraph(spec.story.briefTemplate);
+    setStoryNoun(firstQuantity?.unitPlural ?? firstQuantity?.unit ?? "items");
+    setSingularNoun(firstQuantity?.unitSingular ?? "item");
+    setGenericUnit(firstQuantity?.unit ?? "items");
+    setRelationshipIds(
+      spec.steps.map((step) => relationshipFor(step.relationshipTemplateId).id),
+    );
+    setSaveMessage(message);
+  };
   const loadSelectedProblem = () => {
     if (!selectedProblem) return;
-    const firstQuantity = selectedProblem.quantities[0];
-    const firstStep = selectedProblem.steps[0];
-    const matchingRelationship = RELATIONSHIPS.find((item) => item.id === firstStep?.relationshipTemplateId);
-
-    setTitle(selectedProblem.metadata.title);
-    setTheme(selectedProblem.metadata.theme);
-    setGradeBand(selectedProblem.metadata.gradeBand);
-    setProblemParagraph(selectedProblem.story.briefTemplate);
-    setStoryNoun(firstQuantity?.unitPlural ?? firstQuantity?.unit ?? storyNoun);
-    setSingularNoun(firstQuantity?.unitSingular ?? singularNoun);
-    setGenericUnit(firstQuantity?.unit ?? genericUnit);
-    if (matchingRelationship) setRelationshipId(matchingRelationship.id);
+    applySpecToEditor(selectedProblem, "Loaded existing problem wording.");
   };
 
-  const scaffold = useMemo(
-    () => ({
-      id: `${problemId}-v1`,
-      metadata: {
-        title,
-        theme,
-        gradeBand,
-        factualStatus: "realistic",
-        tags: [relationship.operation, relationship.id],
-        catalogOrder: 1000,
-        publishedAt: today,
-      },
-      dimension: {
-        kind: "count",
-        increaseLabel: "More",
-        decreaseLabel: "Fewer",
-        sameLabel: "The same",
-        increaseLabelLower: "more",
-        decreaseLabelLower: "fewer",
-        sameLabelLower: "the same",
-      },
-      storyChrome: {
-        openingEyebrow: "Author note",
-        startCta: "Start the model",
-        finishCta: "Close the model",
-        stepProgressVerb: "model the story",
-        groupNoun: singularNoun,
-        learnerRole: "model builder",
-      },
-      story: {
-        briefTemplate:
-          problemParagraph.trim() || `Write the story with tokens like {quantity:${quantityStem}_given}.`,
-      },
-      quantities: [
-        {
-          id: `${quantityStem}_given`,
-          label: {
-            child: `Given ${storyNoun}`,
-            compact: `Given ${storyNoun}`,
-            lowercase: `the given ${storyNoun}`,
+  const editedSpec = useMemo(
+    () => {
+      if (baseSpec) {
+        const spec = cloneSpec(baseSpec);
+        spec.metadata.title = title;
+        spec.metadata.theme = theme;
+        spec.metadata.gradeBand = gradeBand;
+        spec.story.briefTemplate =
+          problemParagraph.trim() || "Write the story with quantity tokens.";
+        spec.storyChrome.groupNoun = singularNoun;
+        spec.steps = spec.steps.map((step, index) => ({
+          ...step,
+          relationshipTemplateId: relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId).id,
+        }));
+        return spec;
+      }
+
+      const relationship = primaryRelationship;
+      return {
+        id: `${problemId}-v1`,
+        metadata: {
+          title,
+          theme,
+          gradeBand,
+          factualStatus: "realistic",
+          tags: [relationship.operation, relationship.id],
+          catalogOrder: 1000,
+          publishedAt: today,
+        },
+        dimension: {
+          kind: "count",
+          increaseLabel: "More",
+          decreaseLabel: "Fewer",
+          sameLabel: "The same",
+          increaseLabelLower: "more",
+          decreaseLabelLower: "fewer",
+          sameLabelLower: "the same",
+        },
+        storyChrome: {
+          openingEyebrow: "Author note",
+          startCta: "Start the model",
+          finishCta: "Close the model",
+          stepProgressVerb: "model the story",
+          groupNoun: singularNoun,
+          learnerRole: "model builder",
+        },
+        story: {
+          briefTemplate:
+            problemParagraph.trim() || `Write the story with tokens like {quantity:${quantityStem}_given}.`,
+        },
+        quantities: [
+          {
+            id: `${quantityStem}_given`,
+            label: {
+              child: `Given ${storyNoun}`,
+              compact: `Given ${storyNoun}`,
+              lowercase: `the given ${storyNoun}`,
+            },
+            unit: genericUnit,
+            unitSingular: singularNoun,
+            unitPlural: storyNoun,
+            value: 0,
+            visibility: "given",
           },
-          unit: genericUnit,
-          unitSingular: singularNoun,
-          unitPlural: storyNoun,
-          value: 0,
-          visibility: "given",
-        },
-      ],
-      steps: [
-        {
-          id: `find_${quantityStem}`,
-          order: 1,
-          prompt: "Write one clear question for this step.",
-          reasoningPrompt: "Ask what relationship the numbers have without giving away the answer.",
-          relationshipTemplateId: relationship.id,
-          roleToQuantityId: Object.fromEntries(relationship.roles.split(", ").map((role) => [role, "quantity_id_here"])),
-          goalQuantityId: "goal_quantity_id_here",
-          acceptedEquationFormIds: ["formula_id_here"],
-          preferredEquationFormId: "formula_id_here",
-          expectedDirection:
-            relationship.operation === "×" ? "scale" : relationship.operation === "÷" ? "split" : relationship.operation === "+" ? "combine" : "decrease",
-          operatorOptions: ["+", "-", "×", "÷"],
-          backwardCheck: {
-            prompt: "Write the inverse check.",
-            acceptedEquationFormIds: ["inverse_formula_id_here"],
+        ],
+        steps: [
+          {
+            id: `find_${quantityStem}`,
+            order: 1,
+            prompt: "Write one clear question for this step.",
+            reasoningPrompt: "Ask what relationship the numbers have without giving away the answer.",
+            relationshipTemplateId: relationship.id,
+            roleToQuantityId: Object.fromEntries(relationship.roles.split(", ").map((role) => [role, "quantity_id_here"])),
+            goalQuantityId: "goal_quantity_id_here",
+            acceptedEquationFormIds: ["formula_id_here"],
+            preferredEquationFormId: "formula_id_here",
+            expectedDirection:
+              relationship.operation === "×" ? "scale" : relationship.operation === "÷" ? "split" : relationship.operation === "+" ? "combine" : "decrease",
+            operatorOptions: ["+", "-", "×", "÷"],
+            backwardCheck: {
+              prompt: "Write the inverse check.",
+              acceptedEquationFormIds: ["inverse_formula_id_here"],
+            },
+          },
+        ],
+        operatorExperiments: ["+", "-", "×", "÷"].map((operator) => ({
+          stepId: `find_${quantityStem}`,
+          operator,
+          narrativeFit: operator === relationship.operation ? "actual" : "different_question",
+          alternateWorldTemplate: "Explain whether this operation matches the story.",
+        })),
+        recap: {
+          headline: "Why the answer works",
+          causalChain: ["Use field-merge tokens here."],
+          calcFromStepId: `find_${quantityStem}`,
+          dataQuestion: {
+            prompt: "Ask what one modeled number represents.",
+            correctQuantityId: `${quantityStem}_given`,
+            distractorQuantityIds: [],
+            correctFeedback: "Right.",
+            incorrectFeedback: "Look back at the model.",
           },
         },
-      ],
-      operatorExperiments: ["+", "-", "×", "÷"].map((operator) => ({
-        stepId: `find_${quantityStem}`,
-        operator,
-        narrativeFit: operator === relationship.operation ? "actual" : "different_question",
-        alternateWorldTemplate: "Explain whether this operation matches the story.",
-      })),
-      recap: {
-        headline: "Why the answer works",
-        causalChain: ["Use field-merge tokens here."],
-        calcFromStepId: `find_${quantityStem}`,
-        dataQuestion: {
-          prompt: "Ask what one modeled number represents.",
-          correctQuantityId: `${quantityStem}_given`,
-          distractorQuantityIds: [],
-          correctFeedback: "Right.",
-          incorrectFeedback: "Look back at the model.",
-        },
-      },
-    }),
-    [genericUnit, gradeBand, problemId, problemParagraph, quantityStem, relationship, singularNoun, storyNoun, theme, title, today],
+      } as unknown as ProblemSpec;
+    },
+    [baseSpec, genericUnit, gradeBand, primaryRelationship, problemId, problemParagraph, quantityStem, relationshipIds, singularNoun, storyNoun, theme, title, today],
   );
+  const editedJson = useMemo(() => JSON.stringify(editedSpec, null, 2), [editedSpec]);
+  const downloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(`${editedJson}\n`)}`;
+  const downloadName = `${baseSpec?.id ?? editedSpec.id}.json`;
+  const saveDraft = () => {
+    localStorage.setItem(AUTHORING_DRAFT_KEY, editedJson);
+    setSaveMessage("Draft saved in this browser.");
+  };
+  const loadDraft = () => {
+    const raw = localStorage.getItem(AUTHORING_DRAFT_KEY);
+    if (!raw) {
+      setSaveMessage("No saved draft found.");
+      return;
+    }
+    try {
+      applySpecToEditor(JSON.parse(raw) as ProblemSpec, "Loaded saved draft.");
+    } catch {
+      setSaveMessage("Saved draft could not be read.");
+    }
+  };
+  const setStepRelationship = (index: number, id: RelationshipId) => {
+    setRelationshipIds((current) => current.map((value, i) => (i === index ? id : value)));
+  };
 
   const qaItems = [
     "Every modeled number in prose uses a field-merge token.",
@@ -286,7 +345,11 @@ export function AuthoringView() {
           <button type="button" className="btn btn--primary" onClick={loadSelectedProblem}>
             Load wording
           </button>
+          <button type="button" className="btn btn--ghost" onClick={loadDraft}>
+            Load saved draft
+          </button>
         </div>
+        {saveMessage && <p className="authoring-save">{saveMessage}</p>}
       </section>
 
       <section className="authoring-layout">
@@ -335,32 +398,42 @@ export function AuthoringView() {
         </div>
 
         <div className="panel authoring-panel">
-          <h2 className="authoring-title">Relationship</h2>
-          <div className="relationship-grid" role="group" aria-label="Choose a relationship template">
-            {RELATIONSHIPS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`relationship-card${item.id === relationshipId ? " relationship-card--active" : ""}`}
-                onClick={() => setRelationshipId(item.id)}
-              >
-                <span className="relationship-card__title">{item.title}</span>
-                <span>{item.formula}</span>
-                <span>{item.visual}</span>
-              </button>
-            ))}
+          <h2 className="authoring-title">Step sequence</h2>
+          <div className="authoring-steps">
+            {editedSpec.steps.map((step, index) => {
+              const relationship = relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId);
+              return (
+                <section className="authoring-step" key={step.id}>
+                  <h3 className="authoring-step__title">Step {index + 1}</h3>
+                  <p className="authoring-step__prompt">{step.prompt}</p>
+                  <label className="authoring-field">
+                    <span>Relationship</span>
+                    <select
+                      className="text-input"
+                      value={relationship.id}
+                      onChange={(event) => setStepRelationship(index, event.target.value as RelationshipId)}
+                    >
+                      {RELATIONSHIPS.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.title} ({item.operation})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <dl className="authoring-facts">
+                    <div>
+                      <dt>Roles</dt>
+                      <dd>{relationship.roles}</dd>
+                    </div>
+                    <div>
+                      <dt>Actual operation</dt>
+                      <dd>{relationship.operation}</dd>
+                    </div>
+                  </dl>
+                </section>
+              );
+            })}
           </div>
-
-          <dl className="authoring-facts">
-            <div>
-              <dt>Roles</dt>
-              <dd>{relationship.roles}</dd>
-            </div>
-            <div>
-              <dt>Actual operation</dt>
-              <dd>{relationship.operation}</dd>
-            </div>
-          </dl>
         </div>
       </section>
 
@@ -374,8 +447,16 @@ export function AuthoringView() {
           </ul>
         </div>
         <div className="panel authoring-panel">
-          <h2 className="authoring-title">Starter spec outline</h2>
-          <pre className="authoring-json">{JSON.stringify(scaffold, null, 2)}</pre>
+          <h2 className="authoring-title">Updated problem JSON</h2>
+          <div className="btn-row">
+            <button type="button" className="btn btn--primary" onClick={saveDraft}>
+              Save draft
+            </button>
+            <a className="btn btn--ghost" href={downloadHref} download={downloadName}>
+              Download JSON
+            </a>
+          </div>
+          <pre className="authoring-json">{editedJson}</pre>
         </div>
       </section>
     </main>
