@@ -83,7 +83,7 @@
       "derived": {
         "formulaId": "groups_times_items_equals_total",
         "operands": {
-          "groups": "dog_team_kids",
+          "groups": "kids_on_team_dog",
           "itemsPerGroup": "dog_stickers_per_kid"
         }
       },
@@ -132,7 +132,7 @@
       "reasoningPrompt": "Each dog-team kid brought the same number of stickers. What operation models equal groups?",
       "relationshipTemplateId": "multiplication_equal_groups",
       "roleToQuantityId": {
-        "groups": "dog_team_kids",
+        "groups": "kids_on_team_dog",
         "itemsPerGroup": "dog_stickers_per_kid",
         "total": "dog_stickers"
       },
@@ -244,7 +244,7 @@
   "recap": {
     "headline": "Why team dog had {quantity:more_dog_stickers} more",
     "causalChain": [
-      "{quantity:dog_team_kids} each brought {quantity:dog_stickers_per_kid}.",
+      "{quantity:kids_on_team_dog} each brought {quantity:dog_stickers_per_kid}.",
       "That made {quantity:dog_stickers} on the dog side.",
       "Team cat had {quantity:cat_stickers}, so team dog had {quantity:more_dog_stickers} more."
     ],
@@ -254,7 +254,7 @@
       "prompt": "What does {quantity:more_dog_stickers} represent in the Spirit Day model?",
       "correctQuantityId": "more_dog_stickers",
       "distractorQuantityIds": [
-        "dog_team_kids",
+        "kids_on_team_dog",
         "dog_stickers",
         "cat_stickers"
       ],
