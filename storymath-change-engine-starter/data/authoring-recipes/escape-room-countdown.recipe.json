@@ -1,0 +1,144 @@
+{
+  "id": "escape-room-countdown-v1",
+  "title": "Escape Room Countdown",
+  "theme": "Completing all the challenges before time runs out",
+  "gradeBand": "3-4",
+  "factualStatus": "realistic",
+  "tags": ["escape room", "addition", "subtraction", "time", "two-step"],
+  "curiosityNote": "Escape rooms make elapsed-time subtraction visible because every completed challenge uses part of the clock.",
+  "catalogOrder": 3005,
+  "publishedAt": "2026-07-24",
+  "dimension": {
+    "kind": "time",
+    "increaseLabel": "More time",
+    "decreaseLabel": "Less time",
+    "sameLabel": "The same time",
+    "increaseLabelLower": "more time",
+    "decreaseLabelLower": "less time",
+    "sameLabelLower": "the same time",
+    "increaseSentence": "more time than before",
+    "decreaseSentence": "less time than before"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Escape room countdown",
+    "startCta": "Open the countdown",
+    "finishCta": "Close the countdown",
+    "completionTitle": "Countdown solved",
+    "stepProgressVerb": "model the escape time",
+    "groupNoun": "challenge",
+    "learnerRole": "escape-room strategist"
+  },
+  "story": {
+    "raw": "Megan, Noel, Julianne, Rose, and Seraphina are determined to beat the most difficult escape room in their hometown, and are moving on to the third and final challenge. They completed the Library in 13 minutes, and the Labyrinth in 21 minutes. If they have one hour to complete the escape room, how many remaining minutes do they have to finish The Belltower?",
+    "causalEvent": "The Library and Labyrinth used part of the one-hour escape-room clock.",
+    "closingNoteTemplate": "The team has {quantity:remaining_minutes} to finish The Belltower."
+  },
+  "quantities": [
+    {
+      "id": "library_minutes",
+      "name": "the Library minutes",
+      "label": "Minutes for the Library",
+      "sentenceLabel": "the Library minutes",
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": 13,
+      "visibility": "given",
+      "mentions": ["13 minutes"]
+    },
+    {
+      "id": "labyrinth_minutes",
+      "name": "the Labyrinth minutes",
+      "label": "Minutes for the Labyrinth",
+      "sentenceLabel": "the Labyrinth minutes",
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": 21,
+      "visibility": "given",
+      "mentions": ["21 minutes"]
+    },
+    {
+      "id": "elapsed_minutes",
+      "name": "the elapsed minutes",
+      "label": "Minutes used by the Library and Labyrinth",
+      "compactLabel": "Elapsed minutes",
+      "sentenceLabel": "the elapsed minutes",
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": null,
+      "visibility": "find"
+    },
+    {
+      "id": "total_escape_minutes",
+      "name": "the total escape-room minutes",
+      "label": "Total escape-room minutes",
+      "compactLabel": "Escape-room minutes",
+      "sentenceLabel": "the total escape-room minutes",
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": 60,
+      "visibility": "given",
+      "mentions": ["one hour"]
+    },
+    {
+      "id": "remaining_minutes",
+      "name": "the remaining minutes",
+      "label": "Minutes remaining for The Belltower",
+      "compactLabel": "Remaining minutes",
+      "sentenceLabel": "the remaining minutes",
+      "unit": "minutes",
+      "unitSingular": "minute",
+      "unitPlural": "minutes",
+      "value": null,
+      "visibility": "revealed_after_step"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_elapsed_minutes",
+      "order": 1,
+      "relationship": "part_part_whole",
+      "roles": {
+        "partA": "library_minutes",
+        "partB": "labyrinth_minutes",
+        "whole": "elapsed_minutes"
+      },
+      "goal": "elapsed_minutes",
+      "prompt": "How many minutes did they spend on the Library and Labyrinth together?",
+      "reasoningPrompt": "The first two challenges both used time. What operation combines those minutes?",
+      "backwardPrompt": "Subtract the Library minutes from the elapsed minutes. Do you land on the Labyrinth minutes?"
+    },
+    {
+      "id": "find_remaining_minutes",
+      "order": 2,
+      "relationship": "start_change_end_decrease",
+      "roles": {
+        "start": "total_escape_minutes",
+        "change": "elapsed_minutes",
+        "end": "remaining_minutes"
+      },
+      "goal": "remaining_minutes",
+      "prompt": "How many minutes remain for The Belltower?",
+      "reasoningPrompt": "The completed challenges used part of the hour. What operation finds the time left over?",
+      "backwardPrompt": "Add the elapsed minutes back to the remaining minutes. Do you return to the full hour?"
+    }
+  ],
+  "recap": {
+    "headline": "Why they have {quantity:remaining_minutes} for The Belltower",
+    "causalChain": [
+      "The Library took {quantity:library_minutes}.",
+      "The Labyrinth took {quantity:labyrinth_minutes}, so the first two challenges used {quantity:elapsed_minutes}.",
+      "The escape room allows {quantity:total_escape_minutes}, leaving {quantity:remaining_minutes} for The Belltower."
+    ],
+    "calcFromStepId": "find_elapsed_minutes",
+    "totalVisualStepId": "find_remaining_minutes",
+    "dataQuestionPrompt": "What does {quantity:remaining_minutes} represent in the escape-room model?",
+    "correctQuantityId": "remaining_minutes",
+    "distractorQuantityIds": ["library_minutes", "elapsed_minutes", "total_escape_minutes"],
+    "correctFeedback": "Right. {quantity:remaining_minutes} is the time left for The Belltower.",
+    "incorrectFeedback": "That amount is the time left after the Library and Labyrinth: {quantity:remaining_minutes}."
+  }
+}

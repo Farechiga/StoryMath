@@ -3,8 +3,27 @@
 Every new pack under `data/problems/` must satisfy these rules before it ships.
 `validateProblem` and the governance suites (`tests/governance/`) enforce most of
 them — run `npm test` and `npm run build` before considering a pack complete.
-Use the internal Authoring link on the problem menu for a structured draft,
-relationship selection, naming checklist, and starter JSON outline.
+Use `data/authoring-recipes/` plus `npm run generate:problem -- <recipe> -o
+data/problems/<pack>.json` to generate the first complete pack from semantic
+quantities and relationships. Then use the internal Authoring link on the
+problem menu for review edits, relationship checks, naming refinements, and
+downloaded JSON updates.
+
+## Parameterization cascade
+
+A recipe should define the story once at the semantic level:
+
+- each quantity's id, story label, arithmetic unit, value or derived goal, and
+  raw-story mention(s) to replace with `{quantity:id}` tokens;
+- each step's relationship template and role mapping;
+- optional recap language when the generated wording needs a more literary
+  final explanation.
+
+The generator fills the repetitive backend fields: quantity labels, display
+nouns, derived formulas, expected fixture values, accepted equation forms,
+inverse checks, operator experiments, and starter recap/data-question text.
+Authors should review and polish that output, but they should not have to create
+all of those fields from scratch.
 
 ## Numbers and story nouns
 
