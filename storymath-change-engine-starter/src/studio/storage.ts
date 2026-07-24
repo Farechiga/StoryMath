@@ -13,6 +13,36 @@ const KEY = "storymath_studio_v2";
 
 let memoryFallback: StudioState | null = null;
 
+const STICKER_ID_RENAMES = new Map([
+  ["Astrid", "Hannah"],
+  ["Isak", "Isaac"],
+  ["Sam", "Soo-jin"],
+  ["Theresa", "Bridget"],
+]);
+
+function currentStickerId(stickerId: string): string {
+  return STICKER_ID_RENAMES.get(stickerId) ?? stickerId;
+}
+
+function migrateSavedState(state: StudioState): StudioState {
+  return {
+    ...state,
+    earned: state.earned.map(currentStickerId),
+    savedProjects: state.savedProjects.map((project) => ({
+      ...project,
+      team: project.team.map(currentStickerId),
+      placements: project.placements.map((placement) => ({
+        ...placement,
+        stickerId: currentStickerId(placement.stickerId),
+      })),
+    })),
+    draftPlacements: state.draftPlacements.map((placement) => ({
+      ...placement,
+      stickerId: currentStickerId(placement.stickerId),
+    })),
+  };
+}
+
 export function emptyStudioState(): StudioState {
   return {
     earned: [],
@@ -29,7 +59,7 @@ export function loadStudioState(): StudioState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return emptyStudioState();
     // Merge over empty so new fields default sanely on old saves.
-    return { ...emptyStudioState(), ...(JSON.parse(raw) as Partial<StudioState>) };
+    return migrateSavedState({ ...emptyStudioState(), ...(JSON.parse(raw) as Partial<StudioState>) });
   } catch {
     return emptyStudioState();
   }

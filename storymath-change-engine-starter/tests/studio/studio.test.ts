@@ -14,10 +14,10 @@ const base = (): StudioState => emptyStudioState();
 
 describe("studioReducer", () => {
   it("EARN appends a recruit and never duplicates", () => {
-    let s = studioReducer(base(), { type: "EARN", stickerId: "Astrid" });
-    expect(s.earned).toEqual(["Astrid"]);
-    s = studioReducer(s, { type: "EARN", stickerId: "Astrid" });
-    expect(s.earned).toEqual(["Astrid"]);
+    let s = studioReducer(base(), { type: "EARN", stickerId: "Hannah" });
+    expect(s.earned).toEqual(["Hannah"]);
+    s = studioReducer(s, { type: "EARN", stickerId: "Hannah" });
+    expect(s.earned).toEqual(["Hannah"]);
   });
 
   it("MARK_SOLVED records a problem exactly once", () => {
@@ -51,9 +51,35 @@ describe("storage", () => {
   });
 
   it("round-trips state through localStorage", () => {
-    saveStudioState({ ...emptyStudioState(), earned: ["Bea", "Sam"] });
+    saveStudioState({ ...emptyStudioState(), earned: ["Bea", "Soo-jin"] });
     resetStudioMemory();
-    expect(loadStudioState().earned).toEqual(["Bea", "Sam"]);
+    expect(loadStudioState().earned).toEqual(["Bea", "Soo-jin"]);
+  });
+
+  it("migrates renamed sticker ids from old saves", () => {
+    localStorage.setItem(
+      STUDIO_STORAGE_KEY,
+      JSON.stringify({
+        earned: ["Astrid", "Isak", "Sam", "Theresa"],
+        draftPlacements: [{ key: "k", stickerId: "Sam", xPct: 50, yPct: 50, widthPct: 16 }],
+        savedProjects: [
+          {
+            id: "p",
+            name: "P",
+            roomId: "r",
+            placements: [{ key: "s", stickerId: "Theresa", xPct: 50, yPct: 50, widthPct: 16 }],
+            team: ["Astrid", "Isak"],
+            savedAt: "t",
+          },
+        ],
+      }),
+    );
+    resetStudioMemory();
+    const loaded = loadStudioState();
+    expect(loaded.earned).toEqual(["Hannah", "Isaac", "Soo-jin", "Bridget"]);
+    expect(loaded.draftPlacements[0]!.stickerId).toBe("Soo-jin");
+    expect(loaded.savedProjects[0]!.placements[0]!.stickerId).toBe("Bridget");
+    expect(loaded.savedProjects[0]!.team).toEqual(["Hannah", "Isaac"]);
   });
 
   it("merges an old save that is missing fields over the empty shape", () => {
