@@ -8,6 +8,7 @@ import { instantiateProblem } from "../model/instantiateProblem";
 import type { ProblemSpec } from "../model/problemSpec";
 import type { ProblemInstance } from "../domain/types";
 
+import fashionShow from "../../data/problems/fashion_show_fundraiser_frenzy.json";
 import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
 import escapeRoom from "../../data/problems/escape-room-countdown.json";
 import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
