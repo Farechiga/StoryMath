@@ -1,9 +1,9 @@
 {
   "id": "escape-room-countdown-v1",
   "metadata": {
-    "title": "Escape Room Countdown",
+    "title": "Escape room countdown",
     "theme": "Completing all the challenges before time runs out",
-    "gradeBand": "3-4",
+    "gradeBand": "2-3",
     "factualStatus": "realistic",
     "tags": [
       "escape room",
