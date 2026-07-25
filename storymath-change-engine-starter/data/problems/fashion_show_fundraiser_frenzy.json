@@ -59,7 +59,7 @@
         "lowercase": "design sketches for each model"
       },
       "unit": "design sketches",
-      "unitSingular": "design sketche",
+      "unitSingular": "design sketch",
       "unitPlural": "design sketches",
       "value": 3,
       "visibility": "given"
@@ -72,7 +72,7 @@
         "lowercase": "the total design sketches"
       },
       "unit": "design sketches",
-      "unitSingular": "design sketche",
+      "unitSingular": "design sketch",
       "unitPlural": "design sketches",
       "value": null,
       "visibility": "find",
@@ -93,7 +93,7 @@
         "lowercase": "the top design sketches"
       },
       "unit": "design sketches",
-      "unitSingular": "design sketche",
+      "unitSingular": "design sketch",
       "unitPlural": "design sketches",
       "value": 5,
       "visibility": "given"
@@ -106,7 +106,7 @@
         "lowercase": "the eliminated design sketches"
       },
       "unit": "design sketches",
-      "unitSingular": "design sketche",
+      "unitSingular": "design sketch",
       "unitPlural": "design sketches",
       "value": null,
       "visibility": "revealed_after_step",

@@ -65,6 +65,19 @@ describe("orderProblemSpecs", () => {
 });
 
 describe("PROBLEMS catalog", () => {
+  it("auto-loads every JSON problem pack in data/problems", () => {
+    const files = Object.values(
+      import.meta.glob("../../data/problems/*.json", {
+        eager: true,
+        import: "default",
+      }),
+    ) as ProblemSpec[];
+    const fileIds = files.map((spec) => spec.id).sort();
+    const catalogIds = PROBLEMS.map((problem) => problem.id).sort();
+
+    expect(catalogIds).toEqual(fileIds);
+  });
+
   it("surfaces the newest authored packs first", () => {
     expect(PROBLEMS.slice(0, 5).map((p) => p.id)).toEqual([
       "escape-room-countdown-v1",

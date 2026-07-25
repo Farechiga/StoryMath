@@ -1,40 +1,21 @@
 /**
- * The catalog of playable word problems for multi-problem navigation. Every pack
- * under data/problems is imported here; the menu lists them and the router loads
- * one by id (instantiated through the same engine every screen uses).
+ * The catalog of playable word problems for multi-problem navigation. Every JSON
+ * pack under data/problems is included by Vite at build time; the menu lists
+ * them and the router loads one by id.
  */
 
 import { instantiateProblem } from "../model/instantiateProblem";
 import type { ProblemSpec } from "../model/problemSpec";
 import type { ProblemInstance } from "../domain/types";
 
-import fashionShow from "../../data/problems/fashion_show_fundraiser_frenzy.json";
-import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
-import escapeRoom from "../../data/problems/escape-room-countdown.json";
-import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
-import puddingTreats from "../../data/problems/planning-pudding-treats.json";
-import woodenRacers from "../../data/problems/mini-wooden-racers.json";
-import readingClock from "../../data/problems/little-men-reading-clock.json";
-import marsDustStorm from "../../data/problems/mars-rover-versatility-dust-storm.json";
-import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
-import tidePool from "../../data/problems/tide-pool-rising-water.json";
-import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
-import christmasCarol from "../../data/problems/christmas-carol-seat-crisis.json";
-import nasa from "../../data/problems/nasa-perseverance-wheel-slip.json";
-import owl from "../../data/problems/minnesota-owl-snow-tracks.json";
-import littleWomen from "../../data/problems/little-women-storm-reading.json";
-import aikido from "../../data/problems/aikido-sliding-mat-rolls.json";
-import lunar from "../../data/problems/lunar-cookie-constellation.json";
-import birding from "../../data/problems/minnesota-birding.json";
-import animation from "../../data/problems/animation-lab-eyebrows.json";
-import puppyBiscuits from "../../data/problems/puppy-rescue-biscuits.json";
+const PROBLEM_MODULES = import.meta.glob("../../data/problems/*.json", {
+  eager: true,
+  import: "default",
+});
 
-const IMPORTED_SPECS: ProblemSpec[] = [
-  // New authored packs use catalogOrder/publishedAt and sort above older packs.
-  escapeRoom, legoArchitects, spiritDay, puddingTreats, woodenRacers, readingClock,
-  marsDustStorm, monarchs, tidePool, sourdough, christmasCarol,
-  nasa, owl, littleWomen, aikido, lunar, birding, animation, puppyBiscuits,
-].map((s) => s as unknown as ProblemSpec);
+const IMPORTED_SPECS: ProblemSpec[] = Object.entries(PROBLEM_MODULES)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, spec]) => spec as ProblemSpec);
 
 function catalogRank(spec: ProblemSpec, fallbackOrder: number): number {
   if (typeof spec.metadata.catalogOrder === "number") return spec.metadata.catalogOrder;

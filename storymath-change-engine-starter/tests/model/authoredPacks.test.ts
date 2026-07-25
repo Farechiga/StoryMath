@@ -1,22 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isProblemValid, loadProblemSpec, validateProblem } from "../../src/domain";
 import type { ProblemSpec } from "../../src/domain";
-import owl from "../../data/problems/minnesota-owl-snow-tracks.json";
-import women from "../../data/problems/little-women-storm-reading.json";
-import aikido from "../../data/problems/aikido-sliding-mat-rolls.json";
-import lunar from "../../data/problems/lunar-cookie-constellation.json";
-import mars from "../../data/problems/mars-rover-versatility-dust-storm.json";
-import monarchs from "../../data/problems/monarch-prairie-citizen-science.json";
-import tidePool from "../../data/problems/tide-pool-rising-water.json";
-import sourdough from "../../data/problems/sourdough-armadillo-rolls.json";
-import carol from "../../data/problems/christmas-carol-seat-crisis.json";
-import animation from "../../data/problems/animation-lab-eyebrows.json";
-import legoArchitects from "../../data/problems/lego-architects-periwinkle-blueprint.json";
-import escapeRoom from "../../data/problems/escape-room-countdown.json";
-import spiritDay from "../../data/problems/canine-feline-spirit-day-showdown.json";
-import puddingTreats from "../../data/problems/planning-pudding-treats.json";
-import woodenRacers from "../../data/problems/mini-wooden-racers.json";
-import readingClock from "../../data/problems/little-men-reading-clock.json";
 
 /**
  * The authored operation packs. Proves each one loads, validates, computes
@@ -24,24 +8,14 @@ import readingClock from "../../data/problems/little-men-reading-clock.json";
  * operator experiment per step with full operator coverage, and never bakes a
  * modeled number into field-merged prose.
  */
-const PACKS: Array<[string, ProblemSpec]> = [
-  ["escape-room-countdown", escapeRoom as unknown as ProblemSpec],
-  ["lego-architects-periwinkle-blueprint", legoArchitects as unknown as ProblemSpec],
-  ["canine-feline-spirit-day-showdown", spiritDay as unknown as ProblemSpec],
-  ["planning-pudding-treats", puddingTreats as unknown as ProblemSpec],
-  ["mini-wooden-racers", woodenRacers as unknown as ProblemSpec],
-  ["little-men-reading-clock", readingClock as unknown as ProblemSpec],
-  ["minnesota-owl-snow-tracks", owl as unknown as ProblemSpec],
-  ["little-women-storm-reading", women as unknown as ProblemSpec],
-  ["aikido-sliding-mat-rolls", aikido as unknown as ProblemSpec],
-  ["lunar-cookie-constellation", lunar as unknown as ProblemSpec],
-  ["mars-rover-versatility-dust-storm", mars as unknown as ProblemSpec],
-  ["monarch-prairie-citizen-science", monarchs as unknown as ProblemSpec],
-  ["tide-pool-rising-water", tidePool as unknown as ProblemSpec],
-  ["sourdough-armadillo-rolls", sourdough as unknown as ProblemSpec],
-  ["christmas-carol-seat-crisis", carol as unknown as ProblemSpec],
-  ["animation-lab-eyebrows", animation as unknown as ProblemSpec],
-];
+const PACKS: Array<[string, ProblemSpec]> = Object.entries(
+  import.meta.glob("../../data/problems/*.json", {
+    eager: true,
+    import: "default",
+  }),
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([path, spec]) => [path.split("/").pop()!.replace(/\.json$/, ""), spec as ProblemSpec]);
 
 /** Every field the engine field-merges (tokens allowed, raw numbers not). */
 function mergedProse(spec: ProblemSpec): string[] {
