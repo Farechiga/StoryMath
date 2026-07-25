@@ -30,12 +30,22 @@ describe("RepeatedGroupsModel", () => {
     expect(screen.getByText(/\+84 more/i)).toBeTruthy();
   });
 
-  it("caps a zoomed block key at 200 units when one group is very large", () => {
+  it("uses clean factor arrays in the zoomed block key", () => {
     const { container } = render(
-      <RepeatedGroupsModel groupCount={2} groupSize={225} total={450} unit="photos" groupNoun="roll" />,
+      <RepeatedGroupsModel groupCount={6} groupSize={48} total={288} unit="arrowroots" groupNoun="batch" />,
     );
 
-    expect(container.querySelectorAll(".groups__zoom-tile .groups__zoom-unit")).toHaveLength(200);
-    expect(screen.getByText(/\+25/i)).toBeTruthy();
+    expect(container.querySelectorAll(".groups__zoom-tile .groups__zoom-unit")).toHaveLength(48);
+    expect((container.querySelector(".groups__zoom-tile") as HTMLElement).style.gridTemplateColumns).toBe("repeat(8, 16px)");
+  });
+
+  it("does not abridge a large zoomed block key", () => {
+    const { container } = render(
+      <RepeatedGroupsModel groupCount={46} groupSize={232} total={10672} unit="seats" groupNoun="row" />,
+    );
+
+    expect(container.querySelectorAll(".groups__zoom-tile .groups__zoom-unit")).toHaveLength(232);
+    expect((container.querySelector(".groups__zoom-tile") as HTMLElement).style.gridTemplateColumns).toBe("repeat(29, 16px)");
+    expect(screen.queryByText(/\+32/i)).toBeNull();
   });
 });

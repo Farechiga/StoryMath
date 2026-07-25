@@ -8,7 +8,16 @@ import { formatNumber } from "../domain";
  */
 const MAX_UNIT_BARS = 200;
 const MAX_COMPRESSED_BLOCKS = 300;
-const MAX_ZOOM_UNITS = 200;
+const MAX_ZOOM_COLUMNS = 32;
+
+function cleanArrayColumns(count: number): number {
+  const rounded = Math.max(1, Math.round(count));
+  const minColumns = Math.ceil(Math.sqrt(rounded));
+  for (let columns = minColumns; columns <= MAX_ZOOM_COLUMNS; columns += 1) {
+    if (rounded % columns === 0) return columns;
+  }
+  return Math.min(MAX_ZOOM_COLUMNS, minColumns);
+}
 
 export function RepeatedGroupsModel({
   groupSize,
@@ -30,9 +39,7 @@ export function RepeatedGroupsModel({
   const normalizedGroupSize = Math.max(0, Math.round(groupSize));
   const unitTotal = normalizedGroupCount * normalizedGroupSize;
   const showUnitGroups = unitTotal > 0 && unitTotal <= MAX_UNIT_BARS;
-  const zoomUnitsShown = Math.min(normalizedGroupSize, MAX_ZOOM_UNITS);
-  const zoomUnitsRemaining = normalizedGroupSize - zoomUnitsShown;
-  const zoomColumns = Math.min(16, Math.max(6, Math.ceil(Math.sqrt(zoomUnitsShown))));
+  const zoomColumns = cleanArrayColumns(normalizedGroupSize);
   const shown = Math.min(normalizedGroupCount, MAX_COMPRESSED_BLOCKS);
   const remaining = normalizedGroupCount - shown;
 
@@ -58,20 +65,20 @@ export function RepeatedGroupsModel({
       ) : (
         <div className="groups__zoom-key" aria-hidden="true">
           <div className="groups__zoom-source">
-            <span className="groups__unit" />
-            <span className="groups__keytext">
-              = {formatNumber(groupSize)} {unit}
+            <span className="groups__zoom-value">
+              {formatNumber(groupSize)} {unit}
             </span>
+            <span className="groups__zoom-equals">=</span>
+            <span className="groups__unit" />
           </div>
-          <div className="groups__zoom-fan">
-            <span className="groups__zoom-line groups__zoom-line--top" />
-            <span className="groups__zoom-line groups__zoom-line--bottom" />
-          </div>
+          <svg className="groups__zoom-fan" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line className="groups__zoom-line" x1="0" y1="50" x2="100" y2="0" />
+            <line className="groups__zoom-line" x1="0" y1="50" x2="100" y2="100" />
+          </svg>
           <div className="groups__zoom-tile" style={{ gridTemplateColumns: `repeat(${zoomColumns}, 16px)` }}>
-            {Array.from({ length: zoomUnitsShown }, (_, unitIndex) => (
+            {Array.from({ length: normalizedGroupSize }, (_, unitIndex) => (
               <span className="groups__zoom-unit" key={unitIndex} />
             ))}
-            {zoomUnitsRemaining > 0 && <span className="groups__zoom-more">+{formatNumber(zoomUnitsRemaining)}</span>}
           </div>
         </div>
       )}

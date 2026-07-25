@@ -966,10 +966,10 @@
 }
 .groups__zoom-key {
   display: grid;
-  grid-template-columns: max-content minmax(120px, 1fr) max-content;
+  grid-template-columns: max-content minmax(90px, 1fr) max-content;
   align-items: center;
   gap: 0;
-  width: min(100%, 820px);
+  width: min(100%, 940px);
   min-height: 116px;
   padding: 16px 20px;
   margin-bottom: var(--sp-4);
@@ -978,36 +978,39 @@
   background: var(--surface-quiet);
 }
 .groups__zoom-source {
-  display: grid;
-  gap: var(--sp-2);
+  display: inline-flex;
+  gap: 10px;
   align-items: center;
-  justify-items: start;
-  min-width: 126px;
+  justify-content: center;
+  min-width: 190px;
+  white-space: nowrap;
+}
+.groups__zoom-value,
+.groups__zoom-equals {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
 .groups__zoom-fan {
-  position: relative;
-  height: 90px;
+  display: block;
+  width: 100%;
+  height: 100px;
   min-width: 120px;
+  overflow: visible;
 }
 .groups__zoom-line {
-  position: absolute;
-  left: 0;
-  right: -8px;
-  top: 50%;
-  height: 3px;
-  border-radius: 999px;
-  background: #10b65c;
-  transform-origin: left center;
+  stroke: #10b65c;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
-.groups__zoom-line--top { transform: rotate(-5deg); }
-.groups__zoom-line--bottom { transform: rotate(5deg); }
 .groups__zoom-tile {
   display: grid;
   grid-template-columns: repeat(8, 16px);
   gap: 5px;
   align-content: center;
   justify-content: center;
-  max-width: 236px;
+  max-width: min(100%, 720px);
   min-height: 78px;
   padding: 14px 16px;
   border-radius: 16px;
@@ -1020,14 +1023,6 @@
   border: 1.5px solid rgba(255, 255, 255, 0.95);
   border-radius: 3px;
   background: transparent;
-}
-.groups__zoom-more {
-  grid-column: 1 / -1;
-  justify-self: center;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: white;
 }
 .groups__grid {
   display: flex;
@@ -1081,7 +1076,7 @@
 @media (max-width: 720px) {
   .groups__zoom-key {
     grid-template-columns: 1fr;
-    justify-items: start;
+    justify-items: center;
     gap: 12px;
   }
   .groups__zoom-fan {
