@@ -971,6 +971,24 @@
   align-items: center;
   max-width: 640px;
 }
+.groups__grid--lassoed {
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 780px;
+}
+.groups__lasso {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-content: flex-start;
+  width: max-content;
+  max-width: 112px;
+  min-height: 25px;
+  padding: 7px 8px;
+  border: 1.5px solid color-mix(in srgb, var(--q-whole) 58%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--q-whole) 7%, white);
+}
 .groups__unit {
   width: 14px;
   height: 9px;

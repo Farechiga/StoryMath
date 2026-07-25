@@ -80,7 +80,7 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
 
     expect(await screen.findByText(/The math and the story agree/i)).toBeTruthy();
     // Step-confirmed visual is the repeated-groups grid, not a bar.
-    expect(screen.getByRole("img", { name: /blocks, each one .* expression/i })).toBeTruthy();
+    expect(screen.getByRole("img", { name: /8 groups of 12 expressions/i })).toBeTruthy();
   });
 
   it("shows division as equal-sharing bins with a leftover remainder", async () => {
@@ -117,12 +117,12 @@ describe("reading clock multiplication visual", () => {
 
     expect(
       await screen.findByRole("img", {
-        name: /9 blocks, each one 4 minutes page/i,
+        name: /9 groups of 4 minutes/i,
       }),
     ).toBeTruthy();
     expect(
       screen
-        .getAllByText((_, node) => node?.textContent?.replace(/\s+/g, " ").includes("9 blocks = ? minutes") ?? false)
+        .getAllByText((_, node) => node?.textContent?.replace(/\s+/g, " ").includes("9 groups × 4 minutes = ? minutes") ?? false)
         .some((node) => node.classList.contains("groups__total")),
     ).toBe(true);
   });
