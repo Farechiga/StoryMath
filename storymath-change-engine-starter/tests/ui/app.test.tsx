@@ -22,7 +22,7 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
 
     // Opening: eyebrow + title + start CTA all come from storyChrome/metadata.
     expect(screen.getByText(/Rover field note/i)).toBeTruthy(); // storyChrome.openingEyebrow
-    expect(screen.getByText(/Perseverance’s Sandy Tuesday/i)).toBeTruthy(); // metadata.title
+    expect(screen.getByText(/A tumultuous Tuesday for Perseverance/i)).toBeTruthy(); // metadata.title
     expect(screen.getByRole("button", { name: /Start the rover log/i })).toBeTruthy(); // storyChrome.startCta
     // One question per page: only step 1's question, never the two-day total.
     expect(screen.getByText(/How far did Perseverance travel on Tuesday\?/i)).toBeTruthy();

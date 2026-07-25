@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isProblemValid, loadProblemSpec, validateProblem } from "../../src/domain";
+import { getEquationForm, isProblemValid, loadProblemSpec, validateProblem } from "../../src/domain";
 import type { ProblemSpec } from "../../src/domain";
 
 /**
@@ -62,6 +62,13 @@ describe.each(PACKS)("authored pack: %s", (_name, spec) => {
       const ops = new Set(exps.map((e) => e.operator));
       for (const op of step.operatorOptions) expect(ops.has(op)).toBe(true);
     }
+  });
+
+  it("uses grade 3-4 only when the actual model includes multiplication or division", () => {
+    const operators = spec.steps.map((step) => getEquationForm(step.preferredEquationFormId).operator);
+    const includesMultiplicationOrDivision = operators.some((operator) => operator === "×" || operator === "÷");
+
+    expect(spec.metadata.gradeBand).toBe(includesMultiplicationOrDivision ? "3-4" : "2-3");
   });
 
   it("never bakes a modeled number into field-merged prose (tokens only)", () => {

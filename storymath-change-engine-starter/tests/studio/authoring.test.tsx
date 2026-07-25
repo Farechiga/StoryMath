@@ -81,7 +81,9 @@ describe("AuthoringView", () => {
     await user.click(screen.getByRole("button", { name: /Load wording/i }));
 
     expect((screen.getByLabelText(/^Title$/i) as HTMLInputElement).value).toBe("Reading against the clock");
-    expect((screen.getByLabelText(/Story theme/i) as HTMLInputElement).value).toBe("Drive-time reading plan");
+    expect((screen.getByLabelText(/Story theme/i) as HTMLInputElement).value).toBe(
+      "Is there time to finish the book?",
+    );
     expect((screen.getByLabelText(/Word problem paragraph/i) as HTMLTextAreaElement).value).toContain(
       "Seraphina is about to start the final chapter",
     );

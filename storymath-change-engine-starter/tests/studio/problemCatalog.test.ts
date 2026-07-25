@@ -54,6 +54,15 @@ describe("orderProblemSpecs", () => {
     expect(ordered.map((s) => s.id)).toEqual(["newer", "older"]);
   });
 
+  it("groups grade 3-4 problems before grade 2-3 problems", () => {
+    const ordered = orderProblemSpecs([
+      spec("addition", { gradeBand: "2-3", catalogOrder: 99 }),
+      spec("multiplication", { gradeBand: "3-4", catalogOrder: 1 }),
+    ]);
+
+    expect(ordered.map((s) => s.id)).toEqual(["multiplication", "addition"]);
+  });
+
   it("uses publishedAt newest-first when catalogOrder is absent", () => {
     const ordered = orderProblemSpecs([
       spec("january", { publishedAt: "2026-01-01" }),
@@ -78,13 +87,19 @@ describe("PROBLEMS catalog", () => {
     expect(catalogIds).toEqual(fileIds);
   });
 
-  it("surfaces the newest authored packs first", () => {
-    expect(PROBLEMS.slice(0, 5).map((p) => p.id)).toEqual([
-      "escape-room-countdown-v1",
-      "lego-architects-periwinkle-blueprint-v1",
+  it("lists grade 3-4 problem packs before grade 2-3 packs", () => {
+    const firstTwoThree = PROBLEMS.findIndex((p) => p.gradeBand === "2-3");
+
+    expect(firstTwoThree).toBeGreaterThan(0);
+    expect(PROBLEMS.slice(0, firstTwoThree).every((p) => p.gradeBand === "3-4")).toBe(true);
+    expect(PROBLEMS.slice(firstTwoThree).every((p) => p.gradeBand === "2-3")).toBe(true);
+    expect(PROBLEMS.slice(0, 6).map((p) => p.id)).toEqual([
       "canine-feline-spirit-day-showdown-v1",
       "planning-pudding-treats-v1",
       "mini-wooden-racers-v1",
+      "little-men-reading-clock-v1",
+      "fashion_show_fundraiser_frenzy-v1",
+      "animation-lab-eyebrows-v1",
     ]);
   });
 });

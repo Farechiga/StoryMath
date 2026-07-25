@@ -26,10 +26,19 @@ function catalogRank(spec: ProblemSpec, fallbackOrder: number): number {
   return fallbackOrder;
 }
 
+function gradeBandRank(spec: ProblemSpec): number {
+  return spec.metadata.gradeBand === "3-4" ? 1 : 0;
+}
+
 export function orderProblemSpecs(specs: ProblemSpec[]): ProblemSpec[] {
   return specs
-    .map((spec, index) => ({ spec, rank: catalogRank(spec, specs.length - index), index }))
-    .sort((a, b) => b.rank - a.rank || a.index - b.index)
+    .map((spec, index) => ({
+      spec,
+      gradeRank: gradeBandRank(spec),
+      rank: catalogRank(spec, specs.length - index),
+      index,
+    }))
+    .sort((a, b) => b.gradeRank - a.gradeRank || b.rank - a.rank || a.index - b.index)
     .map(({ spec }) => spec);
 }
 

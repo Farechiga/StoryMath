@@ -29,7 +29,7 @@ describe("non-NASA fixture runs with zero component edits", () => {
     render(<App problem={problem} />);
 
     expect(screen.getByText(/Field recorder note/i)).toBeTruthy(); // storyChrome
-    expect(screen.getByText(/The chickadees found the frozen cattails/i)).toBeTruthy(); // title
+    expect(screen.getByText(/Chickadees among frozen cattails/i)).toBeTruthy(); // title
     expect(screen.getByRole("button", { name: /Start the bird log/i })).toBeTruthy();
     // Story prose keeps the story-specific noun: "146 chickadee calls", not "146 calls".
     expect(screen.getByText(/146 chickadee calls/i)).toBeTruthy();

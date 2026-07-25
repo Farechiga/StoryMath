@@ -2,7 +2,7 @@
   "id": "escape-room-countdown-v1",
   "title": "Escape Room Countdown",
   "theme": "Completing all the challenges before time runs out",
-  "gradeBand": "3-4",
+  "gradeBand": "2-3",
   "factualStatus": "realistic",
   "tags": ["escape room", "addition", "subtraction", "time", "two-step"],
   "curiosityNote": "Escape rooms make elapsed-time subtraction visible because every completed challenge uses part of the clock.",
