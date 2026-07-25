@@ -9,6 +9,10 @@ import { formatNumber } from "../domain";
 const MAX_UNIT_BARS = 200;
 const MAX_COMPRESSED_BLOCKS = 300;
 const MAX_ZOOM_COLUMNS = 32;
+const ZOOM_UNIT_HEIGHT = 10;
+const ZOOM_UNIT_GAP = 5;
+const ZOOM_TILE_VERTICAL_PADDING = 28;
+const ZOOM_TILE_MIN_HEIGHT = 78;
 
 function cleanArrayColumns(count: number): number {
   const rounded = Math.max(1, Math.round(count));
@@ -40,6 +44,11 @@ export function RepeatedGroupsModel({
   const unitTotal = normalizedGroupCount * normalizedGroupSize;
   const showUnitGroups = unitTotal > 0 && unitTotal <= MAX_UNIT_BARS;
   const zoomColumns = cleanArrayColumns(normalizedGroupSize);
+  const zoomRows = Math.max(1, Math.ceil(normalizedGroupSize / zoomColumns));
+  const zoomTileHeight = Math.max(
+    ZOOM_TILE_MIN_HEIGHT,
+    zoomRows * ZOOM_UNIT_HEIGHT + Math.max(0, zoomRows - 1) * ZOOM_UNIT_GAP + ZOOM_TILE_VERTICAL_PADDING,
+  );
   const shown = Math.min(normalizedGroupCount, MAX_COMPRESSED_BLOCKS);
   const remaining = normalizedGroupCount - shown;
 
@@ -71,11 +80,22 @@ export function RepeatedGroupsModel({
             <span className="groups__zoom-equals">=</span>
             <span className="groups__unit" />
           </div>
-          <svg className="groups__zoom-fan" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line className="groups__zoom-line" x1="0" y1="50" x2="100" y2="0" />
-            <line className="groups__zoom-line" x1="0" y1="50" x2="100" y2="100" />
+          <svg
+            className="groups__zoom-fan"
+            style={{ height: `${zoomTileHeight}px` }}
+            viewBox={`0 0 100 ${zoomTileHeight}`}
+            preserveAspectRatio="none"
+          >
+            <line className="groups__zoom-line" x1="0" y1={zoomTileHeight / 2} x2="100" y2="0" />
+            <line className="groups__zoom-line" x1="0" y1={zoomTileHeight / 2} x2="100" y2={zoomTileHeight} />
           </svg>
-          <div className="groups__zoom-tile" style={{ gridTemplateColumns: `repeat(${zoomColumns}, 16px)` }}>
+          <div
+            className="groups__zoom-tile"
+            style={{
+              gridTemplateColumns: `repeat(${zoomColumns}, 16px)`,
+              minHeight: `${zoomTileHeight}px`,
+            }}
+          >
             {Array.from({ length: normalizedGroupSize }, (_, unitIndex) => (
               <span className="groups__zoom-unit" key={unitIndex} />
             ))}

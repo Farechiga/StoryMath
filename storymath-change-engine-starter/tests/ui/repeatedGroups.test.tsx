@@ -48,4 +48,19 @@ describe("RepeatedGroupsModel", () => {
     expect((container.querySelector(".groups__zoom-tile") as HTMLElement).style.gridTemplateColumns).toBe("repeat(29, 16px)");
     expect(screen.queryByText(/\+32/i)).toBeNull();
   });
+
+  it("matches the connector base height to the zoomed array pill height", () => {
+    const { container } = render(
+      <RepeatedGroupsModel groupCount={46} groupSize={232} total={10672} unit="seats" groupNoun="row" />,
+    );
+    const fan = container.querySelector(".groups__zoom-fan") as SVGElement;
+    const tile = container.querySelector(".groups__zoom-tile") as HTMLElement;
+    const lines = fan.querySelectorAll("line");
+
+    expect(fan.getAttribute("viewBox")).toBe("0 0 100 143");
+    expect(fan.style.height).toBe("143px");
+    expect(tile.style.minHeight).toBe("143px");
+    expect(lines[0]?.getAttribute("y2")).toBe("0");
+    expect(lines[1]?.getAttribute("y2")).toBe("143");
+  });
 });
