@@ -964,6 +964,71 @@
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
+.groups__zoom-key {
+  display: grid;
+  grid-template-columns: max-content minmax(120px, 1fr) max-content;
+  align-items: center;
+  gap: 0;
+  width: min(100%, 820px);
+  min-height: 116px;
+  padding: 16px 20px;
+  margin-bottom: var(--sp-4);
+  border: 2px solid var(--hairline-strong);
+  border-radius: 22px;
+  background: var(--surface-quiet);
+}
+.groups__zoom-source {
+  display: grid;
+  gap: var(--sp-2);
+  align-items: center;
+  justify-items: start;
+  min-width: 126px;
+}
+.groups__zoom-fan {
+  position: relative;
+  height: 90px;
+  min-width: 120px;
+}
+.groups__zoom-line {
+  position: absolute;
+  left: 0;
+  right: -8px;
+  top: 50%;
+  height: 3px;
+  border-radius: 999px;
+  background: #10b65c;
+  transform-origin: left center;
+}
+.groups__zoom-line--top { transform: rotate(-5deg); }
+.groups__zoom-line--bottom { transform: rotate(5deg); }
+.groups__zoom-tile {
+  display: grid;
+  grid-template-columns: repeat(8, 16px);
+  gap: 5px;
+  align-content: center;
+  justify-content: center;
+  max-width: 236px;
+  min-height: 78px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--q-whole);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+}
+.groups__zoom-unit {
+  width: 16px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 3px;
+  background: transparent;
+}
+.groups__zoom-more {
+  grid-column: 1 / -1;
+  justify-self: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: white;
+}
 .groups__grid {
   display: flex;
   flex-wrap: wrap;
@@ -1012,6 +1077,20 @@
   font-variant-numeric: tabular-nums;
 }
 .groups__total b { color: var(--q-whole-ink); }
+
+@media (max-width: 720px) {
+  .groups__zoom-key {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 12px;
+  }
+  .groups__zoom-fan {
+    display: none;
+  }
+  .groups__zoom-tile {
+    max-width: 100%;
+  }
+}
 
 /* --- Equal-shares model (division) ---------------------------------------- */
 .shares { margin-top: var(--sp-4); }

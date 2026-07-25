@@ -17,14 +17,25 @@ describe("RepeatedGroupsModel", () => {
     );
   });
 
-  it("keeps the compressed one-block-per-group model for products over 200", () => {
+  it("shows a zoomed block key and compressed groups for products over 200", () => {
     const { container } = render(
       <RepeatedGroupsModel groupCount={384} groupSize={128} total={49152} unit="meters" groupNoun="drive" hideTotal />,
     );
 
     expect(screen.getByRole("img", { name: /384 blocks, each one 128 meters drive/i })).toBeTruthy();
     expect(container.querySelectorAll(".groups__lasso")).toHaveLength(0);
+    expect(container.querySelector(".groups__zoom-key")).toBeTruthy();
+    expect(container.querySelectorAll(".groups__zoom-tile .groups__zoom-unit")).toHaveLength(128);
     expect(container.querySelectorAll(".groups__unit")).toHaveLength(301);
     expect(screen.getByText(/\+84 more/i)).toBeTruthy();
+  });
+
+  it("caps a zoomed block key at 200 units when one group is very large", () => {
+    const { container } = render(
+      <RepeatedGroupsModel groupCount={2} groupSize={225} total={450} unit="photos" groupNoun="roll" />,
+    );
+
+    expect(container.querySelectorAll(".groups__zoom-tile .groups__zoom-unit")).toHaveLength(200);
+    expect(screen.getByText(/\+25/i)).toBeTruthy();
   });
 });

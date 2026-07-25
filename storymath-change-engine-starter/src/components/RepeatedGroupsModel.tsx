@@ -8,6 +8,7 @@ import { formatNumber } from "../domain";
  */
 const MAX_UNIT_BARS = 200;
 const MAX_COMPRESSED_BLOCKS = 300;
+const MAX_ZOOM_UNITS = 200;
 
 export function RepeatedGroupsModel({
   groupSize,
@@ -29,6 +30,9 @@ export function RepeatedGroupsModel({
   const normalizedGroupSize = Math.max(0, Math.round(groupSize));
   const unitTotal = normalizedGroupCount * normalizedGroupSize;
   const showUnitGroups = unitTotal > 0 && unitTotal <= MAX_UNIT_BARS;
+  const zoomUnitsShown = Math.min(normalizedGroupSize, MAX_ZOOM_UNITS);
+  const zoomUnitsRemaining = normalizedGroupSize - zoomUnitsShown;
+  const zoomColumns = Math.min(16, Math.max(6, Math.ceil(Math.sqrt(zoomUnitsShown))));
   const shown = Math.min(normalizedGroupCount, MAX_COMPRESSED_BLOCKS);
   const remaining = normalizedGroupCount - shown;
 
@@ -52,11 +56,23 @@ export function RepeatedGroupsModel({
           <span className="groups__keytext">= 1 {unit}</span>
         </div>
       ) : (
-        <div className="groups__key" aria-hidden="true">
-          <span className="groups__unit" />
-          <span className="groups__keytext">
-            = {formatNumber(groupSize)} {unit} (one {groupNoun})
-          </span>
+        <div className="groups__zoom-key" aria-hidden="true">
+          <div className="groups__zoom-source">
+            <span className="groups__unit" />
+            <span className="groups__keytext">
+              = {formatNumber(groupSize)} {unit}
+            </span>
+          </div>
+          <div className="groups__zoom-fan">
+            <span className="groups__zoom-line groups__zoom-line--top" />
+            <span className="groups__zoom-line groups__zoom-line--bottom" />
+          </div>
+          <div className="groups__zoom-tile" style={{ gridTemplateColumns: `repeat(${zoomColumns}, 16px)` }}>
+            {Array.from({ length: zoomUnitsShown }, (_, unitIndex) => (
+              <span className="groups__zoom-unit" key={unitIndex} />
+            ))}
+            {zoomUnitsRemaining > 0 && <span className="groups__zoom-more">+{formatNumber(zoomUnitsRemaining)}</span>}
+          </div>
         </div>
       )}
 
