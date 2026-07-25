@@ -64,12 +64,22 @@ export function runOperatorExperiment(
   const visualModel = experiment.visualModel ?? form?.defaultVisualModel ?? "comparison_gap_bar";
   const groupQuantityId = step.roleToQuantityId.groups;
   const itemsPerGroupQuantityId = step.roleToQuantityId.itemsPerGroup;
+  const isSemanticMultiplication =
+    operator === "×" &&
+    experiment.narrativeFit === "actual" &&
+    groupQuantityId &&
+    itemsPerGroupQuantityId;
   const repeatedGroups =
-    visualModel === "repeated_groups_grid" && groupQuantityId && itemsPerGroupQuantityId
-      ? {
-          groupCount: getQuantity(problem, groupQuantityId).value,
-          groupSize: getQuantity(problem, itemsPerGroupQuantityId).value,
-        }
+    visualModel === "repeated_groups_grid" && operator === "×"
+      ? isSemanticMultiplication
+        ? {
+            groupCount: getQuantity(problem, groupQuantityId).value,
+            groupSize: getQuantity(problem, itemsPerGroupQuantityId).value,
+          }
+        : {
+            groupCount: right,
+            groupSize: left,
+          }
       : undefined;
 
   const worldSentence = experiment.alternateWorldTemplate

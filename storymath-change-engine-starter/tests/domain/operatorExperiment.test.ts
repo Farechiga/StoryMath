@@ -4,13 +4,19 @@ import {
   findExperiment,
   getStep,
   loadProblem,
+  loadProblemSpec,
   runOperatorExperiment,
   stepOperandIds,
 } from "../../src/domain";
+import animationJson from "../../data/problems/animation-lab-eyebrows.json";
+import puddingJson from "../../data/problems/planning-pudding-treats.json";
+import type { ProblemSpec } from "../../src/domain";
 
 const problem = loadProblem();
 const step1 = getStep(problem, "find_tuesday_distance");
 const step2 = getStep(problem, "find_two_day_total");
+const animationProblem = loadProblemSpec(animationJson as unknown as ProblemSpec);
+const puddingProblem = loadProblemSpec(puddingJson as unknown as ProblemSpec);
 
 describe("operator experiment selection (step 1)", () => {
   it("addition is a different-story world that increases (384 + 128 = 512)", () => {
@@ -61,6 +67,24 @@ describe("operator experiment selection (step 2)", () => {
 
   it("resolves the actual operator as addition", () => {
     expect(actualOperatorFor(problem, step2)).toBe("+");
+  });
+});
+
+describe("repeated-groups visual operands", () => {
+  it("keeps semantic group order for an actual multiplication story", () => {
+    const step = getStep(animationProblem, "find_eye_eyebrow_expressions");
+    const r = runOperatorExperiment(animationProblem, step, "×");
+
+    expect(r.computed).toBe(96);
+    expect(r.repeatedGroups).toEqual({ groupCount: 8, groupSize: 12 });
+  });
+
+  it("uses the attempted equation operands for a wrong multiplication trial on a division story", () => {
+    const step = getStep(puddingProblem, "find_needed_arrowroots");
+    const r = runOperatorExperiment(puddingProblem, step, "×");
+
+    expect(r.computed).toBe(288);
+    expect(r.repeatedGroups).toEqual({ groupCount: 6, groupSize: 48 });
   });
 });
 
