@@ -12,7 +12,13 @@
 import { useMemo, type CSSProperties } from "react";
 import { cubeBounds, cubeGeometry } from "./isometric";
 import { generateCubeCluster, type Density, type PlacedCube } from "./cubeCluster";
+import { makeRng } from "./rng";
 import { getVariant, type CubeVariant, type RGB, type VariantName } from "./variants";
+import pup1Url from "../assets/PuppyPics/Pup1.png";
+import pup2Url from "../assets/PuppyPics/Pup2.png";
+import pup3Url from "../assets/PuppyPics/Pup3.png";
+import pup4Url from "../assets/PuppyPics/Pup4.png";
+import pup5Url from "../assets/PuppyPics/Pup5.png";
 
 /**
  * Tall, narrow design canvas. The ornament's own box (in CSS) is positioned
@@ -77,6 +83,125 @@ const rgb = ([r, g, b]: RGB) => `rgb(${r}, ${g}, ${b})`;
 interface RenderedCube {
   cube: PlacedCube;
   geo: ReturnType<typeof cubeGeometry>;
+  index: number;
+}
+
+type PuppyPlacement = "perched" | "behind";
+
+interface PuppyStickerAsset {
+  id: string;
+  url: string;
+  width: number;
+  height: number;
+}
+
+interface RenderedPuppy {
+  asset: PuppyStickerAsset;
+  placement: PuppyPlacement;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  cubeEdge: number;
+  anchorGroup: number;
+  anchorEdge: number;
+  anchorIndex: number;
+}
+
+const PUPPY_STICKERS: readonly PuppyStickerAsset[] = [
+  { id: "Pup1", url: pup1Url, width: 868, height: 986 },
+  { id: "Pup2", url: pup2Url, width: 788, height: 1014 },
+  { id: "Pup3", url: pup3Url, width: 860, height: 975 },
+  { id: "Pup4", url: pup4Url, width: 868, height: 987 },
+  { id: "Pup5", url: pup5Url, width: 906, height: 1073 },
+];
+
+type PlacedRenderCube = { cube: PlacedCube; geo: ReturnType<typeof cubeGeometry>; index: number };
+
+function largestCube(placed: PlacedRenderCube[]) {
+  return placed.reduce((best, current) => {
+    if (current.cube.edge > best.cube.edge) return current;
+    if (current.cube.edge === best.cube.edge && current.cube.group === 0 && best.cube.group !== 0) return current;
+    return best;
+  });
+}
+
+function chooseBehindAnchor(
+  rng: ReturnType<typeof makeRng>,
+  placed: PlacedRenderCube[],
+  largest: PlacedRenderCube,
+) {
+  const islandCubes = placed.filter((p) => p !== largest && p.cube.group > 0);
+  const satelliteCubes = placed.filter((p) => p !== largest && p.cube.group === -1);
+  const fallbackCubes = placed.filter((p) => p !== largest);
+  const candidates = islandCubes.length > 0 ? islandCubes : satelliteCubes.length > 0 ? satelliteCubes : fallbackCubes;
+
+  if (candidates.length === 0) return largest;
+
+  const scored = candidates
+    .map((p) => ({
+      p,
+      distance: Math.hypot(p.cube.x - largest.cube.x, p.cube.y - largest.cube.y),
+    }))
+    .sort((a, b) => b.distance - a.distance || a.p.cube.edge - b.p.cube.edge);
+  const distalPool = scored.slice(0, Math.min(3, scored.length)).map(({ p }) => p);
+  return rng.pick(distalPool);
+}
+
+function choosePuppy(seed: string, placed: PlacedRenderCube[]): RenderedPuppy | undefined {
+  if (placed.length === 0) return undefined;
+
+  const rng = makeRng(`${seed}::puppy`);
+  const asset = PUPPY_STICKERS[rng.int(0, PUPPY_STICKERS.length - 1)]!;
+  const placement: PuppyPlacement = rng.chance(0.5) ? "perched" : "behind";
+  const largest = largestCube(placed);
+  const anchor = placement === "behind" ? chooseBehindAnchor(rng, placed, largest) : largest;
+
+  const cubeHeight = largest.cube.edge * 2;
+  const height = cubeHeight * 1.04;
+  const width = height * (asset.width / asset.height);
+  const outward = anchor.cube.x >= largest.cube.x ? 1 : -1;
+  const x =
+    placement === "behind"
+      ? anchor.cube.x - width * (outward > 0 ? 0.34 : 0.66)
+      : largest.cube.x - width / 2 + rng.jitter(largest.cube.edge * 0.08);
+  const y =
+    placement === "perched"
+      ? largest.cube.y - largest.cube.edge * 0.12 - height
+      : anchor.cube.y + anchor.cube.edge * 1.1 - height;
+
+  return {
+    asset,
+    placement,
+    x,
+    y,
+    width,
+    height,
+    cubeEdge: largest.cube.edge,
+    anchorGroup: anchor.cube.group,
+    anchorEdge: anchor.cube.edge,
+    anchorIndex: anchor.index,
+  };
+}
+
+function PuppySticker({ puppy }: { puppy: RenderedPuppy }) {
+  return (
+    <image
+      className={`ornament__puppy ornament__puppy--${puppy.placement}`}
+      href={puppy.asset.url}
+      x={round(puppy.x)}
+      y={round(puppy.y)}
+      width={round(puppy.width)}
+      height={round(puppy.height)}
+      preserveAspectRatio="xMidYMax meet"
+      data-puppy-id={puppy.asset.id}
+      data-puppy-placement={puppy.placement}
+      data-cube-edge={puppy.cubeEdge}
+      data-puppy-anchor-group={puppy.anchorGroup}
+      data-puppy-anchor-edge={puppy.anchorEdge}
+      data-puppy-anchor-index={puppy.anchorIndex}
+    />
+  );
 }
 
 /** Generate + place + fit the floating cluster into the region rect. */
@@ -93,9 +218,9 @@ export function composeCubeScene(
 
   // Cubes are already positioned (x, y) and back-to-front sorted by the
   // generator — no projection lattice; the (x, y) IS the cube's centre.
-  const placed = cluster.cubes.map((cube) => {
+  const placed = cluster.cubes.map((cube, index) => {
     const c = { x: cube.x, y: cube.y };
-    return { cube, geo: cubeGeometry(c, cube.edge), bounds: cubeBounds(c, cube.edge) };
+    return { cube, geo: cubeGeometry(c, cube.edge), bounds: cubeBounds(c, cube.edge), index };
   });
 
   const bb = placed.reduce(
@@ -125,7 +250,8 @@ export function composeCubeScene(
   const ty = rect.y0 * height + TOP_MARGIN - k * bb.minY;
 
   return {
-    cubes: placed.map(({ cube, geo }): RenderedCube => ({ cube, geo })),
+    cubes: placed.map(({ cube, geo, index }): RenderedCube => ({ cube, geo, index })),
+    puppy: choosePuppy(seed, placed),
     transform: `translate(${round(tx)} ${round(ty)}) scale(${round(k)})`,
   };
 }
@@ -162,7 +288,7 @@ export function CubeField({
   const v = getVariant(variant);
   const effectiveDensity = density ?? v.density;
 
-  const { cubes, transform } = useMemo(
+  const { cubes, puppy, transform } = useMemo(
     () => composeCubeScene(seed, region, maxCubes, effectiveDensity, width, height),
     [seed, region, maxCubes, effectiveDensity, width, height],
   );
@@ -194,12 +320,13 @@ export function CubeField({
       </defs>
       <g {...(fade ? { mask: `url(#${maskId})` } : {})} opacity={v.intensity}>
         <g transform={transform}>
-          {cubes.map(({ cube, geo }, i) => {
+          {cubes.map(({ cube, geo, index }, i) => {
             const face = rgb(toneRGB(v, cube.tone));
             const line = rgb(toneRGB(v, Math.max(0, cube.tone - 0.32)));
             const a = cube.glassAlpha;
             return (
               <g key={i}>
+                {puppy?.placement === "behind" && puppy.anchorIndex === index && <PuppySticker puppy={puppy} />}
                 {/* Frosted translucent faces (top lightest, left shadow side). */}
                 <path d={geo.faces.top} fill={face} fillOpacity={a * FACE_ALPHA.top} stroke="none" />
                 <path d={geo.faces.right} fill={face} fillOpacity={a * FACE_ALPHA.right} stroke="none" />
@@ -218,6 +345,7 @@ export function CubeField({
               </g>
             );
           })}
+          {puppy?.placement === "perched" && <PuppySticker puppy={puppy} />}
         </g>
       </g>
     </svg>

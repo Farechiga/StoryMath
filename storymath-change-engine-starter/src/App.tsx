@@ -635,6 +635,16 @@ function StepReview({
   );
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function recapPromptWithoutQuantityLabel(prompt: string, correctQuantityValue: number): string {
+  const value = formatNumber(correctQuantityValue);
+  const pattern = new RegExp(`^(What does\\s+)(${escapeRegExp(value)})(?:\\s+[^?]*?)(\\s+represent\\b.*)$`, "i");
+  return prompt.replace(pattern, `$1$2$3`);
+}
+
 function CausalRecap({
   problem,
   state,
@@ -649,6 +659,8 @@ function CausalRecap({
   const recap = problem.recap;
   const dq = recap.dataQuestion;
   const answered = state.recapAnswerCorrect !== undefined;
+  const correctQuantity = getQuantity(problem, dq.correctQuantityId);
+  const recapQuestionPrompt = recapPromptWithoutQuantityLabel(dq.prompt, correctQuantity.value);
 
   // Calc node derived from the referenced step's preferred equation.
   const calcStep = getStep(problem, recap.calcFromStepId);
@@ -710,7 +722,7 @@ function CausalRecap({
 
       <hr className="divider" />
 
-      <h3 className="stage-title" style={{ fontSize: "1.1rem" }}>{dq.prompt}</h3>
+      <h3 className="stage-title" style={{ fontSize: "1.1rem" }}>{recapQuestionPrompt}</h3>
       <div className="choice-grid">
         {options.map((o) => (
           <button

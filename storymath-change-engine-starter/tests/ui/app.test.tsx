@@ -51,6 +51,10 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     expect(await screen.findByText(/384 × 128 = 49,152 meters/)).toBeTruthy();
     expect(screen.getByRole("img", { name: /Array model: 384 Monday distance by 128 Tuesday was shorter by make 49,152 meters/i })).toBeTruthy();
     expect(screen.getByText(/if Perseverance drove Monday’s distance for 128 days/i)).toBeTruthy();
+    const wrongOperatorPanelText = document.querySelector(".verdict")?.textContent ?? "";
+    expect(wrongOperatorPanelText.indexOf("Multiplying would fit")).toBeLessThan(
+      wrongOperatorPanelText.indexOf("384 × 128 = 49,152 meters"),
+    );
     expect(screen.queryByText(/A different question|repeated-group question/i)).toBeNull();
 
     // + experiment: standardized part/whole-style bars with the same quantity labels.

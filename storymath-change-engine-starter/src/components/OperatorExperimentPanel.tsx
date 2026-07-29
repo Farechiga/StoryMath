@@ -330,6 +330,8 @@ export function OperatorExperimentPanel({
 
   return (
     <div className={`verdict verdict--${tone}`}>
+      {result.worldSentence && <p className="verdict__world">{result.worldSentence}</p>}
+
       <p className="verdict__calc">
         {formatNumber(leftVal)} {result.operator} {formatNumber(rightVal)} ={" "}
         {result.fitsStory ? "?" : resultText}
@@ -342,8 +344,6 @@ export function OperatorExperimentPanel({
         target={target}
         quantityColors={quantityColors}
       />
-
-      {result.worldSentence && <p className="verdict__world">{result.worldSentence}</p>}
 
       <div className="btn-row">
         {result.fitsStory ? (

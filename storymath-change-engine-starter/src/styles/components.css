@@ -899,7 +899,7 @@
   stroke-dasharray: 7 5;
 }
 .verdict__world {
-  margin-top: var(--sp-4);
+  margin: 0 0 var(--sp-4);
   color: var(--ink-soft);
   line-height: 1.62;
   max-width: 58ch;

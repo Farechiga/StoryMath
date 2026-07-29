@@ -35,6 +35,34 @@ describe("CubeOrnament renders as an inert SVG layer", () => {
     expect(a).toBe(b);
   });
 
+  it("adds one stickerfied puppy scaled to the largest cube", () => {
+    const { container } = render(<CubeOrnament seed="puppy-preview::brief" variant="forest" />);
+    const puppy = container.querySelector("image.ornament__puppy");
+
+    expect(puppy).toBeTruthy();
+    expect(["perched", "behind"]).toContain(puppy!.getAttribute("data-puppy-placement"));
+    expect(puppy!.getAttribute("data-puppy-id")).toMatch(/^Pup[1-5]$/);
+
+    const cubeEdge = Number(puppy!.getAttribute("data-cube-edge"));
+    const puppyHeight = Number(puppy!.getAttribute("height"));
+    expect(puppyHeight).toBeCloseTo(cubeEdge * 2.08, 1);
+  });
+
+  it("places behind puppies at an outer island while keeping largest-cube scale", () => {
+    const { container } = render(<CubeOrnament seed="default:sample:0" variant="default" />);
+    const puppy = container.querySelector("image.ornament__puppy");
+
+    expect(puppy).toBeTruthy();
+    expect(puppy!.getAttribute("data-puppy-placement")).toBe("behind");
+    expect(Number(puppy!.getAttribute("data-puppy-anchor-group"))).toBeGreaterThan(0);
+
+    const cubeEdge = Number(puppy!.getAttribute("data-cube-edge"));
+    const anchorEdge = Number(puppy!.getAttribute("data-puppy-anchor-edge"));
+    const puppyHeight = Number(puppy!.getAttribute("height"));
+    expect(anchorEdge).toBeLessThanOrEqual(cubeEdge);
+    expect(puppyHeight).toBeCloseTo(cubeEdge * 2.08, 1);
+  });
+
   it("shifts the figure when the screen (seed) changes", () => {
     const a = render(<CubeOrnament seed="s::brief" variant="rover" />).container.innerHTML;
     cleanup();
