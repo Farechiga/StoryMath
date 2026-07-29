@@ -51,6 +51,24 @@
   color: var(--ink-muted);
   margin: var(--sp-3) 0 var(--sp-8);
 }
+.prototype-portal {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 0 var(--sp-5);
+}
+.prototype-portal__button {
+  padding: 10px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--accent);
+  background: var(--accent-tint-2);
+  color: var(--accent-deep);
+  font-size: 0.9rem;
+  font-weight: 620;
+}
+.prototype-portal__button:hover {
+  background: var(--accent-tint);
+}
 .problem-list {
   list-style: none;
   padding: 0;

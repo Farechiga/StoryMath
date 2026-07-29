@@ -23,7 +23,6 @@ export function MenuView() {
   const orderedProblems = [...PROBLEMS].sort(
     (a, b) => Number(solvedProblemIds.includes(a.id)) - Number(solvedProblemIds.includes(b.id)),
   );
-
   return (
     <main className="app-shell menu">
       {/* Quiet cube atmosphere in the right column, sitting under the stickers

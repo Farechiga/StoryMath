@@ -22,6 +22,10 @@ export function EqualSharesModel({
   divisor,
   unit,
   tone = "fit",
+  unitColor,
+  groupColor,
+  columnLabel,
+  rowLabel,
 }: {
   /** The whole amount being divided up. */
   dividend: number;
@@ -30,6 +34,10 @@ export function EqualSharesModel({
   unit: string;
   /** "wrong" outlines the groups in red (a wrong operator); "fit" is green. */
   tone?: "fit" | "wrong";
+  unitColor?: string;
+  groupColor?: string;
+  columnLabel?: string;
+  rowLabel?: string;
 }) {
   const groupSize = Math.max(1, Math.round(divisor));
   const fullGroups = Math.max(0, Math.floor(dividend / groupSize));
@@ -47,6 +55,10 @@ export function EqualSharesModel({
   return (
     <div
       className={`shares${tone === "wrong" ? " shares--wrong" : ""}`}
+      style={{
+        ["--shares-unit-color" as string]: unitColor,
+        ["--shares-group-color" as string]: groupColor,
+      }}
       role="img"
       aria-label={
         `${formatNumber(dividend)} ${unit} in groups of ${formatNumber(groupSize)}: ` +
@@ -54,19 +66,31 @@ export function EqualSharesModel({
         (remainder > 0 ? ", with some left over." : ".")
       }
     >
+      {columnLabel && (
+        <div className="shares__column-label" style={{ color: unitColor }}>
+          {columnLabel}
+        </div>
+      )}
       {binsShown > 0 && (
-        <div className="shares__bins" aria-hidden="true">
-          {Array.from({ length: binsShown }, (_, i) => (
-            <div className="shares__bin" key={i}>
-              {Array.from({ length: perBinShown }, (_, j) => (
-                <span className="groups__unit" key={j} />
-              ))}
-              {morePerBin > 0 && <span className="shares__plus">+{formatNumber(morePerBin)}</span>}
+        <div className="shares__body">
+          {rowLabel && (
+            <div className="shares__row-label" style={{ color: groupColor }}>
+              {rowLabel}
             </div>
-          ))}
-          {moreBins > 0 && (
-            <span className="shares__morebins">+{formatNumber(moreBins)} more groups</span>
           )}
+          <div className="shares__bins" aria-hidden="true">
+            {Array.from({ length: binsShown }, (_, i) => (
+              <div className="shares__bin" key={i}>
+                {Array.from({ length: perBinShown }, (_, j) => (
+                  <span className="groups__unit" key={j} />
+                ))}
+                {morePerBin > 0 && <span className="shares__plus">+{formatNumber(morePerBin)}</span>}
+              </div>
+            ))}
+            {moreBins > 0 && (
+              <span className="shares__morebins">+{formatNumber(moreBins)} more groups</span>
+            )}
+          </div>
         </div>
       )}
 

@@ -42,4 +42,23 @@ describe("EqualSharesModel — division as full groups + remainder", () => {
     expect(blocksIn(bins(container)[0]!)).toBe(12);
     expect(screen.getByText(/remainder = 2/i)).toBeTruthy();
   });
+
+  it("can label and color the unit columns and group rows", () => {
+    const { container } = render(
+      <EqualSharesModel
+        dividend={48}
+        divisor={6}
+        unit="bowls"
+        unitColor="#427EA5"
+        groupColor="#7185DA"
+        columnLabel="Bowls per arrowroot"
+        rowLabel="Arrowroots needed"
+      />,
+    );
+
+    expect(screen.getByText("Bowls per arrowroot")).toBeTruthy();
+    expect(screen.getByText("Arrowroots needed")).toBeTruthy();
+    expect(container.querySelector(".shares")?.getAttribute("style")).toContain("--shares-unit-color: #427EA5");
+    expect(container.querySelector(".shares")?.getAttribute("style")).toContain("--shares-group-color: #7185DA");
+  });
 });

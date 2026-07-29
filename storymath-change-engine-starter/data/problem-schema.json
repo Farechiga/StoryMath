@@ -90,6 +90,32 @@
         "line_over_time"
       ]
     },
+    "quantityVisualization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "colorToken": { "type": "string" },
+        "storyLabel": { "type": "string" }
+      }
+    },
+    "stepVisualization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "relationshipType": {
+          "enum": ["remove-from-whole", "combine", "compare", "equal-groups", "partition"]
+        },
+        "visualModel": {
+          "anyOf": [
+            { "$ref": "#/$defs/visualModel" },
+            { "enum": ["subtraction_span"] }
+          ]
+        },
+        "referenceWholeRole": { "type": "string" },
+        "removedRole": { "type": "string" },
+        "remainderRole": { "type": "string" }
+      }
+    },
     "metadata": {
       "type": "object",
       "additionalProperties": false,
@@ -189,7 +215,8 @@
         "visibility": {
           "enum": ["given", "find", "revealed_after_step"]
         },
-        "allowLiteralNumbers": { "type": "boolean" }
+        "allowLiteralNumbers": { "type": "boolean" },
+        "visualization": { "$ref": "#/$defs/quantityVisualization" }
       }
     },
     "backwardCheck": {
@@ -244,7 +271,8 @@
           "type": "array",
           "items": { "$ref": "#/$defs/operator" }
         },
-        "backwardCheck": { "$ref": "#/$defs/backwardCheck" }
+        "backwardCheck": { "$ref": "#/$defs/backwardCheck" },
+        "visualization": { "$ref": "#/$defs/stepVisualization" }
       }
     },
     "operatorExperiment": {

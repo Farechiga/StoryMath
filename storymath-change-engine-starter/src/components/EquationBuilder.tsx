@@ -17,8 +17,16 @@ const ROLE_ACCENT: Record<string, string> = {
 export const accentFor = (role?: string): string =>
   (role ? ROLE_ACCENT[role] : undefined) ?? "var(--accent)";
 
-function Tile({ quantity, unknown = false }: { quantity: Quantity; unknown?: boolean }) {
-  const style = { ["--tile-accent" as string]: accentFor(quantity.semanticRole) };
+function Tile({
+  quantity,
+  unknown = false,
+  color,
+}: {
+  quantity: Quantity;
+  unknown?: boolean;
+  color?: string;
+}) {
+  const style = { ["--tile-accent" as string]: color ?? accentFor(quantity.semanticRole) };
   return (
     <span className={`tile${unknown ? " tile--target" : ""}`} style={style}>
       <span className="tile__name">{quantity.label.compact}</span>
@@ -39,6 +47,7 @@ export function EquationBuilder({
   triedOperators,
   locked = false,
   onSelectOperator,
+  quantityColors = {},
 }: {
   leftQuantity: Quantity;
   rightQuantity: Quantity;
@@ -48,19 +57,20 @@ export function EquationBuilder({
   triedOperators: Operator[];
   locked?: boolean;
   onSelectOperator: (op: Operator) => void;
+  quantityColors?: Record<string, string>;
 }) {
   return (
     <div className="builder">
       <div className="eqline" role="group" aria-label="The relationship you are testing">
-        <Tile quantity={leftQuantity} />
+        <Tile quantity={leftQuantity} color={quantityColors[leftQuantity.id]} />
         {/* Empty until an operator is chosen: a dotted placeholder box, not a
             character (a low bar / underscore reads as a minus sign). */}
         <span className={`eqline__op${selectedOperator ? " eqline__op--set" : ""}`} aria-hidden="true">
           {selectedOperator}
         </span>
-        <Tile quantity={rightQuantity} />
+        <Tile quantity={rightQuantity} color={quantityColors[rightQuantity.id]} />
         <span className="eqline__eq" aria-hidden="true">=</span>
-        <Tile quantity={targetQuantity} unknown />
+        <Tile quantity={targetQuantity} unknown color={quantityColors[targetQuantity.id]} />
       </div>
 
       <div className="op-picker" role="group" aria-label="Choose an operation to try">

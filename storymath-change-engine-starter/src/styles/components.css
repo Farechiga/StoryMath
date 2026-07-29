@@ -247,6 +247,284 @@
 }
 .fact-flag svg { flex: none; }
 
+/* --- Math Transformation Space prototype ---------------------------------- */
+.mts {
+  max-width: 1480px;
+}
+.mts--embedded {
+  max-width: none;
+  margin: var(--sp-6) 0;
+  padding: var(--sp-5) 0 0;
+  border-top: 1px solid var(--hairline);
+}
+.mts--embedded .mts-stage {
+  margin-bottom: var(--sp-6);
+}
+.mts-back {
+  text-decoration: none;
+}
+.mts-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+  margin: 0 0 var(--sp-5);
+}
+.mts-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--surface-strong);
+}
+.mts-toggle__button {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-muted);
+  font-weight: 620;
+  padding: 8px 12px;
+}
+.mts-toggle__button--active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.mts-quantities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+}
+.mts-quantities--key {
+  display: grid;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0 0;
+}
+.mts-quantity {
+  display: grid;
+  grid-template-columns: 12px auto;
+  grid-template-areas:
+    "swatch label"
+    "swatch value";
+  align-items: center;
+  column-gap: 8px;
+  min-height: 48px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-strong);
+  color: var(--ink-soft);
+  padding: 8px 12px;
+  text-align: left;
+}
+.mts-quantities--key .mts-quantity {
+  width: 100%;
+  min-height: 42px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  box-shadow: none;
+}
+.mts-quantities--key .mts-quantity__swatch {
+  height: 28px;
+}
+.mts-quantities--key .mts-quantity__label {
+  font-size: 0.8rem;
+}
+.mts-quantities--key .mts-quantity__value {
+  font-size: 0.74rem;
+}
+.mts-quantity--active {
+  border-color: var(--mts-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mts-color) 24%, transparent);
+}
+.mts-quantity__swatch {
+  grid-area: swatch;
+  width: 10px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  background: var(--mts-color);
+}
+.mts-quantity__label {
+  grid-area: label;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 640;
+}
+.mts-quantity__value {
+  grid-area: value;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+.mts-stage {
+  margin: var(--sp-5) 0 var(--sp-12);
+  padding-top: var(--sp-6);
+  border-top: 1px solid var(--hairline);
+}
+.mts-stage__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.mts-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(760px, 1.66fr);
+  gap: var(--sp-6);
+  align-items: start;
+}
+.mts-story-rail {
+  border-right: 1px solid var(--hairline);
+  padding-right: var(--sp-4);
+}
+.mts-timeline {
+  margin-bottom: var(--sp-5);
+}
+.mts-timeline ol {
+  display: grid;
+  gap: var(--sp-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mts-timeline li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+}
+.mts-timeline li > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
+  color: var(--accent-deep);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+.mts-timeline p {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.48;
+}
+.mts-color-key {
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--hairline);
+}
+.mts-scenes {
+  display: grid;
+  gap: var(--sp-6);
+}
+.mts-step-card {
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: var(--sp-1);
+}
+.mts-step-card__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+.mts-step-card__header span {
+  color: var(--ink-faint);
+  font-size: 0.76rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mts-step-card__header strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
+  font-weight: 760;
+}
+.mts-scene {
+  width: 100%;
+  min-height: 320px;
+  overflow: visible;
+  border-bottom: 1px solid var(--hairline);
+}
+.mts:not(.mts--embedded) .mts-scene--array {
+  width: max(100%, 1120px);
+}
+.mts-reference,
+.mts-removed-reference {
+  fill: transparent;
+  stroke-width: 2.4;
+  stroke-dasharray: 7 5;
+}
+.mts-solid-reference {
+  stroke: none;
+}
+.mts-array-cell {
+  stroke: rgba(255, 255, 255, 0.82);
+  stroke-width: 0.7;
+}
+.mts-array-axis {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 720;
+}
+.mts-array-axis--columns {
+  text-anchor: middle;
+}
+.mts-array-axis--rows {
+  dominant-baseline: middle;
+  text-anchor: end;
+}
+.mts-division-scene {
+  display: grid;
+  gap: var(--sp-3);
+  padding: 0 0 var(--sp-5);
+  border-bottom: 1px solid var(--hairline);
+}
+.mts:not(.mts--embedded) .mts-division-scene--shares {
+  min-width: 940px;
+}
+.mts-svg-label,
+.mts-svg-value,
+.mts-svg-caption {
+  font-family: var(--font-sans);
+}
+.mts-svg-label,
+.mts-svg-value {
+  fill: var(--ink);
+  font-size: 16px;
+  font-weight: 760;
+}
+.mts-svg-value--inside {
+  fill: #fff;
+}
+.mts-svg-caption {
+  fill: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 620;
+}
+@media (max-width: 1040px) {
+  .mts-stage__header,
+  .mts-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .mts-story-rail {
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+    padding: 0 0 var(--sp-5);
+  }
+  .mts-stage__header {
+    display: grid;
+  }
+  .mts-toggle {
+    border-radius: var(--r-sm);
+  }
+}
+
 /* --- Given quantity readout (in the brief) ---------------------------------- */
 .givens {
   display: flex;
@@ -585,12 +863,40 @@
   flex-wrap: wrap;
   gap: var(--sp-3);
 }
-.verdict__reaction {
+.attempt-viz {
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  margin-top: var(--sp-4);
+  overflow: visible;
+}
+.attempt-viz--array {
+  min-height: 250px;
+}
+.attempt-viz__title {
+  fill: var(--ink);
   font-family: var(--font-sans);
-  font-size: 0.98rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-  letter-spacing: 0;
+  font-size: 18px;
+  font-weight: 740;
+}
+.attempt-viz__value {
+  fill: #fff;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 780;
+}
+.attempt-viz__caption {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 660;
+}
+.attempt-viz__bar {
+  opacity: 0.94;
+}
+.attempt-viz__removed-reference {
+  fill: transparent;
+  stroke-width: 2.2;
+  stroke-dasharray: 7 5;
 }
 .verdict__world {
   margin-top: var(--sp-4);
@@ -1088,13 +1394,43 @@
 }
 
 /* --- Equal-shares model (division) ---------------------------------------- */
-.shares { margin-top: var(--sp-4); }
+.shares {
+  --shares-unit-color: var(--q-whole);
+  --shares-group-color: var(--fit-green);
+  margin-top: var(--sp-4);
+}
+.shares .groups__unit {
+  background: var(--shares-unit-color);
+  width: 18px;
+  height: 12px;
+}
+.shares__column-label {
+  margin: 0 0 var(--sp-3) 64px;
+  font-size: 1.06rem;
+  font-weight: 740;
+  line-height: 1.2;
+}
+.shares__body {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: center;
+}
+.shares__row-label {
+  justify-self: center;
+  font-size: 1.06rem;
+  font-weight: 740;
+  line-height: 1.05;
+  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
 /* One complete group per row, stacked with vertical breathing room. */
 .shares__bins {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
-  max-width: 760px;
+  gap: var(--sp-4);
+  max-width: 980px;
 }
 /* A full group: blocks wrap inside a soft outline. Green when the division
    actually matches the story; dark red when it is a wrong operator being tried. */
@@ -1102,9 +1438,9 @@
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 4px;
-  padding: 8px 10px;
-  border: 1.5px solid var(--fit-green);
+  gap: 6px;
+  padding: 11px 14px;
+  border: 2px solid var(--shares-group-color);
   border-radius: var(--r-md);
   background: transparent;
 }

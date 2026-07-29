@@ -84,6 +84,7 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
     value: values[q.id]!,
     ...(q.semanticRole ? { semanticRole: q.semanticRole } : {}),
     visibility: q.visibility,
+    ...(q.visualization ? { visualization: q.visualization } : {}),
   }));
 
   const mergeMap: Record<string, MergeQuantity> = {};

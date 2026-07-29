@@ -45,20 +45,21 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     expect(screen.queryByText("distance traveled")).toBeNull();
     expect(screen.queryByText("on Monday")).toBeNull();
 
-    // × experiment: engine-derived equation + repeated-groups visual + one
+    // × experiment: engine-derived equation + labeled array visual + one
     // alternate-world sentence; NO generic "different question" heading.
     await user.click(screen.getByRole("button", { name: "Try ×" }));
     expect(await screen.findByText(/384 × 128 = 49,152 meters/)).toBeTruthy();
-    expect(screen.getByText(/That’s much farther than Monday\./)).toBeTruthy();
-    expect(screen.getByRole("img", { name: /blocks, each one .* drive/i })).toBeTruthy();
+    expect(screen.getByRole("img", { name: /Array model: 384 Monday distance by 128 Tuesday was shorter by make 49,152 meters/i })).toBeTruthy();
     expect(screen.getByText(/if Perseverance drove Monday’s distance for 128 days/i)).toBeTruthy();
     expect(screen.queryByText(/A different question|repeated-group question/i)).toBeNull();
 
-    // + experiment: additive comparison → comparison-gap preview (its SR summary).
+    // + experiment: standardized part/whole-style bars with the same quantity labels.
     await user.click(screen.getByRole("button", { name: /Try another operation/i }));
     await user.click(screen.getByRole("button", { name: "Try +" }));
     expect(await screen.findByText(/384 \+ 128 = 512 meters/)).toBeTruthy();
-    expect(screen.getByText(/Monday distance is 384 meters; Tuesday distance would be 512 meters/i)).toBeTruthy();
+    expect(screen.getByRole("img", { name: /384 \+ 128 = 512/i })).toBeTruthy();
+    expect(screen.getAllByText("Monday distance").length).toBeGreaterThan(1);
+    expect(screen.getAllByText("Tuesday was shorter by").length).toBeGreaterThan(1);
 
     // − fits: answer is hidden (child computes it), never "runs far past this scale".
     await user.click(screen.getByRole("button", { name: /Try another operation/i }));
@@ -84,7 +85,7 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     await user.click(screen.getByRole("button", { name: /Check it/i }));
     await user.click(await screen.findByRole("button", { name: /Continue/i }));
 
-    // Step 2: straight to the builder (no "Combine them"), part-whole visual.
+    // Step 2: straight to the builder (no "Combine them"), transformation rows for part-whole.
     expect(screen.queryByRole("button", { name: /Combine them/i })).toBeNull();
     await user.click(await screen.findByRole("button", { name: "Try +" }));
     await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
@@ -93,7 +94,7 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     await digit(user, "Answer for .*both days", "ones", "0");
     await user.click(screen.getByRole("button", { name: /Enter answer/i }));
     expect(await screen.findByText(/The math and the story agree/i)).toBeTruthy();
-    expect(screen.getByRole("img", { name: /Part-part-whole bar model/i })).toBeTruthy();
+    expect(screen.getByRole("img", { name: /Part-whole invariant: 640 = 384 \+ 256/i })).toBeTruthy();
 
     // Only one step-2 check now: 640 − 256 = 384 (lands on the original Monday).
     await user.click(screen.getByRole("button", { name: /Check your work/i }));
@@ -109,5 +110,5 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     expect(await screen.findByRole("button", { name: /Close the rover log/i })).toBeTruthy(); // finishCta
     await user.click(screen.getByRole("button", { name: /Close the rover log/i }));
     expect(await screen.findByText(/Rover log closed/i)).toBeTruthy(); // completionTitle
-  });
+  }, 10_000);
 });

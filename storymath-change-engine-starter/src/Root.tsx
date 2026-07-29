@@ -5,7 +5,7 @@
  * + cube ornament; the other views get the pearl field from here.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import App from "./App";
 import { PearlBackground } from "./components/PearlBackground";
 import { StudioProvider, useStudio } from "./studio/StudioContext";
@@ -15,13 +15,29 @@ import { StudioView } from "./studio/StudioView";
 import { StickerRewardModal } from "./studio/StickerRewardModal";
 import { UnlockCelebration } from "./studio/UnlockCelebration";
 import { loadProblemById } from "./studio/problemCatalog";
+import { TransformationSpaceDemo } from "./prototypes/TransformationSpaceDemo";
 
 function RootView() {
   const { view, selectedProblemId } = useStudio();
+  const [hash, setHash] = useState(() => window.location.hash);
+  useEffect(() => {
+    const update = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
+  }, []);
   const problem = useMemo(
     () => (selectedProblemId ? loadProblemById(selectedProblemId) : null),
     [selectedProblemId],
   );
+
+  if (hash === "#transformation-space") {
+    return (
+      <>
+        <TransformationSpaceDemo />
+        <StickerRewardModal />
+      </>
+    );
+  }
 
   return (
     <>

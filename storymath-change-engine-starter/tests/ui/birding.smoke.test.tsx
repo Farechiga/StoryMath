@@ -8,6 +8,7 @@ import type { ProblemSpec } from "../../src/domain";
 import birding from "../../data/problems/minnesota-birding.json";
 import animation from "../../data/problems/animation-lab-eyebrows.json";
 import readingClock from "../../data/problems/little-men-reading-clock.json";
+import pudding from "../../data/problems/planning-pudding-treats.json";
 
 afterEach(cleanup);
 
@@ -61,7 +62,7 @@ describe("non-NASA fixture runs with zero component edits", () => {
 describe("multiplication fixture (animation lab) runs on the same App", () => {
   const problem = loadProblemSpec(animation as unknown as ProblemSpec);
 
-  it("solves a product via the repeated-groups model, with enough answer columns", async () => {
+  it("solves a product with enough answer columns and confirms with transformation rows", async () => {
     const user = userEvent.setup();
     render(<App problem={problem} />);
 
@@ -79,8 +80,7 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
     await user.click(screen.getByRole("button", { name: /Enter answer/i }));
 
     expect(await screen.findByText(/The math and the story agree/i)).toBeTruthy();
-    // Step-confirmed visual is the repeated-groups grid, not a bar.
-    expect(screen.getByRole("img", { name: /8 groups of 12 expressions/i })).toBeTruthy();
+    expect(screen.getByRole("img", { name: /Equal-groups invariant: 96 = 8 × 12/i })).toBeTruthy();
   });
 
   it("shows division as equal-sharing bins with a leftover remainder", async () => {
@@ -105,10 +105,46 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
   });
 });
 
+describe("division fixture carries transformation labels into the real flow", () => {
+  const problem = loadProblemSpec(pudding as unknown as ProblemSpec);
+
+  it("shows labeled equal-share rows on the solved step and final recap", async () => {
+    const user = userEvent.setup();
+    render(<App problem={problem} />);
+
+    await user.click(screen.getByRole("button", { name: /Open the market list/i }));
+    await user.click(await screen.findByRole("button", { name: "Try ÷" }));
+    await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
+    await digit(user, "Answer for .*arrowroots", "ones", "8");
+    await user.click(screen.getByRole("button", { name: /Enter answer/i }));
+
+    expect(await screen.findByText(/The math and the story agree/i)).toBeTruthy();
+    expect(screen.getByRole("img", { name: /48 bowls in groups of 6: 8 full groups/i })).toBeTruthy();
+    expect(screen.getByText("Bowls per arrowroot")).toBeTruthy();
+    expect(screen.getByText("Arrowroots needed")).toBeTruthy();
+    expect(document.querySelector(".shares")?.getAttribute("style")).toContain("--shares-unit-color: #427EA5");
+    expect(document.querySelector(".shares")?.getAttribute("style")).toContain("--shares-group-color: #7185DA");
+
+    await user.click(screen.getByRole("button", { name: /Next step/i }));
+    await user.click(await screen.findByRole("button", { name: "Try ×" }));
+    await user.click(await screen.findByRole("button", { name: /let’s solve it/i }));
+    await digit(user, "Answer for .*market", "tens", "4");
+    await digit(user, "Answer for .*market", "ones", "0");
+    await user.click(screen.getByRole("button", { name: /Enter answer/i }));
+    await user.click(await screen.findByRole("button", { name: /See the recap/i }));
+
+    expect(await screen.findByText(/Problem overview/i)).toBeTruthy();
+    expect(screen.getAllByText("48 ÷ 6 = 8").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("8 × 5 = 40").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Bowls per arrowroot").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Arrowroots needed").length).toBeGreaterThan(0);
+  });
+});
+
 describe("reading clock multiplication visual", () => {
   const problem = loadProblemSpec(readingClock as unknown as ProblemSpec);
 
-  it("shows one page block per page, with each block worth the minutes per page", async () => {
+  it("shows a labeled factor array before the child solves", async () => {
     const user = userEvent.setup();
     render(<App problem={problem} />);
 
@@ -117,13 +153,11 @@ describe("reading clock multiplication visual", () => {
 
     expect(
       await screen.findByRole("img", {
-        name: /9 groups of 4 minutes/i,
+        name: /Array model: 9 Pages left by 4 Minutes per page make an unknown number of minutes/i,
       }),
     ).toBeTruthy();
-    expect(
-      screen
-        .getAllByText((_, node) => node?.textContent?.replace(/\s+/g, " ").includes("9 groups × 4 minutes = ? minutes") ?? false)
-        .some((node) => node.classList.contains("groups__total")),
-    ).toBe(true);
+    expect(screen.getByText("9 Pages left")).toBeTruthy();
+    expect(screen.getByText("4 Minutes per page")).toBeTruthy();
+    expect(screen.getByText("? Reading minutes")).toBeTruthy();
   });
 });

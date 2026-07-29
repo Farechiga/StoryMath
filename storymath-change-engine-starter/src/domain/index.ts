@@ -27,3 +27,22 @@ export {
   backwardCheckReconciles,
 } from "./backwardCheck";
 export { validateProblem, isProblemValid, type ValidationIssue } from "./validateProblem";
+export {
+  compileTransformationSpace,
+  verifyDivisionGeometry,
+  verifyEqualGroupsGeometry,
+  verifyPartWholeGeometry,
+  verifySubtractionGeometry,
+  type DivisionMetadata,
+  type EqualGroupsMetadata,
+  type PartWholeMetadata,
+  type ReferenceWholeMetadata,
+  type TransformationQuantity,
+  type TransformationPhase,
+  type TransformationRelationshipType,
+  type TransformationSegment,
+  type TransformationSpace,
+  type TransformationState,
+  type TransformationStep,
+  type TransformationVisualModel,
+} from "./transformationSpace";

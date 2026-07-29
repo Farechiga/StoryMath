@@ -71,6 +71,11 @@ export interface QuantitySpec {
   visibility: "given" | "find" | "revealed_after_step";
   /** Optional escape hatch for prose literals (see validation). */
   allowLiteralNumbers?: boolean;
+  /** Optional stable rendering hints for derived visualizers; ignored by gameplay. */
+  visualization?: {
+    colorToken?: string;
+    storyLabel?: string;
+  };
 }
 
 export interface BackwardCheckSpec {
@@ -91,6 +96,14 @@ export interface StepSpec {
   expectedDirection: DirectionKind;
   operatorOptions: Operator[];
   backwardCheck: BackwardCheckSpec;
+  /** Optional rendering hints for derived visualizers; ignored by gameplay. */
+  visualization?: {
+    relationshipType?: string;
+    visualModel?: VisualModelType | "subtraction_span";
+    referenceWholeRole?: string;
+    removedRole?: string;
+    remainderRole?: string;
+  };
 }
 
 export interface OperatorExperimentSpec {
@@ -161,6 +174,10 @@ export interface Quantity {
   value: number;
   semanticRole?: string;
   visibility: "given" | "find" | "revealed_after_step";
+  visualization?: {
+    colorToken?: string;
+    storyLabel?: string;
+  };
 }
 
 export interface InstantiatedProblem {

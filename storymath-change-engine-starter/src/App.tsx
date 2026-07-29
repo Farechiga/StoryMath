@@ -12,6 +12,7 @@ import {
   runOperatorExperiment,
   stepOperandIds,
   buildBackwardChecks,
+  compileTransformationSpace,
   isBackwardCheckCorrect,
 } from "./domain";
 import type {
@@ -32,6 +33,7 @@ import { OperatorExperimentPanel } from "./components/OperatorExperimentPanel";
 import { BackwardCheckBuilder } from "./components/BackwardCheckBuilder";
 import { BarFigure } from "./components/BarFigure";
 import { StackedArithmetic } from "./components/StackedArithmetic";
+import { MathTransformationFigure, MathTransformationSpace } from "./components/MathTransformationSpace";
 
 /** Phases where the child is actively working the current step. */
 const WORKING_PHASES = new Set([
@@ -45,6 +47,15 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
   const [state, dispatch] = useReducer(gameReducer, problem, initGame);
 
   const byId = useMemo(() => quantitiesById(problem), [problem]);
+  const transformationQuantityColors = useMemo(() => {
+    try {
+      return Object.fromEntries(
+        compileTransformationSpace(problem).quantities.map((q) => [q.id, q.color]),
+      );
+    } catch {
+      return {};
+    }
+  }, [problem]);
   const step = problem.steps[state.currentStepIndex]!;
   const goal = getQuantity(problem, step.goalQuantityId);
 
@@ -187,17 +198,16 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
               operatorOptions={step.operatorOptions}
               triedOperators={state.attemptedOperators}
               locked={phase === "arithmetic_entry"}
+              quantityColors={transformationQuantityColors}
               onSelectOperator={handleSelectOperator}
             />
 
             {phase === "operator_experiment" && state.lastExperiment && (
               <OperatorExperimentPanel
                 result={state.lastExperiment}
-                referenceLabel={getQuantity(problem, state.lastExperiment.operandQuantityIds[0]).label.compact}
-                referenceValue={state.lastExperiment.operandValues[0]}
-                attemptedLabel={goal.label.compact}
-                attemptedLabelLower={goal.label.lowercase ?? `the ${goal.label.compact.toLowerCase()}`}
-                unit={goal.unit}
+                problem={problem}
+                step={step}
+                quantityColors={transformationQuantityColors}
                 onAccept={() => dispatch({ type: "ACCEPT_OPERATOR" })}
                 onTryAnother={() => dispatch({ type: "TRY_ANOTHER_OPERATOR" })}
               />
@@ -222,7 +232,7 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
           <section className="panel">
             <h2 className="stage-title">The math and the story agree</h2>
             <ModelCardView problem={problem} step={step} record={state.completedSteps[step.id]!} />
-            <BarFigure problem={problem} step={step} />
+            <StepVisualFigure problem={problem} step={step} />
             {/* Backward check is optional: move on, or verify first. */}
             <div className="btn-row">
               <button type="button" className="btn btn--primary" onClick={() => dispatch({ type: "ADVANCE_STEP" })}>
@@ -483,6 +493,31 @@ function ModelCardView({
   );
 }
 
+function StepVisualFigure({
+  problem,
+  step,
+}: {
+  problem: ProblemInstance;
+  step: ProblemStep;
+}) {
+  const transformationSpace = useMemo(() => {
+    try {
+      const space = compileTransformationSpace(problem, {
+        title: `Step ${step.order}`,
+        stepIds: [step.id],
+      });
+      return space.steps.some((candidate) => candidate.referenceWhole || candidate.partWhole || candidate.equalGroups || candidate.division)
+        ? space
+        : null;
+    } catch {
+      return null;
+    }
+  }, [problem, step]);
+
+  if (transformationSpace) return <MathTransformationFigure space={transformationSpace} />;
+  return <BarFigure problem={problem} step={step} />;
+}
+
 function EstablishedContext({
   problem,
   step,
@@ -498,6 +533,7 @@ function EstablishedContext({
         Step {step.order}, <span className="established__solved">solved</span>
       </p>
       <ModelCardView problem={problem} step={step} record={record} />
+      <StepVisualFigure problem={problem} step={step} />
     </section>
   );
 }
@@ -593,7 +629,7 @@ function StepReview({
           Step {step.order}, <span className="established__solved">solved</span>
         </p>
         <ModelCardView problem={problem} step={step} record={record} />
-        <BarFigure problem={problem} step={step} />
+        <StepVisualFigure problem={problem} step={step} />
       </section>
     </>
   );
@@ -623,6 +659,16 @@ function CausalRecap({
   const calcLine = `${formatNumber(clV)} ${calcOp} ${formatNumber(crV)} = ${formatNumber(applyOperator(clV, calcOp, crV))}`;
 
   const totalStep = recap.totalVisualStepId ? getStep(problem, recap.totalVisualStepId) : undefined;
+  const recapTransformationSpace = useMemo(() => {
+    try {
+      const space = compileTransformationSpace(problem, { title: "Problem overview" });
+      return space.steps.some((step) => step.referenceWhole || step.partWhole || step.equalGroups || step.division)
+        ? space
+        : null;
+    } catch {
+      return null;
+    }
+  }, [problem]);
 
   // Options come straight from the data question, shuffled once.
   const options = useMemo(() => {
@@ -640,17 +686,27 @@ function CausalRecap({
   return (
     <section className="panel">
       <h2 className="stage-title">{recap.headline}</h2>
-      <div className="recap-chain">
-        {recap.causalChain.map((node) => (
-          <div key={node}>
-            <div className="recap-node">{node}</div>
-            <div className="recap-arrow" />
+      {recapTransformationSpace ? (
+          <MathTransformationSpace
+            spaces={[recapTransformationSpace]}
+            embedded
+            timeline={recap.causalChain}
+          />
+      ) : (
+        <>
+          <div className="recap-chain">
+            {recap.causalChain.map((node) => (
+              <div key={node}>
+                <div className="recap-node">{node}</div>
+                <div className="recap-arrow" />
+              </div>
+            ))}
+            <div className="recap-node recap-node--calc">{calcLine}</div>
           </div>
-        ))}
-        <div className="recap-node recap-node--calc">{calcLine}</div>
-      </div>
 
-      {totalStep && <BarFigure problem={problem} step={totalStep} />}
+          {totalStep && <BarFigure problem={problem} step={totalStep} />}
+        </>
+      )}
 
       <hr className="divider" />
 
