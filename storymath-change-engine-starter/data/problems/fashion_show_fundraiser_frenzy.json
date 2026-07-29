@@ -33,7 +33,7 @@
     "learnerRole": "design planner"
   },
   "story": {
-    "briefTemplate": "Seraphina one of three student designers for her school’s Fashion Show Fundraiser! After splitting up the school models evenly Seraphina was tasked with making designs for {quantity:models_to_design_for}. She made {quantity:sketches_per_model} for each model. Each designer was asked to pick their top {quantity:top_sketches} to be turned into real outfits that would be auctioned off. How many design sketches did Seraphina have to eliminate?",
+    "briefTemplate": "Seraphina is one of three student designers for her school’s Fashion Show Fundraiser! After splitting up the school models evenly Seraphina was tasked with making designs for {quantity:models_to_design_for}. She made {quantity:sketches_per_model} for each model. Each designer was asked to pick their top {quantity:top_sketches} to be turned into real outfits that would be auctioned off. How many design sketches did Seraphina have to eliminate?",
     "causalEvent": "Each model needed the same number of design sketches.",
     "closingNoteTemplate": "Seraphina had to eliminate {quantity:eliminated_sketches}."
   },
