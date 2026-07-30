@@ -201,7 +201,7 @@ function MultiplicationAttempt({
       <text x={gridX + gridWidth / 2} y={29} className="mts-array-axis mts-array-axis--columns" style={{ fill: factors[0]!.color }}>
         {formatNumber(columns)} {factors[0]!.quantity.label.compact}
       </text>
-      <text x={gridX - 16} y={gridY + gridHeight / 2} className="mts-array-axis mts-array-axis--rows" style={{ fill: factors[1]!.color }}>
+      <text x={gridX + gridWidth + 16} y={gridY + gridHeight / 2} className="mts-array-axis mts-array-axis--rows" style={{ fill: factors[1]!.color }}>
         {formatNumber(rows)} {factors[1]!.quantity.label.compact}
       </text>
       <g>

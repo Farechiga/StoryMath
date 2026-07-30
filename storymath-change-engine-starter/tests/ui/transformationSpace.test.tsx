@@ -115,6 +115,14 @@ describe("MathTransformationSpace prototype", () => {
     expect(screen.getAllByText("8 Eye shapes").length).toBeGreaterThan(0);
     expect(container.querySelectorAll('[data-bar-role="array-cell"][data-quantity-id="eye_eyebrow_expressions"]')).toHaveLength(96);
     expect(container.querySelector('[data-bar-role="array-cell"][data-quantity-id="eye_eyebrow_expressions"]')?.getAttribute("style")).toContain("fill: #3B3598");
+    const productCells = Array.from(
+      container.querySelectorAll<SVGRectElement>('[data-bar-role="array-cell"][data-quantity-id="eye_eyebrow_expressions"]'),
+    );
+    const productRightEdge = Math.max(
+      ...productCells.map((cell) => Number(cell.getAttribute("x")) + Number(cell.getAttribute("width"))),
+    );
+    const rowAxis = screen.getByText("8 Eye shapes");
+    expect(Number(rowAxis.getAttribute("x"))).toBeGreaterThan(productRightEdge);
 
     await user.click(screen.getByRole("button", { name: /Division/i }));
     expect(screen.getAllByText("48 ÷ 6 = 8").length).toBeGreaterThan(0);

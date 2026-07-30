@@ -138,6 +138,9 @@ describe("division fixture carries transformation labels into the real flow", ()
     await user.click(await screen.findByRole("button", { name: /See the recap/i }));
 
     expect(await screen.findByText(/Problem overview/i)).toBeTruthy();
+    expect(document.querySelector(".ornament")).toBeNull();
+    expect(screen.queryByText(/Step 1,\s*solved/i)).toBeNull();
+    expect(screen.queryByText(/Why Jo needs 40 cents/i)).toBeNull();
     expect(screen.getByText(/What does 8 represent in Jo's market model\?/i)).toBeTruthy();
     expect(screen.queryByText(/What does 8 arrowroots represent/i)).toBeNull();
     expect(screen.getAllByText("48 ÷ 6 = 8").length).toBeGreaterThan(0);

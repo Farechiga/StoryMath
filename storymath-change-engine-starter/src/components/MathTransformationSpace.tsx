@@ -362,7 +362,7 @@ function MultiplicationScene({
         {formatNumber(columns)} {columnsFactor!.quantity.label}
       </text>
       <text
-        x={drawnGridX - 18}
+        x={drawnGridX + gridWidth + 18}
         y={gridY + gridHeight / 2}
         className="mts-array-axis mts-array-axis--rows"
         style={{ fill: rowsFactor!.quantity.color }}

@@ -477,7 +477,7 @@
 }
 .mts-array-axis--rows {
   dominant-baseline: middle;
-  text-anchor: end;
+  text-anchor: start;
 }
 .mts-division-scene {
   display: grid;

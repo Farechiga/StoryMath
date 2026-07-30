@@ -66,6 +66,7 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
   const rightQuantity = getQuantity(problem, rightId);
 
   const phase = state.phase;
+  const isRecap = phase === "causal_recap";
 
   // Within-problem navigation (a pure view concern, not game state): Back takes
   // the child to the beginning to re-read the story and review already-solved
@@ -147,17 +148,19 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
   return (
     <>
       <PearlBackground />
-      <CubeOrnament seed={`${problem.id}::${phase}`} variant={ornamentVariant} region="right" />
+      {!isRecap && <CubeOrnament seed={`${problem.id}::${phase}`} variant={ornamentVariant} region="right" />}
       <main className="app-shell">
-        <Masthead
-          stepIndex={state.currentStepIndex}
-          stepCount={state.stepCount}
-          progressVerb={problem.storyChrome.stepProgressVerb ?? "model the problem"}
-        />
+        {!isRecap && (
+          <Masthead
+            stepIndex={state.currentStepIndex}
+            stepCount={state.stepCount}
+            progressVerb={problem.storyChrome.stepProgressVerb ?? "model the problem"}
+          />
+        )}
 
-        <MissionBrief problem={problem} firstStep={problem.steps[0]!} phase={phase} onBegin={() => dispatch({ type: "BEGIN" })} />
+        {!isRecap && <MissionBrief problem={problem} firstStep={problem.steps[0]!} phase={phase} onBegin={() => dispatch({ type: "BEGIN" })} />}
 
-        {showNav && (
+        {!isRecap && showNav && (
           <StepNav
             reviewing={reviewing}
             stepIndex={state.currentStepIndex}
@@ -167,12 +170,12 @@ export default function App({ problem: injected }: { problem?: ProblemInstance }
           />
         )}
 
-        {reviewing ? (
+        {!isRecap && reviewing ? (
           <ReviewView problem={problem} steps={solvedEarlierSteps} completedSteps={state.completedSteps} />
         ) : (
         <>
         {/* Context: results established in earlier steps stay visible. */}
-        {problem.steps
+        {!isRecap && problem.steps
           .filter((s, i) => i < state.currentStepIndex && state.completedSteps[s.id])
           .map((s) => (
             <EstablishedContext key={s.id} problem={problem} step={s} record={state.completedSteps[s.id]!} />
@@ -697,7 +700,7 @@ function CausalRecap({
 
   return (
     <section className="panel">
-      <h2 className="stage-title">{recap.headline}</h2>
+      {!recapTransformationSpace && <h2 className="stage-title">{recap.headline}</h2>}
       {recapTransformationSpace ? (
           <MathTransformationSpace
             spaces={[recapTransformationSpace]}
