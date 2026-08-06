@@ -25,6 +25,7 @@ export type {
   StoryChromeSpec,
   RecapSpec,
   DataQuestionSpec,
+  DecisionQuestionSpec,
 } from "../model/problemSpec";
 
 import type { DirectionKind, Operator } from "../model/relationshipRegistry";

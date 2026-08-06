@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "../components/BrandMark";
-import type { ProblemSpec } from "../model/problemSpec";
+import type { OperatorExperimentSpec, ProblemSpec } from "../model/problemSpec";
 import { useStudio } from "./StudioContext";
 import { AUTHORING_PROBLEM_SPECS } from "./problemCatalog";
 
@@ -426,6 +426,326 @@ function buildEqualGroupsThenSubtractGuess(rawInput: string, fallbackTitle: stri
   };
 }
 
+function replaceNumberInMatch(text: string, matchText: string, value: number, token: string): string {
+  return replaceFirst(text, matchText, matchText.replace(new RegExp(`\\b${value}\\b`), token));
+}
+
+function replaceMoneyInMatch(text: string, matchText: string, value: number, token: string): string {
+  const moneyPattern = new RegExp(`£?\\s*${value}(?:\\s+pounds?)?`, "i");
+  return replaceFirst(text, matchText, matchText.replace(moneyPattern, `£${token}`));
+}
+
+function inferSoldItemPlural(story: string, firstName: string): string {
+  const knownItem = story.match(/\b(bookmarks|stickers|cards|prints|posters|tickets)\b/i)?.[1];
+  if (knownItem) return knownItem.toLowerCase();
+
+  const afterName = story.match(new RegExp(`^${firstName}\\s+([a-z][a-z-]*s)\\b`, "i"))?.[1];
+  if (afterName) return afterName.toLowerCase();
+
+  const madeItem = story.match(/\b(?:make|making|made|sell|selling)\s+(?:a\s+|an\s+|the\s+)?([a-z][a-z-]*s)\b/i)?.[1];
+  return madeItem?.toLowerCase() ?? "items";
+}
+
+function equalGroupsExperiments(args: {
+  stepId: string;
+  groupPlural: string;
+  itemPlural: string;
+  actualSentence: string;
+}): OperatorExperimentSpec[] {
+  const { stepId, groupPlural, itemPlural, actualSentence } = args;
+  return [
+    {
+      stepId,
+      operator: "+",
+      narrativeFit: "different_question",
+      alternateWorldTemplate: `Adding would count ${groupPlural} and ${itemPlural} side by side, not every equal group.`,
+    },
+    {
+      stepId,
+      operator: "-",
+      narrativeFit: "different_story",
+      alternateWorldTemplate: `Subtracting would fit a story where some ${itemPlural} were removed.`,
+    },
+    {
+      stepId,
+      operator: "×",
+      narrativeFit: "actual",
+      visualModel: "repeated_groups_grid",
+      alternateWorldTemplate: actualSentence,
+    },
+    {
+      stepId,
+      operator: "÷",
+      narrativeFit: "different_question",
+      visualModel: "equal_shares_tray",
+      alternateWorldTemplate: `Dividing would fit a different question about sharing ${itemPlural} equally.`,
+    },
+  ];
+}
+
+function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
+  const { title: titleFromText, story } = extractAfterTitle(rawInput);
+  if (!/\bmonths?\b/i.test(story)) return null;
+
+  const perMonthMatch = story.match(/\blimited run of\s+(\d+)(?:\s+([a-z][a-z -]*?))?\s+each\b/i);
+  const priceMatch =
+    story.match(/\bsell(?:\s+(?:them|each|the\s+[a-z][a-z -]*))?\s+for\s+£?\s*(\d+)(?:\s+pounds?)?\s+each\b/i) ??
+    story.match(/\bsell\s+each\s+for\s+£?\s*(\d+)(?:\s+pounds?)?\b/i);
+  const packageMatch =
+    story.match(/\b(?:buying|buy|purchase|purchasing)\s+(?:a|an|the)?\s*£?\s*(\d+)(?:\s+pounds?)?\s+([a-z][a-z -]*?(?:package|subscription|tickets?))(?:[.?!]|$)/i) ??
+    story.match(/£\s*(\d+)(?:\s+pounds?)?\s+([a-z][a-z -]*?(?:package|subscription|tickets?))(?:[.?!]|$)/i);
+  if (!perMonthMatch || !priceMatch || !packageMatch) return null;
+
+  const monthsValue = 12;
+  const perMonthValue = Number(perMonthMatch[1]);
+  const priceValue = Number(priceMatch[1]);
+  const packageCostValue = Number(packageMatch[1]);
+  if (![perMonthValue, priceValue, packageCostValue].every((value) => Number.isFinite(value) && value > 0)) {
+    return null;
+  }
+
+  const firstName = story.match(/^([A-Z][a-z]+)/)?.[1] ?? "the seller";
+  const itemPlural = inferSoldItemPlural(story, firstName);
+  const itemSingular = singularize(itemPlural);
+  const packageNoun = packageMatch[2]!.trim();
+  const packageLabel = titleCaseFirst(packageNoun);
+  const totalItemsValue = monthsValue * perMonthValue;
+  const revenueValue = totalItemsValue * priceValue;
+  const enough = revenueValue >= packageCostValue;
+  const generatedTitle = `${firstName}'s ${packageNoun.includes("theatre") ? "theatre " : ""}${itemSingular} fundraiser`;
+  const storyTitle =
+    titleFromText ||
+    (!fallbackTitle || fallbackTitle === "New StoryMath problem" ? titleCaseFirst(generatedTitle) : fallbackTitle);
+  const id = `${slugify(storyTitle) || "monthly_sales_affordability"}-v1`;
+
+  let tokenized = story;
+  tokenized = replaceNumberInMatch(tokenized, perMonthMatch[0], perMonthValue, "{value:items_per_month}");
+  tokenized = replaceMoneyInMatch(tokenized, priceMatch[0], priceValue, "{value:price_per_item}");
+  tokenized = replaceMoneyInMatch(tokenized, packageMatch[0], packageCostValue, "{value:package_cost}");
+  tokenized = tokenized.replace(
+    /\bIf they all sell,?\s+how much will\s+(?:she|he|they|[A-Z][a-z]+)\s+have left after buying\s+(?:a|an|the)?\s*£\{value:package_cost\}\s+[a-z][a-z -]*?\?/i,
+    `If they all sell, will ${firstName} have enough to buy the £{value:package_cost} ${packageNoun}?`,
+  );
+
+  return {
+    id,
+    metadata: {
+      title: storyTitle,
+      theme: "Will the fundraiser be enough?",
+      gradeBand: "3-4",
+      factualStatus: "realistic",
+      tags: ["multiplication", "equal groups", "money", "yes-no", "two-step"],
+      catalogOrder: 1000,
+      publishedAt: new Date().toISOString().slice(0, 10),
+    },
+    dimension: {
+      kind: "money",
+      increaseLabel: "More",
+      decreaseLabel: "Less",
+      sameLabel: "The same",
+      increaseLabelLower: "more",
+      decreaseLabelLower: "less",
+      sameLabelLower: "the same",
+    },
+    storyChrome: {
+      openingEyebrow: "Fundraiser plan",
+      startCta: "Open the fundraiser plan",
+      finishCta: "Close the fundraiser plan",
+      completionTitle: "Fundraiser decision made",
+      stepProgressVerb: `model the ${itemPlural}`,
+      groupNoun: itemSingular,
+      learnerRole: "fundraiser planner",
+    },
+    story: {
+      briefTemplate: tokenized,
+      causalEvent: `Each month has the same limited run, and each ${itemSingular} sells for the same amount.`,
+      closingNoteTemplate: enough
+        ? `${firstName} would have enough for the ${packageNoun}.`
+        : `${firstName} would not have enough for the ${packageNoun}.`,
+    },
+    quantities: [
+      {
+        id: "calendar_months",
+        label: {
+          child: "Months in a year",
+          compact: "Months",
+          lowercase: "the months in a year",
+        },
+        unit: "months",
+        unitSingular: "month",
+        unitPlural: "months",
+        value: monthsValue,
+        visibility: "given",
+      },
+      {
+        id: "items_per_month",
+        label: {
+          child: `${titleCaseFirst(itemPlural)} made each month`,
+          compact: `${titleCaseFirst(itemPlural)} each month`,
+          lowercase: `${itemPlural} made each month`,
+        },
+        unit: itemPlural,
+        unitSingular: itemSingular,
+        unitPlural: itemPlural,
+        value: perMonthValue,
+        visibility: "given",
+      },
+      {
+        id: "total_items",
+        label: {
+          child: `Total ${itemPlural} made`,
+          compact: `Total ${itemPlural}`,
+          lowercase: `the total ${itemPlural}`,
+        },
+        unit: itemPlural,
+        unitSingular: itemSingular,
+        unitPlural: itemPlural,
+        value: null,
+        visibility: "find",
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            groups: "calendar_months",
+            itemsPerGroup: "items_per_month",
+          },
+        },
+        expectedValueForFixture: totalItemsValue,
+      },
+      {
+        id: "price_per_item",
+        label: {
+          child: `Pounds for each ${itemSingular}`,
+          compact: "Pounds each",
+          lowercase: `pounds for each ${itemSingular}`,
+        },
+        unit: "pounds",
+        unitSingular: "pound",
+        unitPlural: "pounds",
+        value: priceValue,
+        visibility: "given",
+      },
+      {
+        id: "sale_money",
+        label: {
+          child: "Money from selling all of them",
+          compact: "Sale money",
+          lowercase: "the money from selling all of them",
+        },
+        unit: "pounds",
+        unitSingular: "pound",
+        unitPlural: "pounds",
+        value: null,
+        visibility: "find",
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            groups: "total_items",
+            itemsPerGroup: "price_per_item",
+          },
+        },
+        expectedValueForFixture: revenueValue,
+      },
+      {
+        id: "package_cost",
+        label: {
+          child: `${packageLabel} cost`,
+          compact: `${packageLabel} cost`,
+          lowercase: `the ${packageNoun} cost`,
+        },
+        unit: "pounds",
+        unitSingular: "pound",
+        unitPlural: "pounds",
+        value: packageCostValue,
+        visibility: "given",
+      },
+    ],
+    steps: [
+      {
+        id: "find_total_items",
+        order: 1,
+        prompt: `How many ${itemPlural} could ${firstName} make across the whole year?`,
+        reasoningPrompt: `There are 12 months in a year, and each month has the same limited run. What operation models equal groups?`,
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          groups: "calendar_months",
+          itemsPerGroup: "items_per_month",
+          total: "total_items",
+        },
+        goalQuantityId: "total_items",
+        acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: `Divide the total ${itemPlural} by the months. Do you land on the limited run for each month?`,
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+      {
+        id: "find_sale_money",
+        order: 2,
+        prompt: `If all the ${itemPlural} sell, how much money will ${firstName} collect?`,
+        reasoningPrompt: `Each ${itemSingular} sells for the same number of pounds. What operation finds the total money?`,
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          groups: "total_items",
+          itemsPerGroup: "price_per_item",
+          total: "sale_money",
+        },
+        goalQuantityId: "sale_money",
+        acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: `Divide the sale money by the total ${itemPlural}. Do you land on the price for each ${itemSingular}?`,
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+    ],
+    operatorExperiments: [
+      ...equalGroupsExperiments({
+        stepId: "find_total_items",
+        groupPlural: "months",
+        itemPlural,
+        actualSentence: `This matches the story: every month has {quantity:items_per_month}.`,
+      }),
+      ...equalGroupsExperiments({
+        stepId: "find_sale_money",
+        groupPlural: itemPlural,
+        itemPlural: "pounds",
+        actualSentence: `This matches the story: every ${itemSingular} sells for £{value:price_per_item}.`,
+      }),
+    ],
+    recap: {
+      headline: `Will ${firstName}'s fundraiser be enough?`,
+      causalChain: [
+        `{quantity:calendar_months} with {quantity:items_per_month} each made {quantity:total_items}.`,
+        `{quantity:total_items} sold for £{value:price_per_item} each made £{value:sale_money}.`,
+        `The ${packageNoun} costs £{value:package_cost}.`,
+      ],
+      calcFromStepId: "find_sale_money",
+      dataQuestion: {
+        prompt: `What does £{value:sale_money} represent in the fundraiser model?`,
+        correctQuantityId: "sale_money",
+        distractorQuantityIds: ["total_items", "price_per_item", "package_cost"],
+        correctFeedback: `Right. £{value:sale_money} is the money from selling all the ${itemPlural}.`,
+        incorrectFeedback: `That amount is the sale money: £{value:sale_money}.`,
+      },
+      decisionQuestion: {
+        prompt: `Will ${firstName} have enough to buy the £{value:package_cost} ${packageNoun}?`,
+        correctAnswer: enough ? "yes" : "no",
+        correctFeedback: enough
+          ? `Yes. Selling all the ${itemPlural} makes £{value:sale_money}, which is enough for the £{value:package_cost} ${packageNoun}.`
+          : `Right. Selling all the ${itemPlural} makes £{value:sale_money}, which is not enough for the £{value:package_cost} ${packageNoun}.`,
+        incorrectFeedback: enough
+          ? `Check the comparison: £{value:sale_money} is more than £{value:package_cost}, so the answer is yes.`
+          : `Check the comparison: £{value:sale_money} is less than £{value:package_cost}, so the answer is no.`,
+      },
+    },
+  };
+}
+
 export function AuthoringView() {
   const { openMenu } = useStudio();
   const [passcode, setPasscode] = useState("");
@@ -484,9 +804,11 @@ export function AuthoringView() {
     applySpecToEditor(selectedProblem, "Loaded existing problem wording.");
   };
   const analyzeRawProblem = () => {
-    const guess = buildEqualGroupsThenSubtractGuess(rawProblemInput || problemParagraph, title);
+    const guess =
+      buildEqualGroupsThenSubtractGuess(rawProblemInput || problemParagraph, title) ??
+      buildMonthlySalesAffordabilityGuess(rawProblemInput || problemParagraph, title);
     if (!guess) {
-      setSaveMessage("Analyzer needs an equal-groups story followed by a top/kept amount.");
+      setSaveMessage("Analyzer needs either top/kept equal groups or a monthly sales affordability story.");
       return;
     }
     applySpecToEditor(guess, "Generated a two-step parameterized draft. Review the fields, then save or download.");

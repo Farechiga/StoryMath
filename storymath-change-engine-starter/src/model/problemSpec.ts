@@ -124,12 +124,21 @@ export interface DataQuestionSpec {
   incorrectFeedback: string;
 }
 
+export interface DecisionQuestionSpec {
+  prompt: string;
+  correctAnswer: "yes" | "no";
+  correctFeedback: string;
+  incorrectFeedback: string;
+}
+
 export interface RecapSpec {
   headline: string;
   causalChain: string[];
   calcFromStepId: string;
   totalVisualStepId?: string;
   dataQuestion: DataQuestionSpec;
+  /** Optional final meaning check for naturally yes/no story questions. */
+  decisionQuestion?: DecisionQuestionSpec;
 }
 
 export interface ProblemMetadataSpec {

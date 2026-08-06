@@ -661,9 +661,12 @@ function CausalRecap({
 }) {
   const recap = problem.recap;
   const dq = recap.dataQuestion;
+  const decisionQuestion = recap.decisionQuestion;
   const answered = state.recapAnswerCorrect !== undefined;
   const correctQuantity = getQuantity(problem, dq.correctQuantityId);
-  const recapQuestionPrompt = recapPromptWithoutQuantityLabel(dq.prompt, correctQuantity.value);
+  const recapQuestionPrompt = decisionQuestion
+    ? decisionQuestion.prompt
+    : recapPromptWithoutQuantityLabel(dq.prompt, correctQuantity.value);
 
   // Calc node derived from the referenced step's preferred equation.
   const calcStep = getStep(problem, recap.calcFromStepId);
@@ -726,23 +729,41 @@ function CausalRecap({
       <hr className="divider" />
 
       <h3 className="stage-title" style={{ fontSize: "1.1rem" }}>{recapQuestionPrompt}</h3>
-      <div className="choice-grid">
-        {options.map((o) => (
-          <button
-            key={o.q.id}
-            type="button"
-            className="choice"
-            disabled={answered}
-            onClick={() => onAnswerRecap(o.correct)}
-          >
-            {o.q.label.child}
-          </button>
-        ))}
-      </div>
+      {decisionQuestion ? (
+        <div className="choice-grid">
+          {(["yes", "no"] as const).map((answer) => (
+            <button
+              key={answer}
+              type="button"
+              className="choice"
+              disabled={answered}
+              onClick={() => onAnswerRecap(decisionQuestion.correctAnswer === answer)}
+            >
+              {answer === "yes" ? "Yes" : "No"}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="choice-grid">
+          {options.map((o) => (
+            <button
+              key={o.q.id}
+              type="button"
+              className="choice"
+              disabled={answered}
+              onClick={() => onAnswerRecap(o.correct)}
+            >
+              {o.q.label.child}
+            </button>
+          ))}
+        </div>
+      )}
 
       {answered && (
         <div className={`note ${state.recapAnswerCorrect ? "note--good" : "note--nudge"}`} role="status">
-          {state.recapAnswerCorrect ? dq.correctFeedback : dq.incorrectFeedback}
+          {state.recapAnswerCorrect
+            ? decisionQuestion?.correctFeedback ?? dq.correctFeedback
+            : decisionQuestion?.incorrectFeedback ?? dq.incorrectFeedback}
           <div className="btn-row">
             <button type="button" className="btn btn--primary" onClick={onFinish}>
               {problem.storyChrome.finishCta}

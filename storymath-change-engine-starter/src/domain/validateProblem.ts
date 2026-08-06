@@ -124,6 +124,9 @@ export function validateProblem(spec: ProblemSpec): ValidationIssue[] {
   const proseFields: Array<[string, string | undefined]> = [
     ["story.briefTemplate", spec.story.briefTemplate],
     ["story.closingNoteTemplate", spec.story.closingNoteTemplate],
+    ["recap.decisionQuestion.prompt", spec.recap.decisionQuestion?.prompt],
+    ["recap.decisionQuestion.correctFeedback", spec.recap.decisionQuestion?.correctFeedback],
+    ["recap.decisionQuestion.incorrectFeedback", spec.recap.decisionQuestion?.incorrectFeedback],
     ...spec.operatorExperiments.map(
       (e, i): [string, string | undefined] => [`operatorExperiments[${i}].alternateWorldTemplate`, e.alternateWorldTemplate],
     ),

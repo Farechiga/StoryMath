@@ -115,6 +115,16 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
       correctFeedback: merge(spec.recap.dataQuestion.correctFeedback),
       incorrectFeedback: merge(spec.recap.dataQuestion.incorrectFeedback),
     },
+    ...(spec.recap.decisionQuestion
+      ? {
+          decisionQuestion: {
+            ...spec.recap.decisionQuestion,
+            prompt: merge(spec.recap.decisionQuestion.prompt),
+            correctFeedback: merge(spec.recap.decisionQuestion.correctFeedback),
+            incorrectFeedback: merge(spec.recap.decisionQuestion.incorrectFeedback),
+          },
+        }
+      : {}),
   };
 
   return {

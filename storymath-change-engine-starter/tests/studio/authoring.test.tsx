@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { StudioProvider, useStudio } from "../../src/studio/StudioContext";
 import { AuthoringView } from "../../src/studio/AuthoringView";
 import { MenuView } from "../../src/studio/MenuView";
+import { validateProblem } from "../../src/domain";
 
 afterEach(cleanup);
 afterEach(() => localStorage.clear());
@@ -126,6 +127,46 @@ describe("AuthoringView", () => {
     expect(saved.story.briefTemplate).toContain("{quantity:top_sketches}");
     expect(saved.quantities.find((q: { id: string }) => q.id === "total_sketches").expectedValueForFixture).toBe(33);
     expect(saved.quantities.find((q: { id: string }) => q.id === "eliminated_sketches").expectedValueForFixture).toBe(28);
+  });
+
+  it("analyzes a monthly sales affordability story into two multiplication steps and a yes/no decision", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudioProvider initialView="authoring">
+        <AuthoringView />
+      </StudioProvider>,
+    );
+
+    await user.type(screen.getByLabelText(/Authoring passcode/i), "0511");
+    await user.click(screen.getByRole("button", { name: "Unlock" }));
+
+    fireEvent.change(screen.getByLabelText(/Raw word problem/i), {
+      target: {
+        value:
+          "Coby bookmarks to raise money to buy a season package of theatre tickets. They will sell for £5 pounds each and since they had the press and materials she could keep all the money. She wants decided to make a design for each of the months, and do a limited run of 5 each. If they all sell how much will she have left after buying a £289 theatre package?",
+      },
+    });
+    await user.click(screen.getByRole("button", { name: /Analyze and prefill draft/i }));
+
+    expect((screen.getByLabelText(/^Title$/i) as HTMLInputElement).value).toBe(
+      "Coby's theatre bookmark fundraiser",
+    );
+    const relationships = screen.getAllByRole("combobox", { name: /^Relationship$/i }) as HTMLSelectElement[];
+    expect(relationships).toHaveLength(2);
+    expect(relationships[0]!.value).toBe("multiplication_equal_groups");
+    expect(relationships[1]!.value).toBe("multiplication_equal_groups");
+    expect(screen.getByText(/Generated a two-step parameterized draft/i)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
+    const saved = JSON.parse(localStorage.getItem("storymath_authoring_draft_v1") ?? "{}");
+    expect(saved.story.briefTemplate).toContain("{value:items_per_month}");
+    expect(saved.story.briefTemplate).toContain("£{value:price_per_item}");
+    expect(saved.story.briefTemplate).toContain("£{value:package_cost}");
+    expect(saved.quantities.find((q: { id: string }) => q.id === "calendar_months").value).toBe(12);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "total_items").expectedValueForFixture).toBe(60);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "sale_money").expectedValueForFixture).toBe(300);
+    expect(saved.recap.decisionQuestion.correctAnswer).toBe("yes");
+    expect(validateProblem(saved).filter((issue) => issue.severity === "error")).toEqual([]);
   });
 
   it("saves an edited existing problem draft and exposes updated JSON for download", async () => {

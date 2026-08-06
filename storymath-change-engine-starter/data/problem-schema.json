@@ -312,6 +312,17 @@
         "incorrectFeedback": { "type": "string" }
       }
     },
+    "decisionQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt", "correctAnswer", "correctFeedback", "incorrectFeedback"],
+      "properties": {
+        "prompt": { "type": "string" },
+        "correctAnswer": { "enum": ["yes", "no"] },
+        "correctFeedback": { "type": "string" },
+        "incorrectFeedback": { "type": "string" }
+      }
+    },
     "recap": {
       "type": "object",
       "additionalProperties": false,
@@ -324,7 +335,8 @@
         },
         "calcFromStepId": { "type": "string" },
         "totalVisualStepId": { "type": "string" },
-        "dataQuestion": { "$ref": "#/$defs/dataQuestion" }
+        "dataQuestion": { "$ref": "#/$defs/dataQuestion" },
+        "decisionQuestion": { "$ref": "#/$defs/decisionQuestion" }
       }
     }
   }

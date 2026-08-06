@@ -108,8 +108,8 @@ describe("StoryMath — product philosophy (NASA pack)", () => {
     await user.click(screen.getByRole("button", { name: /Check it/i }));
     await user.click(await screen.findByRole("button", { name: /Continue/i }));
 
-    // Recap + completion chrome from the pack.
-    expect(await screen.findByText(/Why Tuesday was shorter/i)).toBeTruthy();
+    // Transformation recap + completion chrome from the pack.
+    expect(await screen.findByText(/Problem overview/i)).toBeTruthy();
     await user.click(screen.getByRole("button", { name: /How much shorter Tuesday was than Monday/i }));
     expect(await screen.findByRole("button", { name: /Close the rover log/i })).toBeTruthy(); // finishCta
     await user.click(screen.getByRole("button", { name: /Close the rover log/i }));
