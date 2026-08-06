@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { validateProblem } from "../src/domain/validateProblem";
 import type { ProblemSpec } from "../src/model/problemSpec";
 
 type RequestWithBody = IncomingMessage & {
@@ -64,6 +63,30 @@ function safeProblemId(id: unknown): id is string {
   return typeof id === "string" && /^[a-z0-9][a-z0-9_-]*$/.test(id);
 }
 
+function saveShapeErrors(spec: ProblemSpec): string[] {
+  const errors: string[] = [];
+  if (!safeProblemId(spec.id)) errors.push("Problem id must use only lowercase letters, numbers, underscores, and hyphens.");
+  if (!spec.metadata || typeof spec.metadata.title !== "string" || spec.metadata.title.trim().length === 0) {
+    errors.push("Problem metadata must include a title.");
+  }
+  if (!spec.story || typeof spec.story.briefTemplate !== "string" || spec.story.briefTemplate.trim().length === 0) {
+    errors.push("Problem story must include a briefTemplate.");
+  }
+  if (!Array.isArray(spec.quantities) || spec.quantities.length === 0) {
+    errors.push("Problem must include at least one quantity.");
+  }
+  if (!Array.isArray(spec.steps) || spec.steps.length === 0) {
+    errors.push("Problem must include at least one step.");
+  }
+  if (!Array.isArray(spec.operatorExperiments)) {
+    errors.push("Problem must include operator experiments.");
+  }
+  if (!spec.recap || typeof spec.recap.calcFromStepId !== "string") {
+    errors.push("Problem recap must include calcFromStepId.");
+  }
+  return errors;
+}
+
 function githubJsonHeaders(token: string): Record<string, string> {
   return {
     Accept: "application/vnd.github+json",
@@ -125,10 +148,13 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
       return;
     }
 
-    const issues = validateProblem(spec);
-    const errors = issues.filter((issue) => issue.severity === "error");
-    if (errors.length > 0) {
-      sendJson(res, 422, { ok: false, error: "Problem validation failed.", issues });
+    const shapeErrors = saveShapeErrors(spec);
+    if (shapeErrors.length > 0) {
+      sendJson(res, 422, {
+        ok: false,
+        error: "Problem save shape check failed.",
+        issues: shapeErrors.map((message) => ({ severity: "error", message })),
+      });
       return;
     }
 
@@ -172,7 +198,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
       path: githubPath,
       commitSha: savePayload.commit?.sha,
       commitUrl: savePayload.commit?.html_url,
-      issues,
+      issues: [],
     });
   } catch (error) {
     sendJson(res, 400, {

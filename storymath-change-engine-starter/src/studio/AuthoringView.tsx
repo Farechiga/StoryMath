@@ -1699,6 +1699,12 @@ export function AuthoringView() {
     );
     try {
       if (vercelRepoSaveAvailable) {
+        const validationIssues = validateProblem(editedSpec);
+        const validationErrors = validationIssues.filter((issue) => issue.severity === "error");
+        if (validationErrors.length > 0) {
+          throw new Error(`Problem validation failed. ${validationErrors.map((issue) => issue.message).join(" ")}`);
+        }
+
         const response = await fetch("/api/save-problem", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
