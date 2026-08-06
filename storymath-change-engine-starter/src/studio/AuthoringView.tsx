@@ -1,11 +1,16 @@
 import { useMemo, useState } from "react";
 import { BrandMark } from "../components/BrandMark";
 import type { OperatorExperimentSpec, ProblemSpec } from "../model/problemSpec";
+import { validateProblem } from "../domain/validateProblem";
 import { useStudio } from "./StudioContext";
 import { AUTHORING_PROBLEM_SPECS } from "./problemCatalog";
 
 const PASSCODE = "0511";
 const AUTHORING_DRAFT_KEY = "storymath_authoring_draft_v1";
+const GITHUB_OWNER = "Farechiga";
+const GITHUB_REPO = "StoryMath";
+const GITHUB_BRANCH = "main";
+const GITHUB_PROBLEM_PATH_PREFIX = "storymath-change-engine-starter/data/problems";
 
 const RELATIONSHIPS = [
   {
@@ -99,6 +104,18 @@ type RepoSavePayload = {
   error?: string;
   issues?: Array<{ severity?: string; message?: string }>;
 };
+type GitHubContentPayload = {
+  sha?: string;
+  message?: string;
+  errors?: Array<{ message?: string }>;
+  commit?: {
+    sha?: string;
+    html_url?: string;
+  };
+  content?: {
+    path?: string;
+  };
+};
 
 function slugify(value: string): string {
   return value
@@ -110,6 +127,74 @@ function slugify(value: string): string {
 
 function cloneSpec(spec: ProblemSpec): ProblemSpec {
   return JSON.parse(JSON.stringify(spec)) as ProblemSpec;
+}
+
+function base64EncodeUtf8(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function githubJsonHeaders(token: string): HeadersInit {
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
+
+function githubErrorMessage(payload: GitHubContentPayload, fallback: string): string {
+  const detail = payload.errors?.map((error) => error.message).filter(Boolean).join(" ");
+  return [payload.message, detail].filter(Boolean).join(" ") || fallback;
+}
+
+function githubContentsUrl(problemId: string): string {
+  const path = `${GITHUB_PROBLEM_PATH_PREFIX}/${problemId}.json`;
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+  return `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${encodedPath}`;
+}
+
+async function saveProblemSpecThroughGitHub(spec: ProblemSpec, serialized: string, token: string): Promise<GitHubContentPayload> {
+  const trimmedToken = token.trim();
+  if (!trimmedToken) {
+    throw new Error("Paste a GitHub token with Contents read/write access before saving from the live site.");
+  }
+
+  const issues = validateProblem(spec);
+  const errors = issues.filter((issue) => issue.severity === "error");
+  if (errors.length > 0) {
+    throw new Error(`Problem validation failed. ${errors.map((issue) => issue.message).join(" ")}`);
+  }
+
+  const url = githubContentsUrl(spec.id);
+  const headers = githubJsonHeaders(trimmedToken);
+  const existingResponse = await fetch(`${url}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, { headers });
+  let existingSha: string | undefined;
+  if (existingResponse.status !== 404) {
+    const existingPayload = (await existingResponse.json().catch(() => ({}))) as GitHubContentPayload;
+    if (!existingResponse.ok) {
+      throw new Error(githubErrorMessage(existingPayload, "Could not check the existing GitHub file."));
+    }
+    existingSha = existingPayload.sha;
+  }
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({
+      message: `Save StoryMath problem: ${spec.metadata.title}`,
+      content: base64EncodeUtf8(`${serialized}\n`),
+      branch: GITHUB_BRANCH,
+      ...(existingSha ? { sha: existingSha } : {}),
+    }),
+  });
+  const payload = (await response.json().catch(() => ({}))) as GitHubContentPayload;
+  if (!response.ok) {
+    throw new Error(githubErrorMessage(payload, "Could not commit the problem JSON to GitHub."));
+  }
+  return payload;
 }
 
 function relationshipFor(id: string) {
@@ -1349,6 +1434,7 @@ export function AuthoringView() {
   const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
   const [repoSaveBusy, setRepoSaveBusy] = useState(false);
+  const [githubToken, setGithubToken] = useState("");
   const [rawProblemInput, setRawProblemInput] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
   const [theme, setTheme] = useState("Classroom story");
@@ -1376,6 +1462,7 @@ export function AuthoringView() {
   const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
   const primaryRelationship = relationshipFor(relationshipIds[0] ?? "start_change_end_decrease");
+  const localRepoSaveAvailable = import.meta.env.DEV;
   const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
@@ -1595,8 +1682,17 @@ export function AuthoringView() {
   };
   const saveProblemToRepo = async () => {
     setRepoSaveBusy(true);
-    setSaveMessage("Saving problem JSON to the local repo…");
+    setSaveMessage(localRepoSaveAvailable ? "Saving problem JSON to the local repo…" : "Committing problem JSON to GitHub…");
     try {
+      if (!localRepoSaveAvailable) {
+        const payload = await saveProblemSpecThroughGitHub(editedSpec, editedJson, githubToken);
+        const shortSha = payload.commit?.sha?.slice(0, 7);
+        setSaveMessage(
+          `Committed ${payload.content?.path ?? `${GITHUB_PROBLEM_PATH_PREFIX}/${editedSpec.id}.json`} to GitHub${shortSha ? ` (${shortSha})` : ""}. GitHub Pages will redeploy from main shortly.`,
+        );
+        return;
+      }
+
       const response = await fetch("/__storymath_authoring/problems", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1617,7 +1713,9 @@ export function AuthoringView() {
       );
     } catch (error) {
       setSaveMessage(
-        `Could not save to the repo from this page. Run with npm run dev, or use Download JSON. ${error instanceof Error ? error.message : ""}`,
+        localRepoSaveAvailable
+          ? `Could not save to the local repo. Use Download JSON if needed. ${error instanceof Error ? error.message : ""}`
+          : `Could not commit to GitHub from this page. Check the token permissions or use Download JSON. ${error instanceof Error ? error.message : ""}`,
       );
     } finally {
       setRepoSaveBusy(false);
@@ -2061,8 +2159,26 @@ export function AuthoringView() {
         <div className="panel authoring-panel">
           <h2 className="authoring-title">Updated problem JSON</h2>
           <p className="authoring-help">
-            Browser drafts stay on this device. To update the live game, download this JSON and replace the matching file in data/problems before committing.
+            {localRepoSaveAvailable
+              ? "Browser drafts stay on this device. Save JSON to repo writes into data/problems on the local dev server."
+              : "Browser drafts stay on this device. On the live site, Save JSON to repo commits through GitHub using a token you paste for this session."}
           </p>
+          {!localRepoSaveAvailable && (
+            <label className="authoring-field">
+              <span>GitHub token for live repo save</span>
+              <span className="authoring-help">
+                Use a fine-grained token for {GITHUB_OWNER}/{GITHUB_REPO} with Contents read/write access. The token is kept in memory only and is not saved in the browser draft.
+              </span>
+              <input
+                className="text-input"
+                type="password"
+                autoComplete="off"
+                placeholder="github_pat_…"
+                value={githubToken}
+                onChange={(event) => setGithubToken(event.target.value)}
+              />
+            </label>
+          )}
           <div className="btn-row">
             <button type="button" className="btn btn--primary" onClick={saveDraft}>
               Save browser draft
