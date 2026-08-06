@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { applyOperator } from "../domain";
 import type { Operator } from "../domain";
 
@@ -38,6 +38,8 @@ function placeName(i: number, cols: number): string {
 }
 
 const oneDigit = (raw: string) => raw.replace(/[^0-9]/g, "").slice(-1);
+
+type AnswerEntryDirection = "left-to-right" | "right-to-left" | "manual";
 
 function setAt(arr: string[], i: number, value: string): string[] {
   const next = arr.slice();
@@ -80,6 +82,8 @@ export function StackedArithmetic({
   const [answer, setAnswer] = useState<string[]>(() => Array(cols).fill(""));
   const [regroup, setRegroup] = useState<string[]>(() => Array(cols).fill(""));
   const [borrow, setBorrow] = useState<string[]>(() => Array(cols).fill(""));
+  const [answerEntryDirection, setAnswerEntryDirection] = useState<AnswerEntryDirection | null>(null);
+  const answerRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // The regroup/carry row on top is useful for both operations. The left borrow
   // boxes and the strikethrough are subtraction-specific.
@@ -89,10 +93,37 @@ export function StackedArithmetic({
   const rightDigits = digitsOf(bottomVal, cols);
   const hasAnswer = answer.join("").length > 0;
 
+  const focusAnswer = (i: number) => {
+    if (i < 0 || i >= cols) return;
+    answerRefs.current[i]?.focus();
+  };
+
   const handleAnswer = (i: number, raw: string) => {
-    const next = setAt(answer, i, oneDigit(raw));
+    const digit = oneDigit(raw);
+    const next = setAt(answer, i, digit);
+    const wasEmpty = answer.every((cell) => cell === "");
+    let direction = answerEntryDirection;
     setAnswer(next);
     onChange(next.join(""));
+
+    if (!digit) {
+      if (next.every((cell) => cell === "")) setAnswerEntryDirection(null);
+      return;
+    }
+
+    if (wasEmpty && answerEntryDirection === null) {
+      if (i === 0 && cols > 1) {
+        direction = "left-to-right";
+      } else if (i === cols - 1 && cols > 1) {
+        direction = "right-to-left";
+      } else {
+        direction = "manual";
+      }
+      setAnswerEntryDirection(direction);
+    }
+
+    if (direction === "left-to-right") focusAnswer(i + 1);
+    if (direction === "right-to-left") focusAnswer(i - 1);
   };
 
   const gridStyle: CSSProperties = {
@@ -155,6 +186,9 @@ export function StackedArithmetic({
         {Array.from({ length: cols }, (_, i) => (
           <input
             key={`a${i}`}
+            ref={(node) => {
+              answerRefs.current[i] = node;
+            }}
             className="colsum__answer"
             inputMode="numeric"
             aria-label={`${ariaLabel}, ${placeName(i, cols)} place`}
