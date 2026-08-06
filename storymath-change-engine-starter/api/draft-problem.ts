@@ -29,7 +29,7 @@ type DraftIssue = {
   message: string;
 };
 
-const DEFAULT_MODEL = "gpt-5";
+const DEFAULT_MODEL = "gpt-5-mini";
 const MAX_RAW_PROBLEM_CHARS = 8_000;
 
 const RELATIONSHIP_TEMPLATE_IDS = [
@@ -181,6 +181,8 @@ Core rules:
 - Preserve the story's meaning. Do not invent a different premise, title, characters, or object nouns.
 - Replace every modeled number in child-facing prose with field-merge tokens: {quantity:id} when the noun should render, {value:id} for money/scalar values inside phrases like £{value:price_per_bookmark}.
 - Prefer precise, story-specific quantity ids: price_per_bookmark, books_per_box, cart_capacity, total_books, not price_per_item unless the story gives no noun.
+- Always infer a specific metadata.title from the story unless the raw input starts with a deliberate title. Never leave "New StoryMath problem" as the final title.
+- metadata.theme should read like a menu subtitle or driving question, not a single generic setting word. Good: "Will the carts be enough?" Bad: "library".
 - Use "approximately" in the wording when the source says about/approximately; avoid "about" in generated prompts.
 - Use one step per arithmetic operation. For yes/no capacity or affordability stories, compute the compared quantities first, then put the comparison in recap.decisionQuestion.
 - For capacity/enough stories like boxes of books and carts, use two multiplication steps: boxes × books per box = total books; carts × books per cart = cart capacity; then answer yes/no by comparing capacity to total.
@@ -531,6 +533,58 @@ function compactTitle(rawProblem: string, fallbackTitle: string | undefined): st
   return firstLine && !/[?.!]$/.test(firstLine) ? firstLine : fallbackTitle?.trim() || "New StoryMath problem";
 }
 
+function sentenceCase(value: string): string {
+  const trimmed = value.trim();
+  return trimmed ? `${trimmed[0]!.toUpperCase()}${trimmed.slice(1)}` : trimmed;
+}
+
+function isGenericTitle(value: string | undefined): boolean {
+  return !value || /^new storymath problem$/i.test(value.trim()) || /^generated storymath problem$/i.test(value.trim());
+}
+
+function isGenericTheme(value: string | undefined): boolean {
+  if (!value) return true;
+  const normalized = value.trim().toLowerCase();
+  return ["classroom story", "library", "books", "story", "generated two-step model"].includes(normalized) || normalized.split(/\s+/).length <= 1;
+}
+
+function lastQuestion(rawProblem: string): string {
+  const match = rawProblem.match(/[^.?!]*\?/g);
+  return match && match.length > 0 ? match[match.length - 1]!.trim().replace(/\s+/g, " ") : "";
+}
+
+function inferTitleFromRaw(rawProblem: string, fallbackTitle: string): string {
+  if (!isGenericTitle(fallbackTitle)) return fallbackTitle;
+  const story = rawProblem.trim();
+  const properPair = story.match(/\b([A-Z][a-z]+)\s+and\s+([A-Z][a-z]+)\b/);
+  const names = properPair ? `${properPair[1]} and ${properPair[2]}` : story.match(/\b([A-Z][a-z]+)\b/)?.[1];
+
+  if (/\bUnderlibrary\b/i.test(story) && /\bcarts?\b/i.test(story)) return "Underlibrary book-cart move";
+  if (/\bLibrary of Congress\b/i.test(story)) return "Library of Congress book search";
+  if (/\bQuip\b/i.test(story) && /\bVenice\b/i.test(story)) return "The Quip stops in Venice";
+  if (/\btheatre\b/i.test(story) && /\bbookmarks?\b/i.test(story)) return `${names ? `${names}'s` : "The"} theatre bookmark plan`;
+  if (/\bcarts?\b/i.test(story) && /\bbooks?\b/i.test(story)) return `${names ? `${names}'s ` : ""}book-cart move`;
+  if (/\bshelves?\b/i.test(story) && /\bbooks?\b/i.test(story)) return `${names ? `${names}'s ` : ""}book search`;
+
+  const openingWords = story
+    .replace(/[^a-zA-Z0-9\s'-]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 2)
+    .slice(0, 5)
+    .join(" ");
+  return sentenceCase(openingWords || "StoryMath problem");
+}
+
+function inferThemeFromRaw(rawProblem: string): string {
+  const question = lastQuestion(rawProblem);
+  if (/will\s+\d+\s+carts?\s+be\s+enough/i.test(question)) return "Will the carts be enough?";
+  if (/will\b.*\benough/i.test(question)) return sentenceCase(question.replace(/\b\d+\s+/g, "").replace(/\s+/g, " "));
+  if (/how many.*left/i.test(question)) return "How many are left?";
+  if (/how many.*each friend/i.test(question)) return "How many books does each friend search?";
+  if (question) return sentenceCase(question.replace(/\b\d+\s+/g, "").replace(/\s+/g, " "));
+  return "What does the model show?";
+}
+
 function extractResponseText(payload: DraftResponsePayload): string {
   if (typeof payload.output_text === "string" && payload.output_text.trim()) {
     return payload.output_text;
@@ -839,8 +893,27 @@ function repairStepForms(spec: ProblemSpec): DraftIssue[] {
   return issues;
 }
 
-function normalizeProblemSpec(spec: ProblemSpec): { spec: ProblemSpec; issues: DraftIssue[] } {
+function repairStoryFrame(spec: ProblemSpec, rawProblem: string, fallbackTitle: string): DraftIssue[] {
   const issues: DraftIssue[] = [];
+  if (isGenericTitle(spec.metadata.title)) {
+    spec.metadata.title = inferTitleFromRaw(rawProblem, fallbackTitle);
+    spec.id = `${spec.metadata.title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "storymath_problem"}-v1`;
+    issues.push({ severity: "warning", message: `Repaired story frame: inferred title "${spec.metadata.title}".` });
+  }
+  if (isGenericTheme(spec.metadata.theme)) {
+    spec.metadata.theme = inferThemeFromRaw(rawProblem);
+    issues.push({ severity: "warning", message: `Repaired story frame: inferred theme "${spec.metadata.theme}".` });
+  }
+  return issues;
+}
+
+function normalizeProblemSpec(spec: ProblemSpec, rawProblem: string, fallbackTitle: string): { spec: ProblemSpec; issues: DraftIssue[] } {
+  const issues: DraftIssue[] = [];
+  issues.push(...repairStoryFrame(spec, rawProblem, fallbackTitle));
   deleteIfNull(spec.metadata, "factualStatus");
   deleteIfNull(spec.metadata, "curiosityNote");
   deleteIfNull(spec.metadata, "catalogOrder");
@@ -961,7 +1034,10 @@ function draftRequestPayload(rawProblem: string, fallbackTitle: string, model: s
         schema: PROBLEM_SPEC_SCHEMA,
       },
     },
-    max_output_tokens: 7000,
+    reasoning: {
+      effort: "minimal",
+    },
+    max_output_tokens: 5000,
   };
 }
 
@@ -1018,7 +1094,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
     }
 
     const responseText = extractResponseText(openAiPayload);
-    const { spec, issues: repairIssues } = normalizeProblemSpec(parseSpecFromResponseText(responseText));
+    const { spec, issues: repairIssues } = normalizeProblemSpec(parseSpecFromResponseText(responseText), rawProblem, fallbackTitle);
     const issues = draftShapeErrors(spec);
     if (issues.length > 0) {
       sendJson(res, 422, {

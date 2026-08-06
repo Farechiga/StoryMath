@@ -80,6 +80,8 @@ describe("Vercel OpenAI draft API", () => {
     expect((request.headers as Record<string, string>).Authorization).toBe("Bearer sk-storymath-test");
     const body = JSON.parse(String(request.body));
     expect(body.model).toBe("gpt-test-drafter");
+    expect(body.reasoning.effort).toBe("minimal");
+    expect(body.max_output_tokens).toBe(5000);
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.name).toBe("storymath_problem_spec");
     expect(body.input[1].content).toContain("Will 5 carts be enough?");
@@ -113,6 +115,8 @@ describe("Vercel OpenAI draft API", () => {
     vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
 
     const brokenSpec = JSON.parse(JSON.stringify(theatreProblem)) as ProblemSpec;
+    brokenSpec.metadata.title = "New StoryMath problem";
+    brokenSpec.metadata.theme = "library";
     for (const step of brokenSpec.steps) {
       if (step.relationshipTemplateId !== "multiplication_equal_groups") continue;
       step.roleToQuantityId = {
@@ -147,7 +151,7 @@ describe("Vercel OpenAI draft API", () => {
         body: {
           secret: "secret phrase",
           rawProblem:
-            "Tilly sells bookmarks for £5 each. She makes 5 bookmarks for each of 12 months. Will that be enough for a £289 theatre package?",
+            "Tilly and Oskar were offered an internship at the Underlibrary. They received 8 boxes of classics. Each box has 30 books. The book carts can hold 50 books each. Will 5 carts be enough to move all the boxes?",
         },
       } as never,
       res,
@@ -157,6 +161,8 @@ describe("Vercel OpenAI draft API", () => {
     const payload = JSON.parse(res.bodyText ?? "{}");
     const repaired = payload.spec as ProblemSpec;
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("itemsPerGroup"))).toBe(true);
+    expect(repaired.metadata.title).not.toBe("New StoryMath problem");
+    expect(repaired.metadata.theme).toBe("Will the carts be enough?");
     expect(repaired.steps.every((step) => step.roleToQuantityId.itemsPerGroup)).toBe(true);
     expect(
       repaired.quantities

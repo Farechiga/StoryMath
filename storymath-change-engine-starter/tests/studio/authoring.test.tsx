@@ -368,11 +368,8 @@ describe("AuthoringView", () => {
     fireEvent.change(screen.getByLabelText(/^Arithmetic unit$/i), {
       target: { value: "students" },
     });
-    fireEvent.change(screen.getAllByLabelText(/Answer choice label/i)[0]!, {
+    fireEvent.change(screen.getAllByLabelText(/Main label/i)[0]!, {
       target: { value: "Kids on Team Dog" },
-    });
-    fireEvent.change(screen.getAllByLabelText(/Sentence label/i)[0]!, {
-      target: { value: "kids on Team Dog" },
     });
     fireEvent.change(screen.getByLabelText(/Recap headline/i), {
       target: { value: "Why Team Dog had {quantity:more_dog_stickers} more" },

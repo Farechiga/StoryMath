@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { BrandMark } from "../components/BrandMark";
 import type { OperatorExperimentSpec, ProblemSpec } from "../model/problemSpec";
 import { validateProblem } from "../domain/validateProblem";
+import { loadProblemSpec } from "../domain/loadProblem";
+import { resolveTemplate, type MergeQuantity } from "../model/fieldMerge";
 import { useStudio } from "./StudioContext";
 import { AUTHORING_PROBLEM_SPECS } from "./problemCatalog";
 
@@ -279,6 +281,19 @@ function singularize(noun: string): string {
 
 function titleCaseFirst(value: string): string {
   return value ? `${value[0]!.toUpperCase()}${value.slice(1)}` : value;
+}
+
+function lowerCaseFirst(value: string): string {
+  return value ? `${value[0]!.toLowerCase()}${value.slice(1)}` : value;
+}
+
+function displayPreviewFor(template: string, quantities: Record<string, MergeQuantity> | null): string {
+  if (!quantities || !template.includes("{")) return "";
+  try {
+    return resolveTemplate(template, quantities);
+  } catch {
+    return "";
+  }
 }
 
 function replaceFirst(text: string, literal: string, replacement: string): string {
@@ -1758,6 +1773,26 @@ export function AuthoringView() {
     },
     [baseSpec, genericUnit, gradeBand, primaryRelationship, problemId, problemParagraph, quantityDrafts, quantityStem, recapDraft, relationshipIds, singularNoun, stepDrafts, storyNoun, theme, title, today],
   );
+  const previewQuantities = useMemo(() => {
+    try {
+      const instantiated = loadProblemSpec(editedSpec);
+      const quantities: Record<string, MergeQuantity> = {};
+      for (const quantity of instantiated.quantities) {
+        quantities[quantity.id] = {
+          value: quantity.value,
+          unit: quantity.unit,
+          unitSingular: quantity.unitSingular,
+          unitPlural: quantity.unitPlural,
+          label: quantity.label,
+        };
+      }
+      return quantities;
+    } catch {
+      return null;
+    }
+  }, [editedSpec]);
+  const previewFor = (template: string) => displayPreviewFor(template, previewQuantities);
+  const problemParagraphPreview = previewFor(problemParagraph);
   const editedJson = useMemo(() => JSON.stringify(editedSpec, null, 2), [editedSpec]);
   const downloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(`${editedJson}\n`)}`;
   const downloadName = `${baseSpec?.id ?? editedSpec.id}.json`;
@@ -1859,8 +1894,57 @@ export function AuthoringView() {
     setRelationshipIds((current) => current.map((value, i) => (i === index ? id : value)));
   };
   const updateQuantityDraft = (id: string, field: keyof Omit<QuantityDraft, "id">, value: string) => {
+    if (id === quantityDrafts[0]?.id) {
+      if (field === "unitPlural") setStoryNoun(value);
+      if (field === "unitSingular") setSingularNoun(value);
+      if (field === "unit") setGenericUnit(value);
+    }
     setQuantityDrafts((current) =>
       current.map((draft) => (draft.id === id ? { ...draft, [field]: value } : draft)),
+    );
+  };
+  const updateQuantityMainLabel = (id: string, value: string) => {
+    setQuantityDrafts((current) =>
+      current.map((draft) => {
+        if (draft.id !== id) return draft;
+        const oldChildLower = lowerCaseFirst(draft.child);
+        const shouldCascadeCompact = draft.compact === draft.child || draft.compact === oldChildLower;
+        const shouldCascadeLowercase =
+          draft.lowercase === draft.child ||
+          draft.lowercase === oldChildLower ||
+          draft.lowercase === draft.compact;
+        return {
+          ...draft,
+          child: value,
+          compact: shouldCascadeCompact ? value : draft.compact,
+          lowercase: shouldCascadeLowercase ? lowerCaseFirst(value) : draft.lowercase,
+        };
+      }),
+    );
+  };
+  const updateQuantityDisplayNoun = (id: string, plural: string) => {
+    const nextSingular = singularize(plural);
+    if (id === quantityDrafts[0]?.id) {
+      setStoryNoun(plural);
+      setSingularNoun(nextSingular);
+      setGenericUnit(plural);
+    }
+    setQuantityDrafts((current) =>
+      current.map((draft) => {
+        if (draft.id !== id) return draft;
+        const oldSingularFromPlural = singularize(draft.unitPlural);
+        const shouldCascadeUnit = draft.unit === draft.unitPlural || draft.unit === draft.unitSingular;
+        const shouldCascadeSingular =
+          draft.unitSingular === oldSingularFromPlural ||
+          draft.unitSingular === draft.unit ||
+          draft.unitSingular === singularize(draft.unit);
+        return {
+          ...draft,
+          unit: shouldCascadeUnit ? plural : draft.unit,
+          unitSingular: shouldCascadeSingular ? nextSingular : draft.unitSingular,
+          unitPlural: plural,
+        };
+      }),
     );
   };
   const updateStepDraft = (id: string, field: keyof Omit<StepDraft, "id">, value: string) => {
@@ -2015,9 +2099,40 @@ export function AuthoringView() {
         {saveMessage && <p className="authoring-save">{saveMessage}</p>}
       </section>
 
+      <section className="panel authoring-priority" aria-label="Recommended authoring review path">
+        <div>
+          <h2 className="authoring-title">Recommended review path</h2>
+          <p className="authoring-help">
+            For a demo, edit these in order. The exact JSON and low-level labels stay available below when you need them.
+          </p>
+        </div>
+        <div className="authoring-priority__grid">
+          <a href="#story-frame" className="authoring-priority__card">
+            <span>1</span>
+            <strong>Story</strong>
+            <small>Title, theme, paragraph preview</small>
+          </a>
+          <a href="#step-sequence" className="authoring-priority__card">
+            <span>2</span>
+            <strong>Math steps</strong>
+            <small>Question prompts and operation choice</small>
+          </a>
+          <a href="#quantity-wording" className="authoring-priority__card">
+            <span>3</span>
+            <strong>Key words</strong>
+            <small>Labels and nouns with smart cascade</small>
+          </a>
+          <a href="#save-json" className="authoring-priority__card">
+            <span>4</span>
+            <strong>Save</strong>
+            <small>Commit to the repo after validation</small>
+          </a>
+        </div>
+      </section>
+
       <section className="authoring-layout">
         <div className="panel authoring-panel">
-          <h2 className="authoring-title">Story frame</h2>
+          <h2 id="story-frame" className="authoring-title">Story frame</h2>
           <label className="authoring-field">
             <span>Title</span>
             <input className="text-input" value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -2032,40 +2147,48 @@ export function AuthoringView() {
           <label className="authoring-field">
             <span>Word problem paragraph</span>
             <span className="authoring-help">
-              This becomes story.briefTemplate. Replace every modeled number with a quantity token so the interfaces stay parameterized.
+              This becomes story.briefTemplate. Tokens are correct here; the preview shows what children will read.
             </span>
             <textarea
               className="text-input authoring-textarea"
               value={problemParagraph}
               onChange={(event) => setProblemParagraph(event.target.value)}
             />
+            {problemParagraphPreview && (
+              <span className="authoring-preview">
+                <strong>Preview:</strong> {problemParagraphPreview}
+              </span>
+            )}
           </label>
           <label className="authoring-field">
             <span>Grade band</span>
             <input className="text-input" value={gradeBand} onChange={(event) => setGradeBand(event.target.value)} />
           </label>
 
-          <h2 className="authoring-title">Naming</h2>
-          <label className="authoring-field">
-            <span>Story plural noun</span>
-            <input className="text-input" value={storyNoun} onChange={(event) => setStoryNoun(event.target.value)} />
-          </label>
-          <label className="authoring-field">
-            <span>Story singular noun</span>
-            <input className="text-input" value={singularNoun} onChange={(event) => setSingularNoun(event.target.value)} />
-          </label>
-          <label className="authoring-field">
-            <span>Arithmetic unit</span>
-            <input className="text-input" value={genericUnit} onChange={(event) => setGenericUnit(event.target.value)} />
-          </label>
+          <details className="authoring-disclosure">
+            <summary>Advanced story defaults</summary>
+            <label className="authoring-field">
+              <span>Story plural noun</span>
+              <input className="text-input" value={storyNoun} onChange={(event) => setStoryNoun(event.target.value)} />
+            </label>
+            <label className="authoring-field">
+              <span>Story singular noun</span>
+              <input className="text-input" value={singularNoun} onChange={(event) => setSingularNoun(event.target.value)} />
+            </label>
+            <label className="authoring-field">
+              <span>Arithmetic unit</span>
+              <input className="text-input" value={genericUnit} onChange={(event) => setGenericUnit(event.target.value)} />
+            </label>
+          </details>
         </div>
 
         <div className="panel authoring-panel">
-          <h2 className="authoring-title">Step sequence</h2>
+          <h2 id="step-sequence" className="authoring-title">Step sequence</h2>
           <div className="authoring-steps">
             {editedSpec.steps.map((step, index) => {
               const relationship = relationshipFor(relationshipIds[index] ?? step.relationshipTemplateId);
               const stepDraft = stepDrafts.find((draft) => draft.id === step.id);
+              const stepPromptPreview = stepDraft ? previewFor(stepDraft.prompt) : "";
               return (
                 <section className="authoring-step" key={step.id}>
                   <h3 className="authoring-step__title">Step {index + 1}</h3>
@@ -2078,23 +2201,31 @@ export function AuthoringView() {
                           value={stepDraft.prompt}
                           onChange={(event) => updateStepDraft(step.id, "prompt", event.target.value)}
                         />
+                        {stepPromptPreview && (
+                          <span className="authoring-preview">
+                            <strong>Preview:</strong> {stepPromptPreview}
+                          </span>
+                        )}
                       </label>
-                      <label className="authoring-field">
-                        <span>Reasoning prompt</span>
-                        <textarea
-                          className="text-input authoring-textarea"
-                          value={stepDraft.reasoningPrompt}
-                          onChange={(event) => updateStepDraft(step.id, "reasoningPrompt", event.target.value)}
-                        />
-                      </label>
-                      <label className="authoring-field">
-                        <span>Backward check prompt</span>
-                        <textarea
-                          className="text-input authoring-textarea"
-                          value={stepDraft.backwardPrompt}
-                          onChange={(event) => updateStepDraft(step.id, "backwardPrompt", event.target.value)}
-                        />
-                      </label>
+                      <details className="authoring-disclosure authoring-disclosure--compact">
+                        <summary>Advanced step language</summary>
+                        <label className="authoring-field">
+                          <span>Reasoning prompt</span>
+                          <textarea
+                            className="text-input authoring-textarea authoring-textarea--compact"
+                            value={stepDraft.reasoningPrompt}
+                            onChange={(event) => updateStepDraft(step.id, "reasoningPrompt", event.target.value)}
+                          />
+                        </label>
+                        <label className="authoring-field">
+                          <span>Backward check prompt</span>
+                          <textarea
+                            className="text-input authoring-textarea authoring-textarea--compact"
+                            value={stepDraft.backwardPrompt}
+                            onChange={(event) => updateStepDraft(step.id, "backwardPrompt", event.target.value)}
+                          />
+                        </label>
+                      </details>
                     </>
                   ) : (
                     <p className="authoring-step__prompt">{step.prompt}</p>
@@ -2132,62 +2263,86 @@ export function AuthoringView() {
 
       <section className="authoring-layout">
         <div className="panel authoring-panel">
-          <h2 className="authoring-title">Quantity wording</h2>
+          <h2 id="quantity-wording" className="authoring-title">Quantity wording</h2>
           {quantityDrafts.length === 0 ? (
             <p className="authoring-help">Load an existing problem to edit all quantity labels.</p>
           ) : (
             <div className="authoring-steps">
               {quantityDrafts.map((quantity) => (
                 <section className="authoring-step" key={quantity.id}>
-                  <h3 className="authoring-step__title">{quantity.id}</h3>
+                  <div className="authoring-step__header">
+                    <h3 className="authoring-step__title">{quantity.id}</h3>
+                    <span className="authoring-chip">{quantity.unitPlural || quantity.unit}</span>
+                  </div>
                   <label className="authoring-field">
-                    <span>Answer choice label</span>
+                    <span>Main label</span>
+                    <span className="authoring-help">Cascades to the short and sentence labels while they still match the generated defaults.</span>
                     <input
                       className="text-input"
                       value={quantity.child}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "child", event.target.value)}
+                      onChange={(event) => updateQuantityMainLabel(quantity.id, event.target.value)}
                     />
                   </label>
                   <label className="authoring-field">
-                    <span>Short label</span>
-                    <input
-                      className="text-input"
-                      value={quantity.compact}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "compact", event.target.value)}
-                    />
-                  </label>
-                  <label className="authoring-field">
-                    <span>Sentence label</span>
-                    <input
-                      className="text-input"
-                      value={quantity.lowercase}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "lowercase", event.target.value)}
-                    />
-                  </label>
-                  <label className="authoring-field">
-                    <span>Quantity arithmetic unit</span>
-                    <input
-                      className="text-input"
-                      value={quantity.unit}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "unit", event.target.value)}
-                    />
-                  </label>
-                  <label className="authoring-field">
-                    <span>Singular display noun</span>
-                    <input
-                      className="text-input"
-                      value={quantity.unitSingular}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "unitSingular", event.target.value)}
-                    />
-                  </label>
-                  <label className="authoring-field">
-                    <span>Plural display noun</span>
+                    <span>Display noun</span>
+                    <span className="authoring-help">Usually this is the only noun to edit; singular and arithmetic unit update with it when safe.</span>
                     <input
                       className="text-input"
                       value={quantity.unitPlural}
-                      onChange={(event) => updateQuantityDraft(quantity.id, "unitPlural", event.target.value)}
+                      onChange={(event) => updateQuantityDisplayNoun(quantity.id, event.target.value)}
                     />
                   </label>
+                  <details className="authoring-disclosure authoring-disclosure--compact">
+                    <summary>Advanced labels and units</summary>
+                    <label className="authoring-field">
+                      <span>Answer choice label</span>
+                      <input
+                        className="text-input"
+                        value={quantity.child}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "child", event.target.value)}
+                      />
+                    </label>
+                    <label className="authoring-field">
+                      <span>Short label</span>
+                      <input
+                        className="text-input"
+                        value={quantity.compact}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "compact", event.target.value)}
+                      />
+                    </label>
+                    <label className="authoring-field">
+                      <span>Sentence label</span>
+                      <input
+                        className="text-input"
+                        value={quantity.lowercase}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "lowercase", event.target.value)}
+                      />
+                    </label>
+                    <label className="authoring-field">
+                      <span>Quantity arithmetic unit</span>
+                      <input
+                        className="text-input"
+                        value={quantity.unit}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "unit", event.target.value)}
+                      />
+                    </label>
+                    <label className="authoring-field">
+                      <span>Singular display noun</span>
+                      <input
+                        className="text-input"
+                        value={quantity.unitSingular}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "unitSingular", event.target.value)}
+                      />
+                    </label>
+                    <label className="authoring-field">
+                      <span>Plural display noun</span>
+                      <input
+                        className="text-input"
+                        value={quantity.unitPlural}
+                        onChange={(event) => updateQuantityDraft(quantity.id, "unitPlural", event.target.value)}
+                      />
+                    </label>
+                  </details>
                 </section>
               ))}
             </div>
@@ -2212,6 +2367,11 @@ export function AuthoringView() {
               value={recapDraft.causalChain}
               onChange={(event) => setRecapDraft((current) => ({ ...current, causalChain: event.target.value }))}
             />
+            {previewFor(recapDraft.causalChain) && (
+              <span className="authoring-preview">
+                <strong>Preview:</strong> {previewFor(recapDraft.causalChain)}
+              </span>
+            )}
           </label>
           <label className="authoring-field">
             <span>Data question</span>
@@ -2247,6 +2407,11 @@ export function AuthoringView() {
                   value={recapDraft.decisionQuestionPrompt}
                   onChange={(event) => setRecapDraft((current) => ({ ...current, decisionQuestionPrompt: event.target.value }))}
                 />
+                {previewFor(recapDraft.decisionQuestionPrompt) && (
+                  <span className="authoring-preview">
+                    <strong>Preview:</strong> {previewFor(recapDraft.decisionQuestionPrompt)}
+                  </span>
+                )}
               </label>
               <label className="authoring-field">
                 <span>Correct yes/no answer</span>
@@ -2288,14 +2453,18 @@ export function AuthoringView() {
       <section className="authoring-layout">
         <div className="panel authoring-panel">
           <h2 className="authoring-title">QA built into onboarding</h2>
-          <ul className="authoring-checks">
-            {qaItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <p className="authoring-help">These checks still run, but they do not need to be front-and-center during a demo.</p>
+          <details className="authoring-disclosure authoring-disclosure--compact">
+            <summary>Show QA checklist</summary>
+            <ul className="authoring-checks">
+              {qaItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </details>
         </div>
-        <div className="panel authoring-panel">
-          <h2 className="authoring-title">Updated problem JSON</h2>
+        <div id="save-json" className="panel authoring-panel">
+          <h2 className="authoring-title">Save problem pack</h2>
           <p className="authoring-help">
             {localRepoSaveAvailable
               ? "Browser drafts stay on this device. Save JSON to repo writes into data/problems on the local dev server."
@@ -2347,7 +2516,10 @@ export function AuthoringView() {
             </a>
           </div>
           {saveMessage && <p className="authoring-save">{saveMessage}</p>}
-          <pre className="authoring-json">{editedJson}</pre>
+          <details className="authoring-disclosure authoring-disclosure--compact">
+            <summary>Show updated problem JSON</summary>
+            <pre className="authoring-json">{editedJson}</pre>
+          </details>
         </div>
       </section>
     </main>
