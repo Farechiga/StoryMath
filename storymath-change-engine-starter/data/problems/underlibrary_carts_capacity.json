@@ -1,0 +1,301 @@
+{
+  "id": "underlibrary_carts_capacity",
+  "metadata": {
+    "title": "Shelving books at the Underlibrary",
+    "theme": "Tilly and Oskar plan library logistics",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "capacity",
+      "multiplication",
+      "comparison",
+      "carts",
+      "boxes",
+      "books"
+    ]
+  },
+  "dimension": {
+    "kind": "comparison",
+    "increaseLabel": "more",
+    "decreaseLabel": "fewer",
+    "sameLabel": "same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "same"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Underlibrary logistics",
+    "startCta": "Start",
+    "finishCta": "Finish",
+    "completionTitle": "All set!",
+    "stepProgressVerb": "solve",
+    "groupNoun": "box",
+    "learnerRole": "assistant librarian"
+  },
+  "story": {
+    "briefTemplate": "Tilly and Oskar were offered an internship at the Underlibrary. They received {quantity:boxes} boxes of beautiful leather-bound classics. Each box has {quantity:books_per_box}. Each book cart can transport {quantity:books_per_cart} of the new books. They’re wondering if {quantity:carts} carts will be enough to move all the new books to be shelved. Let’s work it out.",
+    "closingNoteTemplate": "Great work helping Tilly and Oskar plan the move to the shelves."
+  },
+  "quantities": [
+    {
+      "id": "boxes",
+      "label": {
+        "child": "boxes",
+        "compact": "boxes",
+        "lowercase": "boxes"
+      },
+      "unit": "boxes",
+      "unitSingular": "box",
+      "unitPlural": "boxes",
+      "value": 8,
+      "semanticRole": "groups",
+      "visibility": "given"
+    },
+    {
+      "id": "books_per_box",
+      "label": {
+        "child": "new books per box",
+        "compact": "books/box",
+        "lowercase": "new books per box"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": 30,
+      "semanticRole": "items",
+      "visibility": "given"
+    },
+    {
+      "id": "total_books",
+      "label": {
+        "child": "new books in total",
+        "compact": "total books",
+        "lowercase": "new books in total"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": null,
+      "expectedValueForFixture": 240,
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "boxes",
+          "items": "books_per_box",
+          "itemsPerGroup": "books_per_box"
+        }
+      },
+      "semanticRole": "total",
+      "visibility": "find"
+    },
+    {
+      "id": "carts",
+      "label": {
+        "child": "carts",
+        "compact": "carts",
+        "lowercase": "carts"
+      },
+      "unit": "carts",
+      "unitSingular": "cart",
+      "unitPlural": "carts",
+      "value": 5,
+      "semanticRole": "groups",
+      "visibility": "given"
+    },
+    {
+      "id": "books_per_cart",
+      "label": {
+        "child": "books per cart",
+        "compact": "books/cart",
+        "lowercase": "books per cart"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": 50,
+      "semanticRole": "items",
+      "visibility": "given"
+    },
+    {
+      "id": "total_cart_capacity",
+      "label": {
+        "child": "books the carts can carry in total",
+        "compact": "total cart capacity",
+        "lowercase": "books the carts can carry in total"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": null,
+      "expectedValueForFixture": 250,
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "carts",
+          "items": "books_per_cart",
+          "itemsPerGroup": "books_per_cart"
+        }
+      },
+      "semanticRole": "total",
+      "visibility": "find"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step_total_books",
+      "order": 1,
+      "prompt": "The Underlibrary received {quantity:boxes} boxes with {quantity:books_per_box}. How many new books are there in total?",
+      "reasoningPrompt": "Think of the boxes as equal groups of books.",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "boxes",
+        "items": "books_per_box",
+        "total": "total_books",
+        "itemsPerGroup": "books_per_box"
+      },
+      "goalQuantityId": "total_books",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "If there are {value:total_books} new books in all and {value:boxes} boxes, how many books are in each box?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items",
+          "total_divided_by_items_equals_groups"
+        ]
+      },
+      "visualization": {
+        "visualModel": "repeated_groups_grid"
+      }
+    },
+    {
+      "id": "step_cart_capacity",
+      "order": 2,
+      "prompt": "Each book cart can transport {quantity:books_per_cart}. With {quantity:carts}, how many books can the carts carry in total?",
+      "reasoningPrompt": "Treat the carts as equal groups that each hold the same number of books.",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "carts",
+        "items": "books_per_cart",
+        "total": "total_cart_capacity",
+        "itemsPerGroup": "books_per_cart"
+      },
+      "goalQuantityId": "total_cart_capacity",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "If the carts can carry {value:total_cart_capacity} books in all and there are {value:carts} carts, how many books can each cart carry?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items",
+          "total_divided_by_items_equals_groups"
+        ]
+      },
+      "visualization": {
+        "visualModel": "repeated_groups_grid"
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "step_total_books",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step_total_books",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step_total_books",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "shortReaction": "Multiplying groups gives the total number of new books.",
+      "groupNoun": "boxes"
+    },
+    {
+      "stepId": "step_total_books",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Division fits equal sharing or checking a grouped total."
+    },
+    {
+      "stepId": "step_cart_capacity",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step_cart_capacity",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step_cart_capacity",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "shortReaction": "Multiplying carts by books per cart gives total carrying capacity.",
+      "groupNoun": "carts"
+    },
+    {
+      "stepId": "step_cart_capacity",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Division fits equal sharing or checking a grouped total."
+    }
+  ],
+  "recap": {
+    "headline": "Find total new books, find total cart capacity, then decide if the carts are enough.",
+    "causalChain": [
+      "Boxes of books arrive.",
+      "Books per box let's us find the total new books.",
+      "Carts times books per cart tells us total carrying capacity.",
+      "Let's compare capacity to total books."
+    ],
+    "calcFromStepId": "step_cart_capacity",
+    "totalVisualStepId": "step_cart_capacity",
+    "dataQuestion": {
+      "prompt": "How many new books are there in total?",
+      "correctQuantityId": "total_books",
+      "distractorQuantityIds": [
+        "total_cart_capacity",
+        "boxes",
+        "carts"
+      ],
+      "correctFeedback": "Yes—multiplying boxes by books per box gives the total new books.",
+      "incorrectFeedback": "Check step 1: multiply boxes by books per box to find the total new books."
+    },
+    "decisionQuestion": {
+      "prompt": "Will {quantity:carts} carts be enough to move all the new books to be shelved?",
+      "correctAnswer": "yes",
+      "correctFeedback": "Yes. The carts can carry {value:total_cart_capacity} books, which is at least the {value:total_books} new books.",
+      "incorrectFeedback": "Not quite. The carts can carry {value:total_cart_capacity} books, which is enough for the {value:total_books} new books."
+    }
+  }
+}
