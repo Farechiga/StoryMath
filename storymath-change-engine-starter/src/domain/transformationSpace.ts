@@ -135,7 +135,7 @@ const TRANSFORMATION_COLORS = {
   addAfterAdd: "#3E737F",
   subtractAfterAdd: "#3B3598",
   divideAfterSubtract: "#8291C5",
-  multiplyAfterSubtract: "#3B3598",
+  multiplyAfterSubtract: "#D100FF",
   addAfterDivide: "#0054DA",
   subtractAfterDivide: "#9562D1",
   divideAfterDivide: "#8291C5",

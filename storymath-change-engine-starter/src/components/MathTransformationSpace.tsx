@@ -324,9 +324,10 @@ function MultiplicationScene({
   const columns = Math.max(1, Math.round(columnsFactor!.value));
   const rows = Math.max(1, Math.round(rowsFactor!.value));
   const gridX = 48;
-  const gridY = 64;
-  const maxGridWidth = 690;
-  const maxGridHeight = 224;
+  const gridY = 58;
+  const rightLabelReserve = Math.min(190, 36 + `${formatNumber(rows)} ${rowsFactor!.quantity.label}`.length * 7);
+  const maxGridWidth = 760 - gridX - rightLabelReserve;
+  const maxGridHeight = 184;
   const gap = columns > 48 || rows > 24 ? 1 : 3;
   const cell = Math.max(
       3,
@@ -348,7 +349,7 @@ function MultiplicationScene({
   return (
     <svg
       className="mts-scene mts-scene--array"
-      viewBox="0 0 760 320"
+      viewBox="0 0 760 282"
       role="img"
       aria-label={`${step.prompt} ${step.equation}. Array model: ${formatNumber(columns)} ${columnsFactor!.quantity.label} by ${formatNumber(rows)} ${rowsFactor!.quantity.label} make ${formatNumber(total.value)} ${total.unit}. Equal-groups invariant: ${ref.invariant}.`}
     >

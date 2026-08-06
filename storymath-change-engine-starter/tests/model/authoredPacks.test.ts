@@ -77,4 +77,29 @@ describe.each(PACKS)("authored pack: %s", (_name, spec) => {
       expect(withoutTokens).not.toMatch(/\d/);
     }
   });
+
+  it("does not leak unresolved field-merge tokens into instantiated game text", () => {
+    const inst = loadProblemSpec(spec);
+    const childFacing = [
+      inst.story.brief,
+      inst.story.closingNote ?? "",
+      ...inst.steps.flatMap((step) => [
+        step.prompt,
+        step.reasoningPrompt,
+        step.backwardCheck.prompt,
+      ]),
+      inst.recap.headline,
+      ...inst.recap.causalChain,
+      inst.recap.dataQuestion.prompt,
+      inst.recap.dataQuestion.correctFeedback,
+      inst.recap.dataQuestion.incorrectFeedback,
+      inst.recap.decisionQuestion?.prompt ?? "",
+      inst.recap.decisionQuestion?.correctFeedback ?? "",
+      inst.recap.decisionQuestion?.incorrectFeedback ?? "",
+    ];
+
+    for (const text of childFacing) {
+      expect(text).not.toMatch(/\{(?:quantity|value|unit|label):/);
+    }
+  });
 });

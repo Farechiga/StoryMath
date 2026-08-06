@@ -3,6 +3,7 @@ import multiplicationSpec from "../../data/problems/animation-lab-eyebrows.json"
 import chairsSpec from "../../data/problems/christmas-carol-seat-crisis.json";
 import legosSpec from "../../data/problems/lego-architects-periwinkle-blueprint.json";
 import divisionSpec from "../../data/problems/planning-pudding-treats.json";
+import underlibrarySpec from "../../data/problems/underlibrary_carts_capacity.json";
 import {
   compileTransformationSpace,
   loadProblemSpec,
@@ -171,6 +172,15 @@ describe("transformation space compiler", () => {
       invariant: "960 = 96 × 10",
     });
     expect(verifyEqualGroupsGeometry(space)).toBe(true);
+  });
+
+  it("uses the expanded color path for parallel multiply-derived recap totals", () => {
+    const problem = loadProblemSpec(underlibrarySpec as unknown as ProblemSpec);
+    const space = compileTransformationSpace(problem);
+    const colors = Object.fromEntries(space.quantities.map((q) => [q.id, q.color]));
+
+    expect(colors.total_books).toBe("#3B3598");
+    expect(colors.total_cart_capacity).toBe("#D100FF");
   });
 
   it("compiles division as partitioned equal groups with an inverse invariant", () => {

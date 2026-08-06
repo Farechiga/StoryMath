@@ -33,7 +33,7 @@
     "learnerRole": "assistant librarian"
   },
   "story": {
-    "briefTemplate": "Tilly and Oskar were offered an internship at the Underlibrary. They received {quantity:boxes} boxes of beautiful leather-bound classics. Each box has {quantity:books_per_box}. Each book cart can transport {quantity:books_per_cart} of the new books. They’re wondering if {quantity:carts} carts will be enough to move all the new books to be shelved. Let’s work it out.",
+    "briefTemplate": "Tilly and Oskar were offered an internship at the Underlibrary. They received {quantity:boxes} of beautiful leather-bound classics. Each box has {quantity:books_per_box}. Each book cart can transport {quantity:books_per_cart}. They’re wondering if {quantity:carts} will be enough to move all the new books to be shelved. Let’s work it out.",
     "closingNoteTemplate": "Great work helping Tilly and Oskar plan the move to the shelves."
   },
   "quantities": [
@@ -144,7 +144,7 @@
     {
       "id": "step_total_books",
       "order": 1,
-      "prompt": "The Underlibrary received {quantity:boxes} boxes with {quantity:books_per_box}. How many new books are there in total?",
+      "prompt": "The Underlibrary received {quantity:boxes}, with {quantity:books_per_box} in each box. How many new books are there in total?",
       "reasoningPrompt": "Think of the boxes as equal groups of books.",
       "relationshipTemplateId": "multiplication_equal_groups",
       "roleToQuantityId": {
@@ -274,7 +274,7 @@
     "headline": "Find total new books, find total cart capacity, then decide if the carts are enough.",
     "causalChain": [
       "Boxes of books arrive.",
-      "Books per box let's us find the total new books.",
+      "Books per box lets us find the total new books.",
       "Carts times books per cart tells us total carrying capacity.",
       "Let's compare capacity to total books."
     ],
@@ -289,10 +289,10 @@
         "carts"
       ],
       "correctFeedback": "Yes—multiplying boxes by books per box gives the total new books.",
-      "incorrectFeedback": "Check step 1: multiply boxes by books per box to find the total new books."
+      "incorrectFeedback": "Check the first step: multiply boxes by books per box to find the total new books."
     },
     "decisionQuestion": {
-      "prompt": "Will {quantity:carts} carts be enough to move all the new books to be shelved?",
+      "prompt": "Will {quantity:carts} be enough to move all the new books to be shelved?",
       "correctAnswer": "yes",
       "correctFeedback": "Yes. The carts can carry {value:total_cart_capacity} books, which is at least the {value:total_books} new books.",
       "incorrectFeedback": "Not quite. The carts can carry {value:total_cart_capacity} books, which is enough for the {value:total_books} new books."

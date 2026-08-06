@@ -102,6 +102,15 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
 
   const brief = merge(spec.story.briefTemplate);
   const closingNote = spec.story.closingNoteTemplate ? merge(spec.story.closingNoteTemplate) : undefined;
+  const steps = spec.steps.map((step) => ({
+    ...step,
+    prompt: merge(step.prompt),
+    reasoningPrompt: merge(step.reasoningPrompt),
+    backwardCheck: {
+      ...step.backwardCheck,
+      prompt: merge(step.backwardCheck.prompt),
+    },
+  }));
 
   // Recap prose is field-merged too, so a recap question can reference model
   // labels/values without freezing a literal.
@@ -138,7 +147,7 @@ export function instantiateProblem(spec: ProblemSpec): InstantiatedProblem {
       ...(closingNote ? { closingNote } : {}),
     },
     quantities,
-    steps: spec.steps,
+    steps,
     operatorExperiments: spec.operatorExperiments,
     recap,
     quantityValues: values,

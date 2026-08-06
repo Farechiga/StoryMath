@@ -180,6 +180,7 @@ Return exactly one JSON object shaped as a StoryMath ProblemSpec. Do not include
 Core rules:
 - Preserve the story's meaning. Do not invent a different premise, title, characters, or object nouns.
 - Replace every modeled number in child-facing prose with field-merge tokens: {quantity:id} when the noun should render, {value:id} for money/scalar values inside phrases like £{value:price_per_bookmark}.
+- Do not repeat a noun after a quantity token. Good: "{quantity:boxes} of classics" or "{quantity:books_per_box} in each box". Bad: "{quantity:boxes} boxes" because {quantity:boxes} already renders "8 boxes".
 - Prefer precise, story-specific quantity ids: price_per_bookmark, books_per_box, cart_capacity, total_books, not price_per_item unless the story gives no noun.
 - Always infer a specific metadata.title from the story unless the raw input starts with a deliberate title. Never leave "New StoryMath problem" as the final title.
 - metadata.theme should read like a menu subtitle or driving question, not a single generic setting word. Good: "Will the carts be enough?" Bad: "library".
@@ -618,6 +619,10 @@ function normalizedLookupKey(value: string): string {
   return value.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function canonicalRoleKey(role: string): string {
   const normalized = normalizedLookupKey(role);
   const aliases: Record<string, string> = {
@@ -911,6 +916,84 @@ function repairStoryFrame(spec: ProblemSpec, rawProblem: string, fallbackTitle: 
   return issues;
 }
 
+function uniqueWords(values: Array<string | undefined>): string[] {
+  const seen = new Set<string>();
+  return values
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => b.length - a.length);
+}
+
+function removeRepeatedNounAfterQuantityToken(text: string, spec: ProblemSpec): string {
+  let next = text;
+  for (const quantity of spec.quantities) {
+    const nouns = uniqueWords([quantity.unitPlural, quantity.unitSingular, quantity.unit]);
+    for (const noun of nouns) {
+      const pattern = new RegExp(`(\\{quantity:${quantity.id}\\})\\s+${escapeRegExp(noun)}\\b`, "gi");
+      next = next.replace(pattern, "$1");
+    }
+  }
+  return next;
+}
+
+function repairRepeatedQuantityNouns(spec: ProblemSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  const repairText = (value: string): string => removeRepeatedNounAfterQuantityToken(value, spec);
+  const update = (label: string, setValue: (value: string) => void, current: string) => {
+    const repaired = repairText(current);
+    if (repaired !== current) {
+      setValue(repaired);
+      issues.push({ severity: "warning", message: `Repaired repeated noun after quantity token in ${label}.` });
+    }
+  };
+
+  update("story.briefTemplate", (value) => { spec.story.briefTemplate = value; }, spec.story.briefTemplate);
+  if (spec.story.closingNoteTemplate) {
+    update("story.closingNoteTemplate", (value) => { spec.story.closingNoteTemplate = value; }, spec.story.closingNoteTemplate);
+  }
+
+  for (const step of spec.steps) {
+    update(`step ${step.id} prompt`, (value) => { step.prompt = value; }, step.prompt);
+    update(`step ${step.id} reasoningPrompt`, (value) => { step.reasoningPrompt = value; }, step.reasoningPrompt);
+    update(`step ${step.id} backwardCheck.prompt`, (value) => { step.backwardCheck.prompt = value; }, step.backwardCheck.prompt);
+  }
+
+  for (const experiment of spec.operatorExperiments) {
+    if (experiment.alternateWorldTemplate) {
+      update(
+        `operator experiment ${experiment.stepId} ${experiment.operator}`,
+        (value) => { experiment.alternateWorldTemplate = value; },
+        experiment.alternateWorldTemplate,
+      );
+    }
+  }
+
+  update("recap.headline", (value) => { spec.recap.headline = value; }, spec.recap.headline);
+  spec.recap.causalChain = spec.recap.causalChain.map((item, index) => {
+    const repaired = repairText(item);
+    if (repaired !== item) {
+      issues.push({ severity: "warning", message: `Repaired repeated noun after quantity token in recap.causalChain[${index}].` });
+    }
+    return repaired;
+  });
+  update("recap.dataQuestion.prompt", (value) => { spec.recap.dataQuestion.prompt = value; }, spec.recap.dataQuestion.prompt);
+  update("recap.dataQuestion.correctFeedback", (value) => { spec.recap.dataQuestion.correctFeedback = value; }, spec.recap.dataQuestion.correctFeedback);
+  update("recap.dataQuestion.incorrectFeedback", (value) => { spec.recap.dataQuestion.incorrectFeedback = value; }, spec.recap.dataQuestion.incorrectFeedback);
+  if (spec.recap.decisionQuestion) {
+    update("recap.decisionQuestion.prompt", (value) => { spec.recap.decisionQuestion!.prompt = value; }, spec.recap.decisionQuestion.prompt);
+    update("recap.decisionQuestion.correctFeedback", (value) => { spec.recap.decisionQuestion!.correctFeedback = value; }, spec.recap.decisionQuestion.correctFeedback);
+    update("recap.decisionQuestion.incorrectFeedback", (value) => { spec.recap.decisionQuestion!.incorrectFeedback = value; }, spec.recap.decisionQuestion.incorrectFeedback);
+  }
+
+  return issues;
+}
+
 function normalizeProblemSpec(spec: ProblemSpec, rawProblem: string, fallbackTitle: string): { spec: ProblemSpec; issues: DraftIssue[] } {
   const issues: DraftIssue[] = [];
   issues.push(...repairStoryFrame(spec, rawProblem, fallbackTitle));
@@ -968,6 +1051,7 @@ function normalizeProblemSpec(spec: ProblemSpec, rawProblem: string, fallbackTit
   issues.push(...repairDerivedOperands(spec));
   issues.push(...repairStepForms(spec));
   issues.push(...repairOperatorExperiments(spec));
+  issues.push(...repairRepeatedQuantityNouns(spec));
   return { spec, issues };
 }
 

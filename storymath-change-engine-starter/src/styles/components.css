@@ -447,12 +447,12 @@
 }
 .mts-scene {
   width: 100%;
-  min-height: 320px;
+  min-height: 280px;
   overflow: visible;
   border-bottom: 1px solid var(--hairline);
 }
 .mts:not(.mts--embedded) .mts-scene--array {
-  width: max(100%, 1120px);
+  width: max(100%, 960px);
 }
 .mts-reference,
 .mts-removed-reference {
@@ -558,6 +558,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
+  max-width: min(100%, 60ch);
   margin: var(--sp-2) 0 var(--sp-6);
 }
 .stepnav__btn {
@@ -729,7 +730,7 @@
   display: inline-flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-radius: var(--r-md);
   border: 1.5px solid var(--tile-accent, var(--accent));
   background: var(--surface-strong);
@@ -739,14 +740,14 @@
 .tile--live { cursor: pointer; transition: transform 0.16s var(--ease), box-shadow 0.2s var(--ease); }
 .tile--live:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .tile__name {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 560;
   color: var(--ink-soft);
   line-height: 1.2;
 }
 .tile__value {
   font-family: var(--font-mono);
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   font-weight: 600;
   color: var(--tile-accent, var(--accent));
   font-variant-numeric: tabular-nums;
@@ -764,9 +765,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 132px;
-  min-height: 62px;
-  padding: 10px 16px;
+  min-width: 112px;
+  min-height: 54px;
+  padding: 8px 12px;
   border-radius: var(--r-md);
   border: 1.5px dashed var(--hairline-strong);
   color: var(--ink-muted);
