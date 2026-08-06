@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { ProblemSpec } from "../src/model/problemSpec";
+import type { OperatorExperimentSpec, ProblemSpec, StepSpec } from "../src/model/problemSpec";
 
 type RequestWithBody = IncomingMessage & {
   body?: unknown;
@@ -24,8 +24,8 @@ type DraftResponsePayload = {
   }>;
 };
 
-type DraftShapeError = {
-  severity: "error";
+type DraftIssue = {
+  severity: "error" | "warning";
   message: string;
 };
 
@@ -77,6 +77,100 @@ const VISUAL_MODEL_TYPES = [
   "line_over_time",
   "subtraction_span",
 ];
+
+const TEMPLATE_REPAIRS: Record<
+  string,
+  {
+    roles: string[];
+    preferred: string;
+    accepted: string[];
+    backward: string[];
+    actualOperator: string;
+    direction: string;
+    visualModel: string;
+  }
+> = {
+  additive_comparison_decrease: {
+    roles: ["bigger", "difference", "smaller"],
+    preferred: "bigger_minus_difference_equals_smaller",
+    accepted: ["bigger_minus_difference_equals_smaller", "bigger_minus_smaller_equals_difference"],
+    backward: ["smaller_plus_difference_equals_bigger", "bigger_minus_smaller_equals_difference"],
+    actualOperator: "-",
+    direction: "decrease",
+    visualModel: "comparison_gap_bar",
+  },
+  additive_comparison_increase: {
+    roles: ["smaller", "difference", "bigger"],
+    preferred: "smaller_plus_difference_equals_bigger",
+    accepted: ["smaller_plus_difference_equals_bigger"],
+    backward: ["bigger_minus_difference_equals_smaller"],
+    actualOperator: "+",
+    direction: "increase",
+    visualModel: "comparison_gap_bar",
+  },
+  part_part_whole: {
+    roles: ["partA", "partB", "whole"],
+    preferred: "part_a_plus_part_b_equals_whole",
+    accepted: ["part_a_plus_part_b_equals_whole"],
+    backward: ["whole_minus_part_a_equals_part_b", "whole_minus_part_b_equals_part_a"],
+    actualOperator: "+",
+    direction: "combine",
+    visualModel: "part_whole_bar",
+  },
+  start_change_end_increase: {
+    roles: ["start", "change", "end"],
+    preferred: "start_plus_change_equals_end",
+    accepted: ["start_plus_change_equals_end"],
+    backward: ["end_minus_start_equals_change"],
+    actualOperator: "+",
+    direction: "increase",
+    visualModel: "before_change_after_bridge",
+  },
+  start_change_end_decrease: {
+    roles: ["start", "change", "end"],
+    preferred: "start_minus_change_equals_end",
+    accepted: ["start_minus_change_equals_end"],
+    backward: ["end_plus_change_equals_start"],
+    actualOperator: "-",
+    direction: "decrease",
+    visualModel: "before_change_after_bridge",
+  },
+  multiplication_equal_groups: {
+    roles: ["groups", "itemsPerGroup", "total"],
+    preferred: "groups_times_items_equals_total",
+    accepted: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+    backward: ["total_divided_by_groups_equals_items", "total_divided_by_items_equals_groups"],
+    actualOperator: "×",
+    direction: "scale",
+    visualModel: "repeated_groups_grid",
+  },
+  division_equal_sharing: {
+    roles: ["total", "groups", "itemsPerGroup"],
+    preferred: "total_divided_by_groups_equals_items",
+    accepted: ["total_divided_by_groups_equals_items"],
+    backward: ["groups_times_items_equals_total"],
+    actualOperator: "÷",
+    direction: "split",
+    visualModel: "equal_shares_tray",
+  },
+};
+
+const FORMULA_ROLE_REPAIRS: Record<string, string[]> = {
+  bigger_minus_difference_equals_smaller: ["bigger", "difference", "smaller"],
+  smaller_plus_difference_equals_bigger: ["smaller", "difference", "bigger"],
+  bigger_minus_smaller_equals_difference: ["bigger", "smaller", "difference"],
+  part_a_plus_part_b_equals_whole: ["partA", "partB", "whole"],
+  whole_minus_part_a_equals_part_b: ["whole", "partA", "partB"],
+  whole_minus_part_b_equals_part_a: ["whole", "partB", "partA"],
+  start_plus_change_equals_end: ["start", "change", "end"],
+  start_minus_change_equals_end: ["start", "change", "end"],
+  end_minus_start_equals_change: ["end", "start", "change"],
+  end_plus_change_equals_start: ["end", "change", "start"],
+  groups_times_items_equals_total: ["groups", "itemsPerGroup", "total"],
+  items_times_groups_equals_total: ["itemsPerGroup", "groups", "total"],
+  total_divided_by_groups_equals_items: ["total", "groups", "itemsPerGroup"],
+  total_divided_by_items_equals_groups: ["total", "itemsPerGroup", "groups"],
+};
 
 const SYSTEM_PROMPT = `
 You draft StoryMath problem packs from raw word problems.
@@ -466,7 +560,287 @@ function deleteIfNull(object: object, key: string) {
   if (values[key] === null) delete values[key];
 }
 
-function normalizeProblemSpec(spec: ProblemSpec): ProblemSpec {
+function normalizedLookupKey(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+}
+
+function canonicalRoleKey(role: string): string {
+  const normalized = normalizedLookupKey(role);
+  const aliases: Record<string, string> = {
+    larger: "bigger",
+    greater: "bigger",
+    more: "bigger",
+    smalleramount: "smaller",
+    lesser: "smaller",
+    less: "smaller",
+    gap: "difference",
+    diff: "difference",
+    differenceamount: "difference",
+    firstpart: "partA",
+    parta: "partA",
+    part1: "partA",
+    secondpart: "partB",
+    partb: "partB",
+    part2: "partB",
+    wholeamount: "whole",
+    totalamount: "total",
+    totalbooks: "total",
+    totalitems: "total",
+    amounttotal: "total",
+    initial: "start",
+    before: "start",
+    original: "start",
+    starting: "start",
+    removed: "change",
+    sold: "change",
+    traded: "change",
+    used: "change",
+    changeamount: "change",
+    remaining: "end",
+    left: "end",
+    final: "end",
+    after: "end",
+    group: "groups",
+    groups: "groups",
+    numberofgroups: "groups",
+    numbergroups: "groups",
+    boxes: "groups",
+    carts: "groups",
+    shelves: "groups",
+    months: "groups",
+    cars: "groups",
+    item: "itemsPerGroup",
+    items: "itemsPerGroup",
+    each: "itemsPerGroup",
+    eachgroup: "itemsPerGroup",
+    pergroup: "itemsPerGroup",
+    itemspergroup: "itemsPerGroup",
+    itempergroup: "itemsPerGroup",
+    itemsineachgroup: "itemsPerGroup",
+    booksperbox: "itemsPerGroup",
+    bookspercart: "itemsPerGroup",
+    bookspercar: "itemsPerGroup",
+    bookspersection: "itemsPerGroup",
+    booksoneachshelf: "itemsPerGroup",
+    booksoneach: "itemsPerGroup",
+    cartcapacity: "itemsPerGroup",
+    capacitypercart: "itemsPerGroup",
+    amountpergroup: "itemsPerGroup",
+  };
+  return aliases[normalized] ?? role;
+}
+
+function canonicalOperator(operator: string): string {
+  const normalized = operator.trim().toLowerCase();
+  if (normalized === "*" || normalized === "x" || normalized === "×") return "×";
+  if (normalized === "/" || normalized === "÷") return "÷";
+  if (normalized === "plus") return "+";
+  if (normalized === "minus") return "-";
+  return operator;
+}
+
+function quantityExists(spec: ProblemSpec, id: string | undefined): id is string {
+  return typeof id === "string" && spec.quantities.some((quantity) => quantity.id === id);
+}
+
+function quantityText(spec: ProblemSpec, id: string): string {
+  const quantity = spec.quantities.find((item) => item.id === id);
+  return [
+    quantity?.id,
+    quantity?.label?.child,
+    quantity?.label?.compact,
+    quantity?.label?.lowercase,
+    quantity?.unit,
+    quantity?.unitSingular,
+    quantity?.unitPlural,
+    quantity?.semanticRole,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function firstQuantityMatching(spec: ProblemSpec, patterns: RegExp[], usedIds: Set<string>): string | undefined {
+  return spec.quantities.find((quantity) => {
+    if (usedIds.has(quantity.id)) return false;
+    const text = quantityText(spec, quantity.id);
+    return patterns.some((pattern) => pattern.test(text));
+  })?.id;
+}
+
+function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  const repair = TEMPLATE_REPAIRS[step.relationshipTemplateId];
+  if (!repair) return issues;
+
+  const roleMap = { ...step.roleToQuantityId };
+  for (const [role, quantityId] of Object.entries(step.roleToQuantityId)) {
+    const canonical = canonicalRoleKey(role);
+    if (canonical !== role && !roleMap[canonical]) {
+      roleMap[canonical] = quantityId;
+      issues.push({
+        severity: "warning",
+        message: `Repaired step ${step.id}: mapped role "${role}" to "${canonical}".`,
+      });
+    }
+  }
+
+  const usedIds = new Set(Object.values(roleMap).filter((id) => quantityExists(spec, id)));
+  if (repair.roles.includes("total") && !quantityExists(spec, roleMap.total) && quantityExists(spec, step.goalQuantityId)) {
+    roleMap.total = step.goalQuantityId;
+    usedIds.add(step.goalQuantityId);
+    issues.push({ severity: "warning", message: `Repaired step ${step.id}: used the goal quantity as total.` });
+  }
+  if (repair.roles.includes("end") && !quantityExists(spec, roleMap.end) && quantityExists(spec, step.goalQuantityId)) {
+    roleMap.end = step.goalQuantityId;
+    usedIds.add(step.goalQuantityId);
+    issues.push({ severity: "warning", message: `Repaired step ${step.id}: used the goal quantity as end.` });
+  }
+  if (repair.roles.includes("whole") && !quantityExists(spec, roleMap.whole) && quantityExists(spec, step.goalQuantityId)) {
+    roleMap.whole = step.goalQuantityId;
+    usedIds.add(step.goalQuantityId);
+    issues.push({ severity: "warning", message: `Repaired step ${step.id}: used the goal quantity as whole.` });
+  }
+
+  if (repair.roles.includes("itemsPerGroup") && !quantityExists(spec, roleMap.itemsPerGroup)) {
+    const guess = firstQuantityMatching(
+      spec,
+      [/\bper\b/, /\beach\b/, /\bcapacity\b/, /per_/, /_each/, /books_per/, /items_per/],
+      usedIds,
+    );
+    if (guess) {
+      roleMap.itemsPerGroup = guess;
+      usedIds.add(guess);
+      issues.push({ severity: "warning", message: `Repaired step ${step.id}: inferred itemsPerGroup from ${guess}.` });
+    }
+  }
+
+  if (repair.roles.includes("groups") && !quantityExists(spec, roleMap.groups)) {
+    const guess = firstQuantityMatching(
+      spec,
+      [/\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bcar\b/, /\bgroup/, /\bfriend/],
+      usedIds,
+    );
+    if (guess) {
+      roleMap.groups = guess;
+      usedIds.add(guess);
+      issues.push({ severity: "warning", message: `Repaired step ${step.id}: inferred groups from ${guess}.` });
+    }
+  }
+
+  if (repair.roles.includes("start") && !quantityExists(spec, roleMap.start)) {
+    const guess = firstQuantityMatching(spec, [/\bbefore\b/, /\bstart/, /\binitial/, /\btotal/], usedIds);
+    if (guess) {
+      roleMap.start = guess;
+      usedIds.add(guess);
+      issues.push({ severity: "warning", message: `Repaired step ${step.id}: inferred start from ${guess}.` });
+    }
+  }
+
+  if (repair.roles.includes("change") && !quantityExists(spec, roleMap.change)) {
+    const guess = firstQuantityMatching(spec, [/\bsold\b/, /\btraded\b/, /\bremoved\b/, /\bused\b/, /\bchange\b/], usedIds);
+    if (guess) {
+      roleMap.change = guess;
+      usedIds.add(guess);
+      issues.push({ severity: "warning", message: `Repaired step ${step.id}: inferred change from ${guess}.` });
+    }
+  }
+
+  step.roleToQuantityId = roleMap;
+  return issues;
+}
+
+function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  for (const quantity of spec.quantities) {
+    if (!quantity.derived) continue;
+    const roles = FORMULA_ROLE_REPAIRS[quantity.derived.formulaId] ?? [];
+    const operands = { ...quantity.derived.operands };
+    for (const [role, quantityId] of Object.entries(quantity.derived.operands)) {
+      const canonical = canonicalRoleKey(role);
+      if (canonical !== role && !operands[canonical]) {
+        operands[canonical] = quantityId;
+        issues.push({
+          severity: "warning",
+          message: `Repaired derived quantity ${quantity.id}: mapped operand "${role}" to "${canonical}".`,
+        });
+      }
+    }
+    const resultRole = roles[2];
+    if (resultRole) delete operands[resultRole];
+    quantity.derived.operands = operands;
+  }
+  return issues;
+}
+
+function defaultExperiment(step: StepSpec, operator: string, actualOperator: string, visualModel: string): OperatorExperimentSpec {
+  const actual = operator === actualOperator;
+  const reaction =
+    operator === "×"
+      ? "Multiplication fits equal groups."
+      : operator === "÷"
+        ? "Division fits equal sharing or checking a grouped total."
+        : operator === "+"
+          ? "Addition fits a joining story."
+          : "Subtraction fits a removal or difference story.";
+  return {
+    stepId: step.id,
+    operator: operator as OperatorExperimentSpec["operator"],
+    narrativeFit: actual ? "actual" : operator === "-" ? "different_story" : "different_question",
+    ...(operator === "×" || operator === "÷" || actual ? { visualModel: visualModel as OperatorExperimentSpec["visualModel"] } : {}),
+    alternateWorldTemplate: actual ? `This operation matches this step: ${step.prompt}` : reaction,
+  };
+}
+
+function repairOperatorExperiments(spec: ProblemSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  const stepIds = new Set(spec.steps.map((step) => step.id));
+  const cleaned = spec.operatorExperiments
+    .filter((experiment) => stepIds.has(experiment.stepId))
+    .map((experiment) => ({
+      ...experiment,
+      operator: canonicalOperator(experiment.operator) as OperatorExperimentSpec["operator"],
+    }))
+    .filter((experiment) => OPERATORS.includes(experiment.operator));
+
+  const repaired: OperatorExperimentSpec[] = [];
+  for (const step of spec.steps) {
+    const repair = TEMPLATE_REPAIRS[step.relationshipTemplateId];
+    if (!repair) continue;
+    step.operatorOptions = ["+", "-", "×", "÷"];
+    for (const operator of OPERATORS) {
+      const existing = cleaned.find((experiment) => experiment.stepId === step.id && experiment.operator === operator);
+      const next = existing ?? defaultExperiment(step, operator, repair.actualOperator, repair.visualModel);
+      next.narrativeFit = operator === repair.actualOperator ? "actual" : next.narrativeFit === "actual" ? "different_question" : next.narrativeFit;
+      if (operator === repair.actualOperator && !next.visualModel) {
+        next.visualModel = repair.visualModel as OperatorExperimentSpec["visualModel"];
+      }
+      repaired.push(next);
+      if (!existing) {
+        issues.push({ severity: "warning", message: `Repaired step ${step.id}: added missing ${operator} operator experiment.` });
+      }
+    }
+  }
+  spec.operatorExperiments = repaired;
+  return issues;
+}
+
+function repairStepForms(spec: ProblemSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  for (const step of spec.steps) {
+    const repair = TEMPLATE_REPAIRS[step.relationshipTemplateId];
+    if (!repair) continue;
+    step.preferredEquationFormId = repair.preferred as StepSpec["preferredEquationFormId"];
+    step.acceptedEquationFormIds = repair.accepted as StepSpec["acceptedEquationFormIds"];
+    step.backwardCheck.acceptedEquationFormIds = repair.backward as StepSpec["backwardCheck"]["acceptedEquationFormIds"];
+    step.expectedDirection = repair.direction as StepSpec["expectedDirection"];
+    issues.push(...fillMissingStepRoles(spec, step));
+  }
+  return issues;
+}
+
+function normalizeProblemSpec(spec: ProblemSpec): { spec: ProblemSpec; issues: DraftIssue[] } {
+  const issues: DraftIssue[] = [];
   deleteIfNull(spec.metadata, "factualStatus");
   deleteIfNull(spec.metadata, "curiosityNote");
   deleteIfNull(spec.metadata, "catalogOrder");
@@ -518,11 +892,14 @@ function normalizeProblemSpec(spec: ProblemSpec): ProblemSpec {
 
   deleteIfNull(spec.recap, "totalVisualStepId");
   deleteIfNull(spec.recap, "decisionQuestion");
-  return spec;
+  issues.push(...repairDerivedOperands(spec));
+  issues.push(...repairStepForms(spec));
+  issues.push(...repairOperatorExperiments(spec));
+  return { spec, issues };
 }
 
-function draftShapeErrors(spec: ProblemSpec): DraftShapeError[] {
-  const errors: DraftShapeError[] = [];
+function draftShapeErrors(spec: ProblemSpec): DraftIssue[] {
+  const errors: DraftIssue[] = [];
   if (!safeProblemId(spec.id)) {
     errors.push({ severity: "error", message: "Problem id must use only lowercase letters, numbers, underscores, and hyphens." });
   }
@@ -641,13 +1018,13 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
     }
 
     const responseText = extractResponseText(openAiPayload);
-    const spec = normalizeProblemSpec(parseSpecFromResponseText(responseText));
+    const { spec, issues: repairIssues } = normalizeProblemSpec(parseSpecFromResponseText(responseText));
     const issues = draftShapeErrors(spec);
     if (issues.length > 0) {
       sendJson(res, 422, {
         ok: false,
         error: "OpenAI returned an incomplete problem draft.",
-        issues,
+        issues: [...repairIssues, ...issues],
       });
       return;
     }
@@ -657,7 +1034,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
       source: "openai",
       model,
       spec,
-      issues: [],
+      issues: repairIssues,
     });
   } catch (error) {
     sendJson(res, 400, {
