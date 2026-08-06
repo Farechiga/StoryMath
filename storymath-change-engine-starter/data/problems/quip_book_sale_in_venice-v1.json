@@ -1,0 +1,261 @@
+{
+  "id": "quip_book_sale_in_venice-v1",
+  "metadata": {
+    "title": "The Quip stops in Venice",
+    "theme": "How many books will they return with?",
+    "gradeBand": "3-4",
+    "factualStatus": "fictionalized",
+    "tags": [
+      "multiplication",
+      "subtraction",
+      "equal groups",
+      "two-step",
+      "approximation"
+    ],
+    "catalogOrder": 0,
+    "publishedAt": "2026-08-06"
+  },
+  "dimension": {
+    "kind": "count",
+    "increaseLabel": "More",
+    "decreaseLabel": "Fewer",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "fewer",
+    "sameLabelLower": "the same"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Book train manifest",
+    "startCta": "Open the manifest",
+    "finishCta": "Close the manifest",
+    "completionTitle": "Manifest updated",
+    "stepProgressVerb": "model the books",
+    "groupNoun": "train car",
+    "learnerRole": "manifest keeper"
+  },
+  "story": {
+    "briefTemplate": "The Quip had {quantity:train_cars}, with each car classified into a book section such as fiction, science, and art. Each section has approximately {quantity:books_per_section}. During a stop in Venice, Horatio sold {quantity:sold_books} on the Quip. Approximately how many total books were left on the Quip after Venice?",
+    "causalEvent": "Each train car works like a book section with approximately the same number of books.",
+    "closingNoteTemplate": "After Venice, approximately {quantity:books_left_after_venice} were left on Quip."
+  },
+  "quantities": [
+    {
+      "id": "train_cars",
+      "label": {
+        "child": "Train cars on the Quip",
+        "compact": "Train cars",
+        "lowercase": "the train cars on the Quip"
+      },
+      "unit": "train cars",
+      "unitSingular": "train car",
+      "unitPlural": "train cars",
+      "value": 10,
+      "visibility": "given"
+    },
+    {
+      "id": "books_per_section",
+      "label": {
+        "child": "Approximate number of books in each section",
+        "compact": "Books each section",
+        "lowercase": "the approximate number of books in each section"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": 380,
+      "visibility": "given"
+    },
+    {
+      "id": "books_before_venice",
+      "label": {
+        "child": "Approximate total books before Venice",
+        "compact": "Total books before Venice",
+        "lowercase": "the approximate total books before Venice"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "train_cars",
+          "itemsPerGroup": "books_per_section"
+        }
+      },
+      "expectedValueForFixture": 3800
+    },
+    {
+      "id": "sold_books",
+      "label": {
+        "child": "Books Horatio sold in Venice",
+        "compact": "Sold books",
+        "lowercase": "the books Horatio sold in Venice"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": 240,
+      "visibility": "given"
+    },
+    {
+      "id": "books_left_after_venice",
+      "label": {
+        "child": "Books left on the Quip after Venice",
+        "compact": "Books left",
+        "lowercase": "the books left on the Quip after Venice"
+      },
+      "unit": "books",
+      "unitSingular": "book",
+      "unitPlural": "books",
+      "value": null,
+      "visibility": "revealed_after_step",
+      "derived": {
+        "formulaId": "start_minus_change_equals_end",
+        "operands": {
+          "start": "books_before_venice",
+          "change": "sold_books"
+        }
+      },
+      "expectedValueForFixture": 3560
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_books_before_venice",
+      "order": 1,
+      "prompt": "Approximately how many books were on the Quip before Venice?",
+      "reasoningPrompt": "Each train car has approximately the same number of books. What operation models equal groups?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "train_cars",
+        "itemsPerGroup": "books_per_section",
+        "total": "books_before_venice"
+      },
+      "goalQuantityId": "books_before_venice",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Now let's divide the total books before Venice by the number of train cars. Do we get the approximate number of books in each section?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_books_left_after_venice",
+      "order": 2,
+      "prompt": "Approximately how many books were left on the Quip after Venice?",
+      "reasoningPrompt": "Horatio sold some books. What operation shows what remained?",
+      "relationshipTemplateId": "start_change_end_decrease",
+      "roleToQuantityId": {
+        "start": "books_before_venice",
+        "change": "sold_books",
+        "end": "books_left_after_venice"
+      },
+      "goalQuantityId": "books_left_after_venice",
+      "acceptedEquationFormIds": [
+        "start_minus_change_equals_end"
+      ],
+      "preferredEquationFormId": "start_minus_change_equals_end",
+      "expectedDirection": "decrease",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Add the sold books back to the books left. Do you return to the books before Venice?",
+        "acceptedEquationFormIds": [
+          "end_plus_change_equals_start"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_books_before_venice",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count train cars and books side by side, not every equal group."
+    },
+    {
+      "stepId": "find_books_before_venice",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some books were removed."
+    },
+    {
+      "stepId": "find_books_before_venice",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: each train car has {quantity:books_per_section}."
+    },
+    {
+      "stepId": "find_books_before_venice",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing books equally."
+    },
+    {
+      "stepId": "find_books_left_after_venice",
+      "operator": "+",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Adding would fit a story where Horatio brought more books onto Quip."
+    },
+    {
+      "stepId": "find_books_left_after_venice",
+      "operator": "-",
+      "narrativeFit": "actual",
+      "alternateWorldTemplate": "This matches the story: Horatio sold books, leaving fewer books on Quip."
+    },
+    {
+      "stepId": "find_books_left_after_venice",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Multiplying would fit a different question about equal groups of books."
+    },
+    {
+      "stepId": "find_books_left_after_venice",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing the books."
+    }
+  ],
+  "recap": {
+    "headline": "How many books were left on the Quip",
+    "causalChain": [
+      "{quantity:train_cars} with approximately {quantity:books_per_section} each made approximately {quantity:books_before_venice}.",
+      "Horatio sold {quantity:sold_books}, leaving approximately {quantity:books_left_after_venice}."
+    ],
+    "calcFromStepId": "find_books_before_venice",
+    "totalVisualStepId": "find_books_left_after_venice",
+    "dataQuestion": {
+      "prompt": "What does {quantity:books_left_after_venice} represent in the book train model?",
+      "correctQuantityId": "books_left_after_venice",
+      "distractorQuantityIds": [
+        "train_cars",
+        "books_before_venice",
+        "sold_books"
+      ],
+      "correctFeedback": "Right. {quantity:books_left_after_venice} is approximately how many books were left on the Quip after Venice.",
+      "incorrectFeedback": "That amount is the books left after the trade: {quantity:books_left_after_venice}."
+    }
+  }
+}
