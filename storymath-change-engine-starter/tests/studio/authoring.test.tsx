@@ -260,6 +260,43 @@ describe("AuthoringView", () => {
     expect(validateProblem(saved).filter((issue) => issue.severity === "error")).toEqual([]);
   });
 
+  it("analyzes a train-car book sale story into multiplication then subtraction", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudioProvider initialView="authoring">
+        <AuthoringView />
+      </StudioProvider>,
+    );
+
+    await user.type(screen.getByLabelText(/Authoring passcode/i), "0511");
+    await user.click(screen.getByRole("button", { name: "Unlock" }));
+
+    fireEvent.change(screen.getByLabelText(/Raw word problem/i), {
+      target: {
+        value:
+          "The Quip had 10 train cars, with each car classified into a book section such as fiction, science, and art. Each car has approximately 380 books. During a stop in Venice, Horatio sold 240 of the books on the Quip. Approximately how many total books were left on the Quip after Venice?",
+      },
+    });
+    await user.click(screen.getByRole("button", { name: /Analyze and prefill draft/i }));
+
+    expect((screen.getByLabelText(/^Title$/i) as HTMLInputElement).value).toBe("Quip book sale in Venice");
+    const relationships = screen.getAllByRole("combobox", { name: /^Relationship$/i }) as HTMLSelectElement[];
+    expect(relationships).toHaveLength(2);
+    expect(relationships[0]!.value).toBe("multiplication_equal_groups");
+    expect(relationships[1]!.value).toBe("start_change_end_decrease");
+
+    await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
+    const saved = JSON.parse(localStorage.getItem("storymath_authoring_draft_v1") ?? "{}");
+    expect(saved.story.briefTemplate).toContain("{quantity:train_cars}");
+    expect(saved.story.briefTemplate).toContain("approximately {quantity:books_per_section}");
+    expect(saved.story.briefTemplate).toContain("{quantity:sold_books}");
+    expect(saved.story.briefTemplate).not.toContain("{quantity:traded_books}");
+    expect(saved.quantities.find((q: { id: string }) => q.id === "sold_books").value).toBe(240);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "books_before_venice").expectedValueForFixture).toBe(3800);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "books_left_after_venice").expectedValueForFixture).toBe(3560);
+    expect(validateProblem(saved).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
+
   it("posts the edited draft JSON to the local repo save endpoint", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue(

@@ -1060,46 +1060,78 @@ function buildShelfBookSharingGuess(rawInput: string, fallbackTitle: string): Pr
 
 function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
   const { title: titleFromText, story } = extractAfterTitle(rawInput);
-  if (!/\bbooks\b/i.test(story) || !/\btraded\b/i.test(story) || !/\bleft\b/i.test(story)) return null;
+  if (!/\bbooks\b/i.test(story) || !/\b(?:sold|traded|removed|donated|gave away)\b/i.test(story) || !/\bleft\b/i.test(story)) return null;
 
   const groupMatch = story.match(/\b(?:had|has)\s+(\d+)\s+([a-z][a-z -]*?cars)\b/i);
   const booksPerGroupMatch = story.match(
     /\beach\s+(?:section|car)\s+(?:has|had|holds|held|contains|contained)\s+(?:about|approximately|around)?\s*(\d+)\s+(books)\b/i,
   );
-  const tradedMatch = story.match(/\btraded\s+(\d+)\s+(?:of\s+the\s+)?(books)\b/i);
-  if (!groupMatch || !booksPerGroupMatch || !tradedMatch) return null;
+  const removedBooksMatch = story.match(
+    /\b([A-Z][a-z]+)\s+(sold|traded|removed|donated|gave away)\s+(\d+)\s+(?:of\s+the\s+)?(books)\b/i,
+  );
+  if (!groupMatch || !booksPerGroupMatch || !removedBooksMatch) return null;
 
   const groupValue = Number(groupMatch[1]);
   const booksPerGroupValue = Number(booksPerGroupMatch[1]);
-  const tradedValue = Number(tradedMatch[1]);
-  if (![groupValue, booksPerGroupValue, tradedValue].every((value) => Number.isFinite(value) && value > 0)) {
+  const removedBooksValue = Number(removedBooksMatch[3]);
+  if (![groupValue, booksPerGroupValue, removedBooksValue].every((value) => Number.isFinite(value) && value > 0)) {
     return null;
   }
 
   const groupPlural = groupMatch[2]!.trim().toLowerCase();
   const groupSingular = singularize(groupPlural);
   const vehicleName = story.match(/^The\s+([A-Z][A-Za-z0-9'-]*)\b/)?.[1] ?? "the vehicle";
-  const actor = story.match(/\b([A-Z][a-z]+)\s+traded\b/)?.[1] ?? "someone";
+  const actor = removedBooksMatch[1] ?? "someone";
+  const actionVerb = removedBooksMatch[2]!.toLowerCase();
+  const actionQuantityId =
+    actionVerb === "sold"
+      ? "sold_books"
+      : actionVerb === "traded"
+        ? "traded_books"
+        : actionVerb === "donated"
+          ? "donated_books"
+          : "removed_books";
+  const actionCompact =
+    actionVerb === "sold"
+      ? "Sold books"
+      : actionVerb === "traded"
+        ? "Traded books"
+        : actionVerb === "donated"
+          ? "Donated books"
+          : "Removed books";
+  const actionNoun =
+    actionVerb === "sold"
+      ? "sale"
+      : actionVerb === "traded"
+        ? "trade"
+        : actionVerb === "donated"
+          ? "donation"
+          : "removal";
+  const actionReason = `${actor} ${actionVerb} some books. What operation shows what remained?`;
   const totalBooksValue = groupValue * booksPerGroupValue;
-  const booksLeftValue = totalBooksValue - tradedValue;
+  const booksLeftValue = totalBooksValue - removedBooksValue;
   const storyTitle =
     titleFromText ||
     (!fallbackTitle || fallbackTitle === "New StoryMath problem"
-      ? `${vehicleName} book trade in Venice`
+      ? `${vehicleName} book ${actionNoun} in Venice`
       : fallbackTitle);
   const id = `${slugify(storyTitle) || "grouped_books_trade"}-v1`;
 
   let tokenized = story;
   tokenized = replaceFirst(tokenized, `${groupValue} ${groupPlural}`, "{quantity:train_cars}");
   tokenized = replaceFirst(tokenized, `${booksPerGroupValue} books`, "{quantity:books_per_section}");
-  tokenized = replaceFirst(tokenized, tradedMatch[0], tradedMatch[0].replace(`${tradedValue} of the books`, "{quantity:traded_books}").replace(`${tradedValue} books`, "{quantity:traded_books}"));
+  tokenized = replaceFirst(
+    tokenized,
+    removedBooksMatch[0],
+    removedBooksMatch[0].replace(/\b\d+\s+(?:of\s+the\s+)?books\b/i, `{quantity:${actionQuantityId}}`),
+  );
   tokenized = tokenized.replace(/\b(?:about|around)\s+(?=\{quantity:books_per_section\})/i, "approximately ");
 
   return {
     id,
     metadata: {
       title: storyTitle,
-      theme: "Books left after a trade",
+      theme: `Books left after a ${actionNoun}`,
       gradeBand: "3-4",
       factualStatus: "fictionalized",
       tags: ["multiplication", "subtraction", "equal groups", "two-step", "approximation"],
@@ -1178,16 +1210,16 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
         expectedValueForFixture: totalBooksValue,
       },
       {
-        id: "traded_books",
+        id: actionQuantityId,
         label: {
-          child: `Books ${actor} traded in Venice`,
-          compact: "Traded books",
-          lowercase: `the books ${actor} traded in Venice`,
+          child: `Books ${actor} ${actionVerb} in Venice`,
+          compact: actionCompact,
+          lowercase: `the books ${actor} ${actionVerb} in Venice`,
         },
         unit: "books",
         unitSingular: "book",
         unitPlural: "books",
-        value: tradedValue,
+        value: removedBooksValue,
         visibility: "given",
       },
       {
@@ -1206,7 +1238,7 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
           formulaId: "start_minus_change_equals_end",
           operands: {
             start: "books_before_venice",
-            change: "traded_books",
+            change: actionQuantityId,
           },
         },
         expectedValueForFixture: booksLeftValue,
@@ -1238,11 +1270,11 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
         id: "find_books_left_after_venice",
         order: 2,
         prompt: `Approximately how many books were left on ${vehicleName} after Venice?`,
-        reasoningPrompt: `${actor} traded some books away. What operation shows what remained?`,
+        reasoningPrompt: actionReason,
         relationshipTemplateId: "start_change_end_decrease",
         roleToQuantityId: {
           start: "books_before_venice",
-          change: "traded_books",
+          change: actionQuantityId,
           end: "books_left_after_venice",
         },
         goalQuantityId: "books_left_after_venice",
@@ -1251,7 +1283,7 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
         expectedDirection: "decrease",
         operatorOptions: ["+", "-", "×", "÷"],
         backwardCheck: {
-          prompt: "Add the traded books back to the books left. Do you return to the books before Venice?",
+          prompt: `Add the ${actionCompact.toLowerCase()} back to the books left. Do you return to the books before Venice?`,
           acceptedEquationFormIds: ["end_plus_change_equals_start"],
         },
       },
@@ -1273,7 +1305,7 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
         stepId: "find_books_left_after_venice",
         operator: "-",
         narrativeFit: "actual",
-        alternateWorldTemplate: `This matches the story: ${actor} traded books away, leaving fewer books on ${vehicleName}.`,
+        alternateWorldTemplate: `This matches the story: ${actor} ${actionVerb} books, leaving fewer books on ${vehicleName}.`,
       },
       {
         stepId: "find_books_left_after_venice",
@@ -1294,14 +1326,14 @@ function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string
       headline: `How many books were left on ${vehicleName}`,
       causalChain: [
         `{quantity:train_cars} with approximately {quantity:books_per_section} each made approximately {quantity:books_before_venice}.`,
-        `${actor} traded {quantity:traded_books}, leaving approximately {quantity:books_left_after_venice}.`,
+        `${actor} ${actionVerb} {quantity:${actionQuantityId}}, leaving approximately {quantity:books_left_after_venice}.`,
       ],
       calcFromStepId: "find_books_before_venice",
       totalVisualStepId: "find_books_left_after_venice",
       dataQuestion: {
         prompt: "What does {quantity:books_left_after_venice} represent in the book train model?",
         correctQuantityId: "books_left_after_venice",
-        distractorQuantityIds: ["train_cars", "books_before_venice", "traded_books"],
+        distractorQuantityIds: ["train_cars", "books_before_venice", actionQuantityId],
         correctFeedback: `Right. {quantity:books_left_after_venice} is approximately how many books were left on ${vehicleName} after Venice.`,
         incorrectFeedback: `That amount is the books left after the trade: {quantity:books_left_after_venice}.`,
       },
@@ -1379,7 +1411,7 @@ export function AuthoringView() {
       buildGroupedBooksThenTradeGuess(rawProblemInput || problemParagraph, title);
     if (!guess) {
       setSaveMessage(
-        "Analyzer needs top/kept equal groups, monthly sales affordability, shelf/book sharing, or grouped-books-then-trade story.",
+        "Analyzer needs top/kept equal groups, monthly sales affordability, shelf/book sharing, or grouped-books-then-sale/trade story.",
       );
       return;
     }
