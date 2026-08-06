@@ -12,6 +12,7 @@ import type { ProblemSpec } from "./src/model/problemSpec";
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 const problemsDir = path.resolve(configDir, "data/problems");
 const authoringSaveRoute = "/__storymath_authoring/problems";
+const productionBasePath = process.env.STORYMATH_BASE_PATH ?? (process.env.VERCEL ? "/" : "/StoryMath/");
 
 function readRequestBody(req: IncomingMessage, limitBytes = 1_000_000): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -106,7 +107,7 @@ function storyMathAuthoringSavePlugin(): Plugin {
 export default defineConfig(({ command }) => ({
   // GitHub Pages serves this project at farechiga.github.io/StoryMath/, so the
   // production build is based under /StoryMath/; local dev stays at /.
-  base: command === "build" ? "/StoryMath/" : "/",
+  base: command === "build" ? productionBasePath : "/",
   plugins: [react(), storyMathAuthoringSavePlugin()],
   server: {
     fs: {

@@ -104,6 +104,10 @@ type RepoSavePayload = {
   error?: string;
   issues?: Array<{ severity?: string; message?: string }>;
 };
+type VercelSavePayload = RepoSavePayload & {
+  commitSha?: string;
+  commitUrl?: string;
+};
 type GitHubContentPayload = {
   sha?: string;
   message?: string;
@@ -1434,6 +1438,7 @@ export function AuthoringView() {
   const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
   const [repoSaveBusy, setRepoSaveBusy] = useState(false);
+  const [liveSaveSecret, setLiveSaveSecret] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [rawProblemInput, setRawProblemInput] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
@@ -1463,6 +1468,9 @@ export function AuthoringView() {
 
   const primaryRelationship = relationshipFor(relationshipIds[0] ?? "start_change_end_decrease");
   const localRepoSaveAvailable = import.meta.env.DEV;
+  const browserGitHubSaveAvailable =
+    !localRepoSaveAvailable && typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
+  const vercelRepoSaveAvailable = !localRepoSaveAvailable && !browserGitHubSaveAvailable;
   const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
@@ -1682,9 +1690,38 @@ export function AuthoringView() {
   };
   const saveProblemToRepo = async () => {
     setRepoSaveBusy(true);
-    setSaveMessage(localRepoSaveAvailable ? "Saving problem JSON to the local repo…" : "Committing problem JSON to GitHub…");
+    setSaveMessage(
+      localRepoSaveAvailable
+        ? "Saving problem JSON to the local repo…"
+        : vercelRepoSaveAvailable
+          ? "Asking Vercel to commit problem JSON to GitHub…"
+          : "Committing problem JSON to GitHub…",
+    );
     try {
-      if (!localRepoSaveAvailable) {
+      if (vercelRepoSaveAvailable) {
+        const response = await fetch("/api/save-problem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret: liveSaveSecret, spec: editedSpec }),
+        });
+        const payload = (await response.json().catch(() => ({}))) as VercelSavePayload;
+        if (!response.ok || !payload.ok) {
+          const issueText =
+            payload.issues
+              ?.map((issue) => issue.message)
+              .filter(Boolean)
+              .join(" ") ?? "";
+          throw new Error([payload.error, issueText].filter(Boolean).join(" "));
+        }
+        const shortSha = payload.commitSha?.slice(0, 7);
+        const warningCount = payload.issues?.filter((issue) => issue.severity === "warning").length ?? 0;
+        setSaveMessage(
+          `Committed ${payload.path ?? `${GITHUB_PROBLEM_PATH_PREFIX}/${editedSpec.id}.json`} through Vercel${shortSha ? ` (${shortSha})` : ""}.${warningCount > 0 ? ` ${warningCount} warning${warningCount === 1 ? "" : "s"} returned.` : ""} Vercel will redeploy from main shortly.`,
+        );
+        return;
+      }
+
+      if (browserGitHubSaveAvailable) {
         const payload = await saveProblemSpecThroughGitHub(editedSpec, editedJson, githubToken);
         const shortSha = payload.commit?.sha?.slice(0, 7);
         setSaveMessage(
@@ -1715,7 +1752,9 @@ export function AuthoringView() {
       setSaveMessage(
         localRepoSaveAvailable
           ? `Could not save to the local repo. Use Download JSON if needed. ${error instanceof Error ? error.message : ""}`
-          : `Could not commit to GitHub from this page. Check the token permissions or use Download JSON. ${error instanceof Error ? error.message : ""}`,
+          : vercelRepoSaveAvailable
+            ? `Could not save through Vercel. Check STORYMATH_GITHUB_TOKEN, STORYMATH_SAVE_SECRET, and the authoring save secret. ${error instanceof Error ? error.message : ""}`
+            : `Could not commit to GitHub from this page. Check the token permissions or use Download JSON. ${error instanceof Error ? error.message : ""}`,
       );
     } finally {
       setRepoSaveBusy(false);
@@ -2161,9 +2200,27 @@ export function AuthoringView() {
           <p className="authoring-help">
             {localRepoSaveAvailable
               ? "Browser drafts stay on this device. Save JSON to repo writes into data/problems on the local dev server."
-              : "Browser drafts stay on this device. On the live site, Save JSON to repo commits through GitHub using a token you paste for this session."}
+              : vercelRepoSaveAvailable
+                ? "Browser drafts stay on this device. On Vercel, Save JSON to repo calls the private save endpoint and commits through GitHub."
+                : "Browser drafts stay on this device. On GitHub Pages, Save JSON to repo commits through GitHub using a token you paste for this session."}
           </p>
-          {!localRepoSaveAvailable && (
+          {vercelRepoSaveAvailable && (
+            <label className="authoring-field">
+              <span>Authoring save secret</span>
+              <span className="authoring-help">
+                Enter the same private phrase stored in Vercel as STORYMATH_SAVE_SECRET. This is kept in memory only and is not saved in the browser draft.
+              </span>
+              <input
+                className="text-input"
+                type="password"
+                autoComplete="off"
+                placeholder="Private save phrase"
+                value={liveSaveSecret}
+                onChange={(event) => setLiveSaveSecret(event.target.value)}
+              />
+            </label>
+          )}
+          {browserGitHubSaveAvailable && (
             <label className="authoring-field">
               <span>GitHub token for live repo save</span>
               <span className="authoring-help">
