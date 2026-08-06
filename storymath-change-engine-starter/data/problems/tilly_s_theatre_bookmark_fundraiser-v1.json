@@ -1,0 +1,281 @@
+{
+  "id": "tilly_s_theatre_bookmark_fundraiser-v1",
+  "metadata": {
+    "title": "Tilly raises money for a theatre package",
+    "theme": "Can she sell enough bookmarks?",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "multiplication",
+      "equal groups",
+      "money",
+      "yes-no",
+      "two-step"
+    ],
+    "catalogOrder": 0,
+    "publishedAt": "2026-08-06"
+  },
+  "dimension": {
+    "kind": "money",
+    "increaseLabel": "More",
+    "decreaseLabel": "Less",
+    "sameLabel": "The same",
+    "increaseLabelLower": "more",
+    "decreaseLabelLower": "less",
+    "sameLabelLower": "the same"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Fundraiser plan",
+    "startCta": "Open the fundraiser plan",
+    "finishCta": "Close the fundraiser plan",
+    "completionTitle": "Fundraiser decision made",
+    "stepProgressVerb": "model the bookmarks",
+    "groupNoun": "month",
+    "learnerRole": "fundraiser planner"
+  },
+  "story": {
+    "briefTemplate": "Grandpa gave Tilly an opportunity to design a set of special edition Pages & Co bookmarks to raise money to buy a season package of theatre tickets. They will sell for £{value:price_per_bookmark} each and since they had the press and materials she could keep all the money. She wants decided to make a design for each of the months, and do a limited run of {value:bookmarks_per_month} each. If all the bookmarks sell will Tilly have enough money to afford a £{value:package_cost} theatre package?",
+    "causalEvent": "Each month has the same limited run, and each bookmark sells for the same amount.",
+    "closingNoteTemplate": "Tilly would have enough for the theatre package."
+  },
+  "quantities": [
+    {
+      "id": "calendar_months",
+      "label": {
+        "child": "Months in a year",
+        "compact": "Months",
+        "lowercase": "the months in a year"
+      },
+      "unit": "months",
+      "unitSingular": "month",
+      "unitPlural": "months",
+      "value": 12,
+      "visibility": "given"
+    },
+    {
+      "id": "bookmarks_per_month",
+      "label": {
+        "child": "Bookmarks made each month",
+        "compact": "Bookmarks each month",
+        "lowercase": "bookmarks made each month"
+      },
+      "unit": "bookmarks",
+      "unitSingular": "bookmark",
+      "unitPlural": "bookmarks",
+      "value": 5,
+      "visibility": "given"
+    },
+    {
+      "id": "total_bookmarks",
+      "label": {
+        "child": "Total bookmarks made",
+        "compact": "Total bookmarks",
+        "lowercase": "the total bookmarks"
+      },
+      "unit": "bookmarks",
+      "unitSingular": "bookmark",
+      "unitPlural": "bookmarks",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "calendar_months",
+          "itemsPerGroup": "bookmarks_per_month"
+        }
+      },
+      "expectedValueForFixture": 60
+    },
+    {
+      "id": "price_per_bookmark",
+      "label": {
+        "child": "Price per bookmark",
+        "compact": "Price per bookmark",
+        "lowercase": "the price per bookmark"
+      },
+      "unit": "pounds",
+      "unitSingular": "pound",
+      "unitPlural": "pounds",
+      "value": 5,
+      "visibility": "given"
+    },
+    {
+      "id": "bookmark_revenue",
+      "label": {
+        "child": "Money from selling all bookmarks",
+        "compact": "Bookmark revenue",
+        "lowercase": "the money from selling all bookmarks"
+      },
+      "unit": "pounds",
+      "unitSingular": "pound",
+      "unitPlural": "pounds",
+      "value": null,
+      "visibility": "find",
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "total_bookmarks",
+          "itemsPerGroup": "price_per_bookmark"
+        }
+      },
+      "expectedValueForFixture": 300
+    },
+    {
+      "id": "package_cost",
+      "label": {
+        "child": "Theatre package cost",
+        "compact": "Theatre package cost",
+        "lowercase": "the theatre package cost"
+      },
+      "unit": "pounds",
+      "unitSingular": "pound",
+      "unitPlural": "pounds",
+      "value": 289,
+      "visibility": "given"
+    }
+  ],
+  "steps": [
+    {
+      "id": "find_total_bookmarks",
+      "order": 1,
+      "prompt": "How many bookmarks did Tilly make?",
+      "reasoningPrompt": "There are 12 months in a year, and each month has the same limited run. What operation models equal groups?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "calendar_months",
+        "itemsPerGroup": "bookmarks_per_month",
+        "total": "total_bookmarks"
+      },
+      "goalQuantityId": "total_bookmarks",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Now let's divide the total bookmarks by the number of months. Do we get the limited run for each month?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    },
+    {
+      "id": "find_bookmark_revenue",
+      "order": 2,
+      "prompt": "If all the bookmarks sell, how much money will Tilly collect?",
+      "reasoningPrompt": "Each bookmark sells for the same number of pounds. What operation finds the total money?",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "total_bookmarks",
+        "itemsPerGroup": "price_per_bookmark",
+        "total": "bookmark_revenue"
+      },
+      "goalQuantityId": "bookmark_revenue",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Now let's divide the sale money by the total bookmarks. Do we get the price for each bookmark?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items"
+        ]
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "find_total_bookmarks",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count months and bookmarks side by side, not every equal group."
+    },
+    {
+      "stepId": "find_total_bookmarks",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some bookmarks were removed."
+    },
+    {
+      "stepId": "find_total_bookmarks",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: every month has {quantity:bookmarks_per_month}."
+    },
+    {
+      "stepId": "find_total_bookmarks",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing bookmarks equally."
+    },
+    {
+      "stepId": "find_bookmark_revenue",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Adding would count bookmarks and pounds side by side, not every equal group."
+    },
+    {
+      "stepId": "find_bookmark_revenue",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtracting would fit a story where some pounds were removed."
+    },
+    {
+      "stepId": "find_bookmark_revenue",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "This matches the story: every bookmark sells for £{value:price_per_bookmark}."
+    },
+    {
+      "stepId": "find_bookmark_revenue",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Dividing would fit a different question about sharing pounds equally."
+    }
+  ],
+  "recap": {
+    "headline": "Will Tilly's fundraiser be enough?",
+    "causalChain": [
+      "{quantity:calendar_months} with {quantity:bookmarks_per_month} each made {quantity:total_bookmarks}.",
+      "{quantity:total_bookmarks} sold for £{value:price_per_bookmark} each made £{value:bookmark_revenue}.",
+      "The theatre package costs £{value:package_cost}."
+    ],
+    "calcFromStepId": "find_bookmark_revenue",
+    "dataQuestion": {
+      "prompt": "What does £{value:bookmark_revenue} represent in the fundraiser model?",
+      "correctQuantityId": "bookmark_revenue",
+      "distractorQuantityIds": [
+        "total_bookmarks",
+        "price_per_bookmark",
+        "package_cost"
+      ],
+      "correctFeedback": "Right. £{value:bookmark_revenue} is the money from selling all the bookmarks.",
+      "incorrectFeedback": "That amount is the sale money: £{value:bookmark_revenue}."
+    },
+    "decisionQuestion": {
+      "prompt": "Will Tilly have enough to buy the £{value:package_cost} theatre package?",
+      "correctAnswer": "yes",
+      "correctFeedback": "Yes. Selling all the bookmarks makes £{value:bookmark_revenue}, which is enough for the £{value:package_cost} theatre package.",
+      "incorrectFeedback": "Check the comparison: £{value:bookmark_revenue} is more than £{value:package_cost}, so the answer is yes."
+    }
+  }
+}
