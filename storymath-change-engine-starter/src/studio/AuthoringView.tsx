@@ -108,6 +108,14 @@ type VercelSavePayload = RepoSavePayload & {
   commitSha?: string;
   commitUrl?: string;
 };
+type DraftProblemPayload = {
+  ok?: boolean;
+  source?: "openai";
+  model?: string;
+  spec?: ProblemSpec;
+  error?: string;
+  issues?: Array<{ severity?: string; message?: string }>;
+};
 type GitHubContentPayload = {
   sha?: string;
   message?: string;
@@ -203,6 +211,28 @@ async function saveProblemSpecThroughGitHub(spec: ProblemSpec, serialized: strin
 
 function relationshipFor(id: string) {
   return RELATIONSHIPS.find((item) => item.id === id) ?? RELATIONSHIPS[0];
+}
+
+async function draftProblemSpecThroughVercel(args: {
+  rawProblem: string;
+  fallbackTitle: string;
+  secret: string;
+}): Promise<DraftProblemPayload> {
+  const response = await fetch("/api/draft-problem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(args),
+  });
+  const payload = (await response.json().catch(() => ({}))) as DraftProblemPayload;
+  if (!response.ok || !payload.ok || !payload.spec) {
+    const issueText =
+      payload.issues
+        ?.map((issue) => issue.message)
+        .filter(Boolean)
+        .join(" ") ?? "";
+    throw new Error([payload.error, issueText].filter(Boolean).join(" "));
+  }
+  return payload;
 }
 
 function quantityDraftsFor(spec: ProblemSpec): QuantityDraft[] {
@@ -527,6 +557,15 @@ function buildEqualGroupsThenSubtractGuess(rawInput: string, fallbackTitle: stri
       },
     },
   };
+}
+
+function buildRegexProblemGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
+  return (
+    buildEqualGroupsThenSubtractGuess(rawInput, fallbackTitle) ??
+    buildMonthlySalesAffordabilityGuess(rawInput, fallbackTitle) ??
+    buildShelfBookSharingGuess(rawInput, fallbackTitle) ??
+    buildGroupedBooksThenTradeGuess(rawInput, fallbackTitle)
+  );
 }
 
 function replaceNumberInMatch(text: string, matchText: string, value: number, token: string): string {
@@ -1438,6 +1477,7 @@ export function AuthoringView() {
   const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
   const [repoSaveBusy, setRepoSaveBusy] = useState(false);
+  const [draftBusy, setDraftBusy] = useState(false);
   const [liveSaveSecret, setLiveSaveSecret] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [rawProblemInput, setRawProblemInput] = useState("");
@@ -1471,6 +1511,7 @@ export function AuthoringView() {
   const browserGitHubSaveAvailable =
     !localRepoSaveAvailable && typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
   const vercelRepoSaveAvailable = !localRepoSaveAvailable && !browserGitHubSaveAvailable;
+  const openAiDraftAvailable = vercelRepoSaveAvailable;
   const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
@@ -1498,19 +1539,55 @@ export function AuthoringView() {
     if (!selectedProblem) return;
     applySpecToEditor(selectedProblem, "Loaded existing problem wording.");
   };
-  const analyzeRawProblem = () => {
-    const guess =
-      buildEqualGroupsThenSubtractGuess(rawProblemInput || problemParagraph, title) ??
-      buildMonthlySalesAffordabilityGuess(rawProblemInput || problemParagraph, title) ??
-      buildShelfBookSharingGuess(rawProblemInput || problemParagraph, title) ??
-      buildGroupedBooksThenTradeGuess(rawProblemInput || problemParagraph, title);
+  const analyzeRawProblem = async () => {
+    const sourceText = rawProblemInput || problemParagraph;
+    let openAiDraftError = "";
+
+    if (openAiDraftAvailable) {
+      if (!liveSaveSecret.trim()) {
+        openAiDraftError = "Paste the authoring API secret to use the OpenAI drafter.";
+      } else {
+        setDraftBusy(true);
+        setSaveMessage("Asking OpenAI to draft the problem pack…");
+        try {
+          const payload = await draftProblemSpecThroughVercel({
+            rawProblem: sourceText,
+            fallbackTitle: title,
+            secret: liveSaveSecret,
+          });
+          const validationIssues = validateProblem(payload.spec!);
+          const validationErrors = validationIssues.filter((issue) => issue.severity === "error");
+          if (validationErrors.length > 0) {
+            throw new Error(`Draft validation failed. ${validationErrors.map((issue) => issue.message).join(" ")}`);
+          }
+          applySpecToEditor(
+            payload.spec!,
+            `Generated an OpenAI-backed parameterized draft${payload.model ? ` with ${payload.model}` : ""}. Review the fields, then save or download.`,
+          );
+          return;
+        } catch (error) {
+          openAiDraftError = error instanceof Error ? error.message : "OpenAI could not draft this problem.";
+        } finally {
+          setDraftBusy(false);
+        }
+      }
+    }
+
+    const guess = buildRegexProblemGuess(sourceText, title);
     if (!guess) {
       setSaveMessage(
-        "Analyzer needs top/kept equal groups, monthly sales affordability, shelf/book sharing, or grouped-books-then-sale/trade story.",
+        openAiDraftError
+          ? `${openAiDraftError} The older regex fallback also did not recognize this problem.`
+          : "Analyzer needs top/kept equal groups, monthly sales affordability, shelf/book sharing, or grouped-books-then-sale/trade story.",
       );
       return;
     }
-    applySpecToEditor(guess, "Generated a two-step parameterized draft. Review the fields, then save or download.");
+    applySpecToEditor(
+      guess,
+      openAiDraftError
+        ? `Used the older regex fallback because the OpenAI drafter was unavailable. ${openAiDraftError}`
+        : "Generated a two-step parameterized draft. Review the fields, then save or download.",
+    );
   };
 
   const editedSpec = useMemo(
@@ -1883,9 +1960,25 @@ export function AuthoringView() {
             placeholder="Fashion Show Fundraiser Frenzy&#10;&#10;Seraphina was tasked with making designs for 11 models..."
           />
         </label>
+        {openAiDraftAvailable && (
+          <label className="authoring-field">
+            <span>Authoring API secret</span>
+            <span className="authoring-help">
+              Enter the same private phrase stored in Vercel. It unlocks the OpenAI drafter and is kept in memory only.
+            </span>
+            <input
+              className="text-input"
+              type="password"
+              autoComplete="off"
+              placeholder="Private authoring phrase"
+              value={liveSaveSecret}
+              onChange={(event) => setLiveSaveSecret(event.target.value)}
+            />
+          </label>
+        )}
         <div className="btn-row">
-          <button type="button" className="btn btn--primary" onClick={analyzeRawProblem}>
-            Analyze and prefill draft
+          <button type="button" className="btn btn--primary" onClick={analyzeRawProblem} disabled={draftBusy}>
+            {draftBusy ? "Drafting…" : "Analyze and prefill draft"}
           </button>
         </div>
       </section>
