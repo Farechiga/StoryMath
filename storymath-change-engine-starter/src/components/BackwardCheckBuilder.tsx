@@ -60,18 +60,20 @@ export function BackwardCheckBuilder({
         </div>
       )}
 
-      <figure className="bar-figure">
-        <BackwardBar
-          leftValue={left.value}
-          rightValue={right.value}
-          resultValue={target.value}
-          operator={frame.operator}
-          unit={target.unit}
-          leftCaption={left.label.compact}
-          rightCaption={right.label.compact}
-          resultCaption={target.label.compact}
-        />
-      </figure>
+      {(frame.operator === "+" || frame.operator === "-") && (
+        <figure className="bar-figure">
+          <BackwardBar
+            leftValue={left.value}
+            rightValue={right.value}
+            resultValue={target.value}
+            operator={frame.operator}
+            unit={target.unit}
+            leftCaption={left.label.compact}
+            rightCaption={right.label.compact}
+            resultCaption={target.label.compact}
+          />
+        </figure>
+      )}
 
       <StackedArithmetic
         key={frame.equationFormId}
@@ -92,7 +94,7 @@ export function BackwardCheckBuilder({
           <strong>
             {formatNumber(left.value)} {frame.operator} {formatNumber(right.value)}
           </strong>{" "}
-          and try again — it should land on {target.label.compact}.
+          and try again — it should match {target.label.compact}.
         </div>
       )}
     </>
@@ -102,7 +104,7 @@ export function BackwardCheckBuilder({
 /**
  * Generalized "field-merge" explanation for any inverse check, so the wording
  * stays consistent and scalable across stories:
- *   Now let's [verb] (amount) [prep] our answer, (derived), and check it equals (original).
+ *   Now let's [verb] (left quantity) [prep] (right quantity), and check it equals (target quantity).
  */
 function backwardExplanation(
   frame: BackwardCheckFrame,
@@ -117,5 +119,11 @@ function backwardExplanation(
   if (frame.operator === "-") {
     return `Let's take ${amt} away from ${derived.label.compact}, to see if it equals ${original.label.compact}.`;
   }
-  return `Let's undo the step on ${derived.label.compact}, to see if it equals ${original.label.compact}.`;
+  if (frame.operator === "÷") {
+    return `Now let's divide ${derived.label.lowercase} by ${amount.label.lowercase}. Do we get ${original.label.lowercase}?`;
+  }
+  if (frame.operator === "×") {
+    return `Now let's multiply ${derived.label.lowercase} by ${amount.label.lowercase}. Do we get ${original.label.lowercase}?`;
+  }
+  return `Now let's check ${derived.label.lowercase} with ${amount.label.lowercase}. Do we get ${original.label.lowercase}?`;
 }

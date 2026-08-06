@@ -88,6 +88,16 @@ type RecapDraft = {
   dataQuestionPrompt: string;
   correctFeedback: string;
   incorrectFeedback: string;
+  decisionQuestionPrompt: string;
+  decisionCorrectAnswer: "yes" | "no";
+  decisionCorrectFeedback: string;
+  decisionIncorrectFeedback: string;
+};
+type RepoSavePayload = {
+  ok?: boolean;
+  path?: string;
+  error?: string;
+  issues?: Array<{ severity?: string; message?: string }>;
 };
 
 function slugify(value: string): string {
@@ -134,6 +144,10 @@ function recapDraftFor(spec: ProblemSpec): RecapDraft {
     dataQuestionPrompt: spec.recap.dataQuestion.prompt,
     correctFeedback: spec.recap.dataQuestion.correctFeedback,
     incorrectFeedback: spec.recap.dataQuestion.incorrectFeedback,
+    decisionQuestionPrompt: spec.recap.decisionQuestion?.prompt ?? "",
+    decisionCorrectAnswer: spec.recap.decisionQuestion?.correctAnswer ?? "yes",
+    decisionCorrectFeedback: spec.recap.decisionQuestion?.correctFeedback ?? "",
+    decisionIncorrectFeedback: spec.recap.decisionQuestion?.incorrectFeedback ?? "",
   };
 }
 
@@ -199,7 +213,7 @@ function buildEqualGroupsThenSubtractGuess(rawInput: string, fallbackTitle: stri
       gradeBand: "3-4",
       factualStatus: "realistic",
       tags: ["multiplication", "subtraction", "equal groups", "two-step"],
-      catalogOrder: 1000,
+      catalogOrder: 0,
       publishedAt: new Date().toISOString().slice(0, 10),
     },
     dimension: {
@@ -326,7 +340,7 @@ function buildEqualGroupsThenSubtractGuess(rawInput: string, fallbackTitle: stri
         expectedDirection: "scale",
         operatorOptions: ["+", "-", "×", "÷"],
         backwardCheck: {
-          prompt: `Divide the total ${normalizedItemPlural} by the ${groupPlural}. Do you land on the sketches for each ${groupSingular}?`,
+          prompt: `Now let's divide the total ${normalizedItemPlural} by the number of ${groupPlural}. Do we get the sketches for each ${groupSingular}?`,
           acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
         },
       },
@@ -457,6 +471,21 @@ function possessiveName(name: string): string {
   return name.endsWith("s") ? `${name}'` : `${name}'s`;
 }
 
+function inferSearchers(story: string): { count: number; label: string } {
+  const pairMatch = story.match(/^([A-Z][a-z]+)\s+and\s+([A-Z][a-z]+)\b/);
+  if (pairMatch) {
+    return { count: 2, label: `${pairMatch[1]} and ${pairMatch[2]}` };
+  }
+
+  const friendCountMatch = story.match(/\b(\d+)\s+friends?\b/i);
+  if (friendCountMatch) {
+    const count = Number(friendCountMatch[1]);
+    if (Number.isFinite(count) && count > 0) return { count, label: `${count} friends` };
+  }
+
+  return { count: 2, label: "the friends" };
+}
+
 function equalGroupsExperiments(args: {
   stepId: string;
   groupPlural: string;
@@ -490,6 +519,44 @@ function equalGroupsExperiments(args: {
       narrativeFit: "different_question",
       visualModel: "equal_shares_tray",
       alternateWorldTemplate: `Dividing would fit a different question about sharing ${itemPlural} equally.`,
+    },
+  ];
+}
+
+function equalSharingExperiments(args: {
+  stepId: string;
+  totalPlural: string;
+  groupPlural: string;
+  itemsPerGroupPlural: string;
+  actualSentence: string;
+}): OperatorExperimentSpec[] {
+  const { stepId, totalPlural, groupPlural, itemsPerGroupPlural, actualSentence } = args;
+  return [
+    {
+      stepId,
+      operator: "+",
+      narrativeFit: "different_question",
+      alternateWorldTemplate: `Adding would count ${totalPlural} and ${groupPlural} side by side, not share the search.`,
+    },
+    {
+      stepId,
+      operator: "-",
+      narrativeFit: "different_story",
+      alternateWorldTemplate: `Subtracting would fit a story where some ${totalPlural} were removed from the search.`,
+    },
+    {
+      stepId,
+      operator: "×",
+      narrativeFit: "different_question",
+      visualModel: "repeated_groups_grid",
+      alternateWorldTemplate: `Multiplying would fit a different question about equal groups of ${itemsPerGroupPlural}.`,
+    },
+    {
+      stepId,
+      operator: "÷",
+      narrativeFit: "actual",
+      visualModel: "equal_shares_tray",
+      alternateWorldTemplate: actualSentence,
     },
   ];
 }
@@ -552,7 +619,7 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
       gradeBand: "3-4",
       factualStatus: "realistic",
       tags: ["multiplication", "equal groups", "money", "yes-no", "two-step"],
-      catalogOrder: 1000,
+      catalogOrder: 0,
       publishedAt: new Date().toISOString().slice(0, 10),
     },
     dimension: {
@@ -694,7 +761,7 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         expectedDirection: "scale",
         operatorOptions: ["+", "-", "×", "÷"],
         backwardCheck: {
-          prompt: `Divide the total ${itemPlural} by the months. Do you land on the limited run for each month?`,
+          prompt: `Now let's divide the total ${itemPlural} by the number of months. Do we get the limited run for each month?`,
           acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
         },
       },
@@ -715,7 +782,7 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         expectedDirection: "scale",
         operatorOptions: ["+", "-", "×", "÷"],
         backwardCheck: {
-          prompt: `Divide the sale money by the total ${itemPlural}. Do you land on the price for each ${itemSingular}?`,
+          prompt: `Now let's divide the sale money by the total ${itemPlural}. Do we get the price for each ${itemSingular}?`,
           acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
         },
       },
@@ -763,6 +830,485 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
   };
 }
 
+function buildShelfBookSharingGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
+  const { title: titleFromText, story } = extractAfterTitle(rawInput);
+  if (!/\bshelves\b/i.test(story) || !/\bbooks\b/i.test(story) || !/\beach friend\b/i.test(story)) {
+    return null;
+  }
+
+  const shelfMatch = story.match(/\bThere are\s+(\d+)\s+(shelves)\b/i);
+  const booksPerShelfMatch = story.match(/\beach\s+with\s+(?:about|approximately|around)?\s*(\d+)\s+(books)\b/i);
+  if (!shelfMatch || !booksPerShelfMatch) return null;
+
+  const shelfValue = Number(shelfMatch[1]);
+  const booksPerShelfValue = Number(booksPerShelfMatch[1]);
+  if (![shelfValue, booksPerShelfValue].every((value) => Number.isFinite(value) && value > 0)) return null;
+
+  const searchers = inferSearchers(story);
+  const totalBooksValue = shelfValue * booksPerShelfValue;
+  const booksPerFriendValue = totalBooksValue / searchers.count;
+  const storyTitle =
+    titleFromText ||
+    (!fallbackTitle || fallbackTitle === "New StoryMath problem"
+      ? `${searchers.label === "the friends" ? "The friends" : searchers.label}'s Library of Congress search`
+      : fallbackTitle);
+  const id = `${slugify(storyTitle) || "library_book_search"}-v1`;
+
+  let tokenized = story;
+  tokenized = replaceFirst(tokenized, `${shelfValue} ${shelfMatch[2]!.toLowerCase()}`, "{quantity:library_shelves}");
+  tokenized = replaceFirst(
+    tokenized,
+    `${booksPerShelfValue} ${booksPerShelfMatch[2]!.toLowerCase()}`,
+    "{quantity:books_per_shelf}",
+  );
+  tokenized = tokenized.replace(/\b(?:about|around)\s+(?=\{quantity:books_per_shelf\})/i, "approximately ");
+
+  return {
+    id,
+    metadata: {
+      title: storyTitle,
+      theme: "Library clue search",
+      gradeBand: "3-4",
+      factualStatus: "realistic",
+      tags: ["multiplication", "division", "equal groups", "equal sharing", "two-step", "approximation"],
+      catalogOrder: 0,
+      publishedAt: new Date().toISOString().slice(0, 10),
+    },
+    dimension: {
+      kind: "count",
+      increaseLabel: "More",
+      decreaseLabel: "Fewer",
+      sameLabel: "The same",
+      increaseLabelLower: "more",
+      decreaseLabelLower: "fewer",
+      sameLabelLower: "the same",
+    },
+    storyChrome: {
+      openingEyebrow: "Library search note",
+      startCta: "Open the search plan",
+      finishCta: "Close the search plan",
+      completionTitle: "Search plan complete",
+      stepProgressVerb: "model the book search",
+      groupNoun: "book",
+      learnerRole: "clue finder",
+    },
+    story: {
+      briefTemplate: tokenized,
+      causalEvent: "Each shelf has approximately the same number of books, and the friends can split the search.",
+      closingNoteTemplate: `Each friend would need to search approximately {quantity:books_per_friend}.`,
+    },
+    quantities: [
+      {
+        id: "library_shelves",
+        label: {
+          child: "Shelves on the bookcase",
+          compact: "Shelves",
+          lowercase: "the shelves on the bookcase",
+        },
+        unit: "shelves",
+        unitSingular: "shelf",
+        unitPlural: "shelves",
+        value: shelfValue,
+        visibility: "given",
+      },
+      {
+        id: "books_per_shelf",
+        label: {
+          child: "Approximate number of books on each shelf",
+          compact: "Books each shelf",
+          lowercase: "the approximate number of books on each shelf",
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: booksPerShelfValue,
+        visibility: "given",
+      },
+      {
+        id: "total_books",
+        label: {
+          child: "Approximate total books on the bookcase",
+          compact: "Total books",
+          lowercase: "the approximate total books on the bookcase",
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: null,
+        visibility: "find",
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            groups: "library_shelves",
+            itemsPerGroup: "books_per_shelf",
+          },
+        },
+        expectedValueForFixture: totalBooksValue,
+      },
+      {
+        id: "searching_friends",
+        label: {
+          child: "Friends searching",
+          compact: "Friends",
+          lowercase: "the friends searching",
+        },
+        unit: "friends",
+        unitSingular: "friend",
+        unitPlural: "friends",
+        value: searchers.count,
+        visibility: "given",
+      },
+      {
+        id: "books_per_friend",
+        label: {
+          child: "Books each friend searches",
+          compact: "Books per friend",
+          lowercase: "the books each friend searches",
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: null,
+        visibility: "revealed_after_step",
+        derived: {
+          formulaId: "total_divided_by_groups_equals_items",
+          operands: {
+            total: "total_books",
+            groups: "searching_friends",
+          },
+        },
+        expectedValueForFixture: booksPerFriendValue,
+      },
+    ],
+    steps: [
+      {
+        id: "find_total_books",
+        order: 1,
+        prompt: "Approximately how many books might be on the bookcase?",
+        reasoningPrompt: "Each shelf has approximately the same number of books. What operation models equal groups?",
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          groups: "library_shelves",
+          itemsPerGroup: "books_per_shelf",
+          total: "total_books",
+        },
+        goalQuantityId: "total_books",
+        acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt:
+            "Now let's divide the approximate total books on the bookcase by the number of shelves. Do we get the approximate number of books on each shelf?",
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+      {
+        id: "find_books_per_friend",
+        order: 2,
+        prompt: "If the clue is in the last book, approximately how many books does each friend need to search?",
+        reasoningPrompt: "The friends can split the total search evenly. What operation finds each friend’s share?",
+        relationshipTemplateId: "division_equal_sharing",
+        roleToQuantityId: {
+          total: "total_books",
+          groups: "searching_friends",
+          itemsPerGroup: "books_per_friend",
+        },
+        goalQuantityId: "books_per_friend",
+        acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        preferredEquationFormId: "total_divided_by_groups_equals_items",
+        expectedDirection: "split",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: "Multiply the books per friend by the friends searching. Do you return to the total books?",
+          acceptedEquationFormIds: ["groups_times_items_equals_total"],
+        },
+      },
+    ],
+    operatorExperiments: [
+      ...equalGroupsExperiments({
+        stepId: "find_total_books",
+        groupPlural: "shelves",
+        itemPlural: "books",
+        actualSentence: "This matches the story: every shelf has approximately {quantity:books_per_shelf}.",
+      }),
+      ...equalSharingExperiments({
+        stepId: "find_books_per_friend",
+        totalPlural: "books",
+        groupPlural: "friends",
+        itemsPerGroupPlural: "books per friend",
+        actualSentence: "This matches the story: the total books are split between {quantity:searching_friends}.",
+      }),
+    ],
+    recap: {
+      headline: "How the friends split the book search",
+      causalChain: [
+        `{quantity:library_shelves} with approximately {quantity:books_per_shelf} each made approximately {quantity:total_books}.`,
+        `{quantity:total_books} split between {quantity:searching_friends} gives approximately {quantity:books_per_friend}.`,
+      ],
+      calcFromStepId: "find_books_per_friend",
+      dataQuestion: {
+        prompt: "What does {quantity:books_per_friend} represent in the library search model?",
+        correctQuantityId: "books_per_friend",
+        distractorQuantityIds: ["library_shelves", "total_books", "searching_friends"],
+        correctFeedback: "Right. {quantity:books_per_friend} is approximately how many books each friend searches.",
+        incorrectFeedback: "That amount is each friend’s share of the search: {quantity:books_per_friend}.",
+      },
+    },
+  };
+}
+
+function buildGroupedBooksThenTradeGuess(rawInput: string, fallbackTitle: string): ProblemSpec | null {
+  const { title: titleFromText, story } = extractAfterTitle(rawInput);
+  if (!/\bbooks\b/i.test(story) || !/\btraded\b/i.test(story) || !/\bleft\b/i.test(story)) return null;
+
+  const groupMatch = story.match(/\b(?:had|has)\s+(\d+)\s+([a-z][a-z -]*?cars)\b/i);
+  const booksPerGroupMatch = story.match(
+    /\beach\s+(?:section|car)\s+(?:has|had|holds|held|contains|contained)\s+(?:about|approximately|around)?\s*(\d+)\s+(books)\b/i,
+  );
+  const tradedMatch = story.match(/\btraded\s+(\d+)\s+(?:of\s+the\s+)?(books)\b/i);
+  if (!groupMatch || !booksPerGroupMatch || !tradedMatch) return null;
+
+  const groupValue = Number(groupMatch[1]);
+  const booksPerGroupValue = Number(booksPerGroupMatch[1]);
+  const tradedValue = Number(tradedMatch[1]);
+  if (![groupValue, booksPerGroupValue, tradedValue].every((value) => Number.isFinite(value) && value > 0)) {
+    return null;
+  }
+
+  const groupPlural = groupMatch[2]!.trim().toLowerCase();
+  const groupSingular = singularize(groupPlural);
+  const vehicleName = story.match(/^The\s+([A-Z][A-Za-z0-9'-]*)\b/)?.[1] ?? "the vehicle";
+  const actor = story.match(/\b([A-Z][a-z]+)\s+traded\b/)?.[1] ?? "someone";
+  const totalBooksValue = groupValue * booksPerGroupValue;
+  const booksLeftValue = totalBooksValue - tradedValue;
+  const storyTitle =
+    titleFromText ||
+    (!fallbackTitle || fallbackTitle === "New StoryMath problem"
+      ? `${vehicleName} book trade in Venice`
+      : fallbackTitle);
+  const id = `${slugify(storyTitle) || "grouped_books_trade"}-v1`;
+
+  let tokenized = story;
+  tokenized = replaceFirst(tokenized, `${groupValue} ${groupPlural}`, "{quantity:train_cars}");
+  tokenized = replaceFirst(tokenized, `${booksPerGroupValue} books`, "{quantity:books_per_section}");
+  tokenized = replaceFirst(tokenized, tradedMatch[0], tradedMatch[0].replace(`${tradedValue} of the books`, "{quantity:traded_books}").replace(`${tradedValue} books`, "{quantity:traded_books}"));
+  tokenized = tokenized.replace(/\b(?:about|around)\s+(?=\{quantity:books_per_section\})/i, "approximately ");
+
+  return {
+    id,
+    metadata: {
+      title: storyTitle,
+      theme: "Books left after a trade",
+      gradeBand: "3-4",
+      factualStatus: "fictionalized",
+      tags: ["multiplication", "subtraction", "equal groups", "two-step", "approximation"],
+      catalogOrder: 0,
+      publishedAt: new Date().toISOString().slice(0, 10),
+    },
+    dimension: {
+      kind: "count",
+      increaseLabel: "More",
+      decreaseLabel: "Fewer",
+      sameLabel: "The same",
+      increaseLabelLower: "more",
+      decreaseLabelLower: "fewer",
+      sameLabelLower: "the same",
+    },
+    storyChrome: {
+      openingEyebrow: "Book train manifest",
+      startCta: "Open the manifest",
+      finishCta: "Close the manifest",
+      completionTitle: "Manifest updated",
+      stepProgressVerb: "model the books",
+      groupNoun: "book",
+      learnerRole: "manifest keeper",
+    },
+    story: {
+      briefTemplate: tokenized,
+      causalEvent: `Each ${groupSingular} works like a book section with approximately the same number of books.`,
+      closingNoteTemplate: `After Venice, approximately {quantity:books_left_after_venice} were left on ${vehicleName}.`,
+    },
+    quantities: [
+      {
+        id: "train_cars",
+        label: {
+          child: `${titleCaseFirst(groupPlural)} on ${vehicleName}`,
+          compact: titleCaseFirst(groupPlural),
+          lowercase: `the ${groupPlural} on ${vehicleName}`,
+        },
+        unit: groupPlural,
+        unitSingular: groupSingular,
+        unitPlural: groupPlural,
+        value: groupValue,
+        visibility: "given",
+      },
+      {
+        id: "books_per_section",
+        label: {
+          child: "Approximate number of books in each section",
+          compact: "Books each section",
+          lowercase: "the approximate number of books in each section",
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: booksPerGroupValue,
+        visibility: "given",
+      },
+      {
+        id: "books_before_venice",
+        label: {
+          child: "Approximate total books before Venice",
+          compact: "Total books before Venice",
+          lowercase: "the approximate total books before Venice",
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: null,
+        visibility: "find",
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            groups: "train_cars",
+            itemsPerGroup: "books_per_section",
+          },
+        },
+        expectedValueForFixture: totalBooksValue,
+      },
+      {
+        id: "traded_books",
+        label: {
+          child: `Books ${actor} traded in Venice`,
+          compact: "Traded books",
+          lowercase: `the books ${actor} traded in Venice`,
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: tradedValue,
+        visibility: "given",
+      },
+      {
+        id: "books_left_after_venice",
+        label: {
+          child: `Books left on ${vehicleName} after Venice`,
+          compact: "Books left",
+          lowercase: `the books left on ${vehicleName} after Venice`,
+        },
+        unit: "books",
+        unitSingular: "book",
+        unitPlural: "books",
+        value: null,
+        visibility: "revealed_after_step",
+        derived: {
+          formulaId: "start_minus_change_equals_end",
+          operands: {
+            start: "books_before_venice",
+            change: "traded_books",
+          },
+        },
+        expectedValueForFixture: booksLeftValue,
+      },
+    ],
+    steps: [
+      {
+        id: "find_books_before_venice",
+        order: 1,
+        prompt: `Approximately how many books were on ${vehicleName} before Venice?`,
+        reasoningPrompt: `Each ${groupSingular} has approximately the same number of books. What operation models equal groups?`,
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          groups: "train_cars",
+          itemsPerGroup: "books_per_section",
+          total: "books_before_venice",
+        },
+        goalQuantityId: "books_before_venice",
+        acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: `Now let's divide the total books before Venice by the number of ${groupPlural}. Do we get the approximate number of books in each section?`,
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+      {
+        id: "find_books_left_after_venice",
+        order: 2,
+        prompt: `Approximately how many books were left on ${vehicleName} after Venice?`,
+        reasoningPrompt: `${actor} traded some books away. What operation shows what remained?`,
+        relationshipTemplateId: "start_change_end_decrease",
+        roleToQuantityId: {
+          start: "books_before_venice",
+          change: "traded_books",
+          end: "books_left_after_venice",
+        },
+        goalQuantityId: "books_left_after_venice",
+        acceptedEquationFormIds: ["start_minus_change_equals_end"],
+        preferredEquationFormId: "start_minus_change_equals_end",
+        expectedDirection: "decrease",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: "Add the traded books back to the books left. Do you return to the books before Venice?",
+          acceptedEquationFormIds: ["end_plus_change_equals_start"],
+        },
+      },
+    ],
+    operatorExperiments: [
+      ...equalGroupsExperiments({
+        stepId: "find_books_before_venice",
+        groupPlural,
+        itemPlural: "books",
+        actualSentence: `This matches the story: each ${groupSingular} has {quantity:books_per_section}.`,
+      }),
+      {
+        stepId: "find_books_left_after_venice",
+        operator: "+",
+        narrativeFit: "different_story",
+        alternateWorldTemplate: `Adding would fit a story where ${actor} brought more books onto ${vehicleName}.`,
+      },
+      {
+        stepId: "find_books_left_after_venice",
+        operator: "-",
+        narrativeFit: "actual",
+        alternateWorldTemplate: `This matches the story: ${actor} traded books away, leaving fewer books on ${vehicleName}.`,
+      },
+      {
+        stepId: "find_books_left_after_venice",
+        operator: "×",
+        narrativeFit: "different_question",
+        visualModel: "repeated_groups_grid",
+        alternateWorldTemplate: "Multiplying would fit a different question about equal groups of books.",
+      },
+      {
+        stepId: "find_books_left_after_venice",
+        operator: "÷",
+        narrativeFit: "different_question",
+        visualModel: "equal_shares_tray",
+        alternateWorldTemplate: "Dividing would fit a different question about sharing the books.",
+      },
+    ],
+    recap: {
+      headline: `How many books were left on ${vehicleName}`,
+      causalChain: [
+        `{quantity:train_cars} with approximately {quantity:books_per_section} each made approximately {quantity:books_before_venice}.`,
+        `${actor} traded {quantity:traded_books}, leaving approximately {quantity:books_left_after_venice}.`,
+      ],
+      calcFromStepId: "find_books_before_venice",
+      totalVisualStepId: "find_books_left_after_venice",
+      dataQuestion: {
+        prompt: "What does {quantity:books_left_after_venice} represent in the book train model?",
+        correctQuantityId: "books_left_after_venice",
+        distractorQuantityIds: ["train_cars", "books_before_venice", "traded_books"],
+        correctFeedback: `Right. {quantity:books_left_after_venice} is approximately how many books were left on ${vehicleName} after Venice.`,
+        incorrectFeedback: `That amount is the books left after the trade: {quantity:books_left_after_venice}.`,
+      },
+    },
+  };
+}
+
 export function AuthoringView() {
   const { openMenu } = useStudio();
   const [passcode, setPasscode] = useState("");
@@ -770,6 +1316,7 @@ export function AuthoringView() {
   const [error, setError] = useState("");
   const [baseSpec, setBaseSpec] = useState<ProblemSpec | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
+  const [repoSaveBusy, setRepoSaveBusy] = useState(false);
   const [rawProblemInput, setRawProblemInput] = useState("");
   const [title, setTitle] = useState("New StoryMath problem");
   const [theme, setTheme] = useState("Classroom story");
@@ -789,6 +1336,10 @@ export function AuthoringView() {
     dataQuestionPrompt: "Ask what one modeled number represents.",
     correctFeedback: "Right.",
     incorrectFeedback: "Look back at the model.",
+    decisionQuestionPrompt: "",
+    decisionCorrectAnswer: "yes",
+    decisionCorrectFeedback: "",
+    decisionIncorrectFeedback: "",
   });
   const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
@@ -823,9 +1374,13 @@ export function AuthoringView() {
   const analyzeRawProblem = () => {
     const guess =
       buildEqualGroupsThenSubtractGuess(rawProblemInput || problemParagraph, title) ??
-      buildMonthlySalesAffordabilityGuess(rawProblemInput || problemParagraph, title);
+      buildMonthlySalesAffordabilityGuess(rawProblemInput || problemParagraph, title) ??
+      buildShelfBookSharingGuess(rawProblemInput || problemParagraph, title) ??
+      buildGroupedBooksThenTradeGuess(rawProblemInput || problemParagraph, title);
     if (!guess) {
-      setSaveMessage("Analyzer needs either top/kept equal groups or a monthly sales affordability story.");
+      setSaveMessage(
+        "Analyzer needs top/kept equal groups, monthly sales affordability, shelf/book sharing, or grouped-books-then-trade story.",
+      );
       return;
     }
     applySpecToEditor(guess, "Generated a two-step parameterized draft. Review the fields, then save or download.");
@@ -894,6 +1449,17 @@ export function AuthoringView() {
             correctFeedback: recapDraft.correctFeedback,
             incorrectFeedback: recapDraft.incorrectFeedback,
           },
+          ...(spec.recap.decisionQuestion
+            ? {
+                decisionQuestion: {
+                  ...spec.recap.decisionQuestion,
+                  prompt: recapDraft.decisionQuestionPrompt,
+                  correctAnswer: recapDraft.decisionCorrectAnswer,
+                  correctFeedback: recapDraft.decisionCorrectFeedback,
+                  incorrectFeedback: recapDraft.decisionIncorrectFeedback,
+                },
+              }
+            : {}),
         };
         return spec;
       }
@@ -907,7 +1473,7 @@ export function AuthoringView() {
           gradeBand,
           factualStatus: "realistic",
           tags: [relationship.operation, relationship.id],
-          catalogOrder: 1000,
+          catalogOrder: 0,
           publishedAt: today,
         },
         dimension: {
@@ -994,6 +1560,36 @@ export function AuthoringView() {
   const saveDraft = () => {
     localStorage.setItem(AUTHORING_DRAFT_KEY, editedJson);
     setSaveMessage("Browser draft saved. Download JSON to update the repository.");
+  };
+  const saveProblemToRepo = async () => {
+    setRepoSaveBusy(true);
+    setSaveMessage("Saving problem JSON to the local repo…");
+    try {
+      const response = await fetch("/__storymath_authoring/problems", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: editedJson,
+      });
+      const payload = (await response.json().catch(() => ({}))) as RepoSavePayload;
+      if (!response.ok || !payload.ok) {
+        const issueText =
+          payload.issues
+            ?.map((issue) => issue.message)
+            .filter(Boolean)
+            .join(" ") ?? "";
+        throw new Error([payload.error, issueText].filter(Boolean).join(" "));
+      }
+      const warningCount = payload.issues?.filter((issue) => issue.severity === "warning").length ?? 0;
+      setSaveMessage(
+        `Saved to ${payload.path ?? "data/problems"}.${warningCount > 0 ? ` ${warningCount} warning${warningCount === 1 ? "" : "s"} returned.` : ""} The dev server will reload so the menu can pick it up.`,
+      );
+    } catch (error) {
+      setSaveMessage(
+        `Could not save to the repo from this page. Run with npm run dev, or use Download JSON. ${error instanceof Error ? error.message : ""}`,
+      );
+    } finally {
+      setRepoSaveBusy(false);
+    }
   };
   const loadDraft = () => {
     const raw = localStorage.getItem(AUTHORING_DRAFT_KEY);
@@ -1373,6 +1969,51 @@ export function AuthoringView() {
               onChange={(event) => setRecapDraft((current) => ({ ...current, incorrectFeedback: event.target.value }))}
             />
           </label>
+          {baseSpec?.recap.decisionQuestion && (
+            <>
+              <h3 className="authoring-step__title">Yes/no decision</h3>
+              <label className="authoring-field">
+                <span>Decision question</span>
+                <input
+                  className="text-input"
+                  value={recapDraft.decisionQuestionPrompt}
+                  onChange={(event) => setRecapDraft((current) => ({ ...current, decisionQuestionPrompt: event.target.value }))}
+                />
+              </label>
+              <label className="authoring-field">
+                <span>Correct yes/no answer</span>
+                <select
+                  className="text-input"
+                  value={recapDraft.decisionCorrectAnswer}
+                  onChange={(event) =>
+                    setRecapDraft((current) => ({
+                      ...current,
+                      decisionCorrectAnswer: event.target.value === "no" ? "no" : "yes",
+                    }))
+                  }
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label className="authoring-field">
+                <span>Decision correct feedback</span>
+                <input
+                  className="text-input"
+                  value={recapDraft.decisionCorrectFeedback}
+                  onChange={(event) => setRecapDraft((current) => ({ ...current, decisionCorrectFeedback: event.target.value }))}
+                />
+              </label>
+              <label className="authoring-field">
+                <span>Decision try-again feedback</span>
+                <input
+                  className="text-input"
+                  value={recapDraft.decisionIncorrectFeedback}
+                  onChange={(event) => setRecapDraft((current) => ({ ...current, decisionIncorrectFeedback: event.target.value }))}
+                />
+              </label>
+            </>
+          )}
         </div>
       </section>
 
@@ -1394,10 +2035,14 @@ export function AuthoringView() {
             <button type="button" className="btn btn--primary" onClick={saveDraft}>
               Save browser draft
             </button>
+            <button type="button" className="btn btn--primary" onClick={saveProblemToRepo} disabled={repoSaveBusy}>
+              {repoSaveBusy ? "Saving…" : "Save JSON to repo"}
+            </button>
             <a className="btn btn--ghost" href={downloadHref} download={downloadName}>
               Download JSON for repo
             </a>
           </div>
+          {saveMessage && <p className="authoring-save">{saveMessage}</p>}
           <pre className="authoring-json">{editedJson}</pre>
         </div>
       </section>

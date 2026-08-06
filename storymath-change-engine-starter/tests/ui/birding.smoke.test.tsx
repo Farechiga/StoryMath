@@ -81,6 +81,11 @@ describe("multiplication fixture (animation lab) runs on the same App", () => {
 
     expect(await screen.findByText(/The math and the story agree/i)).toBeTruthy();
     expect(screen.getByRole("img", { name: /Equal-groups invariant: 96 = 8 × 12/i })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /Check your work/i }));
+    expect(await screen.findByText(/Now let's divide the eye-and-eyebrow combinations by the eye shapes/i)).toBeTruthy();
+    expect(screen.getByRole("group", { name: /96 ÷ 8/i })).toBeTruthy();
+    expect(screen.queryByRole("img", { name: /minus/i })).toBeNull();
   });
 
   it("shows division as equal-sharing bins with a leftover remainder", async () => {
