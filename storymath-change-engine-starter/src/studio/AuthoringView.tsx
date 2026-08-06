@@ -446,6 +446,17 @@ function inferSoldItemPlural(story: string, firstName: string): string {
   return madeItem?.toLowerCase() ?? "items";
 }
 
+function inferFundraiserOwner(story: string): string {
+  const opportunityMatch = story.match(/^[A-Z][a-z]+\s+(?:gave|offered)\s+([A-Z][a-z]+)\b/);
+  if (opportunityMatch) return opportunityMatch[1]!;
+
+  return story.match(/^([A-Z][a-z]+)/)?.[1] ?? "the seller";
+}
+
+function possessiveName(name: string): string {
+  return name.endsWith("s") ? `${name}'` : `${name}'s`;
+}
+
 function equalGroupsExperiments(args: {
   stepId: string;
   groupPlural: string;
@@ -504,23 +515,29 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
     return null;
   }
 
-  const firstName = story.match(/^([A-Z][a-z]+)/)?.[1] ?? "the seller";
+  const firstName = inferFundraiserOwner(story);
   const itemPlural = inferSoldItemPlural(story, firstName);
   const itemSingular = singularize(itemPlural);
+  const itemStem = slugify(itemSingular) || "item";
+  const itemPluralStem = slugify(itemPlural) || `${itemStem}s`;
+  const itemsPerMonthId = `${itemPluralStem}_per_month`;
+  const totalItemsId = `total_${itemPluralStem}`;
+  const pricePerItemId = `price_per_${itemStem}`;
+  const saleMoneyId = `${itemStem}_revenue`;
   const packageNoun = packageMatch[2]!.trim();
   const packageLabel = titleCaseFirst(packageNoun);
   const totalItemsValue = monthsValue * perMonthValue;
   const revenueValue = totalItemsValue * priceValue;
   const enough = revenueValue >= packageCostValue;
-  const generatedTitle = `${firstName}'s ${packageNoun.includes("theatre") ? "theatre " : ""}${itemSingular} fundraiser`;
+  const generatedTitle = `${possessiveName(firstName)} ${packageNoun.includes("theatre") ? "theatre " : ""}${itemSingular} fundraiser`;
   const storyTitle =
     titleFromText ||
     (!fallbackTitle || fallbackTitle === "New StoryMath problem" ? titleCaseFirst(generatedTitle) : fallbackTitle);
   const id = `${slugify(storyTitle) || "monthly_sales_affordability"}-v1`;
 
   let tokenized = story;
-  tokenized = replaceNumberInMatch(tokenized, perMonthMatch[0], perMonthValue, "{value:items_per_month}");
-  tokenized = replaceMoneyInMatch(tokenized, priceMatch[0], priceValue, "{value:price_per_item}");
+  tokenized = replaceNumberInMatch(tokenized, perMonthMatch[0], perMonthValue, `{value:${itemsPerMonthId}}`);
+  tokenized = replaceMoneyInMatch(tokenized, priceMatch[0], priceValue, `{value:${pricePerItemId}}`);
   tokenized = replaceMoneyInMatch(tokenized, packageMatch[0], packageCostValue, "{value:package_cost}");
   tokenized = tokenized.replace(
     /\bIf they all sell,?\s+how much will\s+(?:she|he|they|[A-Z][a-z]+)\s+have left after buying\s+(?:a|an|the)?\s*£\{value:package_cost\}\s+[a-z][a-z -]*?\?/i,
@@ -578,7 +595,7 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         visibility: "given",
       },
       {
-        id: "items_per_month",
+        id: itemsPerMonthId,
         label: {
           child: `${titleCaseFirst(itemPlural)} made each month`,
           compact: `${titleCaseFirst(itemPlural)} each month`,
@@ -591,7 +608,7 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         visibility: "given",
       },
       {
-        id: "total_items",
+        id: totalItemsId,
         label: {
           child: `Total ${itemPlural} made`,
           compact: `Total ${itemPlural}`,
@@ -606,17 +623,17 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
           formulaId: "groups_times_items_equals_total",
           operands: {
             groups: "calendar_months",
-            itemsPerGroup: "items_per_month",
+            itemsPerGroup: itemsPerMonthId,
           },
         },
         expectedValueForFixture: totalItemsValue,
       },
       {
-        id: "price_per_item",
+        id: pricePerItemId,
         label: {
-          child: `Pounds for each ${itemSingular}`,
-          compact: "Pounds each",
-          lowercase: `pounds for each ${itemSingular}`,
+          child: `Price per ${itemSingular}`,
+          compact: `Price per ${itemSingular}`,
+          lowercase: `the price per ${itemSingular}`,
         },
         unit: "pounds",
         unitSingular: "pound",
@@ -625,11 +642,11 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         visibility: "given",
       },
       {
-        id: "sale_money",
+        id: saleMoneyId,
         label: {
-          child: "Money from selling all of them",
-          compact: "Sale money",
-          lowercase: "the money from selling all of them",
+          child: `Money from selling all ${itemPlural}`,
+          compact: `${titleCaseFirst(itemSingular)} revenue`,
+          lowercase: `the money from selling all ${itemPlural}`,
         },
         unit: "pounds",
         unitSingular: "pound",
@@ -639,8 +656,8 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         derived: {
           formulaId: "groups_times_items_equals_total",
           operands: {
-            groups: "total_items",
-            itemsPerGroup: "price_per_item",
+            groups: totalItemsId,
+            itemsPerGroup: pricePerItemId,
           },
         },
         expectedValueForFixture: revenueValue,
@@ -661,17 +678,17 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
     ],
     steps: [
       {
-        id: "find_total_items",
+        id: `find_${totalItemsId}`,
         order: 1,
         prompt: `How many ${itemPlural} could ${firstName} make across the whole year?`,
         reasoningPrompt: `There are 12 months in a year, and each month has the same limited run. What operation models equal groups?`,
         relationshipTemplateId: "multiplication_equal_groups",
         roleToQuantityId: {
           groups: "calendar_months",
-          itemsPerGroup: "items_per_month",
-          total: "total_items",
+          itemsPerGroup: itemsPerMonthId,
+          total: totalItemsId,
         },
-        goalQuantityId: "total_items",
+        goalQuantityId: totalItemsId,
         acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
         preferredEquationFormId: "groups_times_items_equals_total",
         expectedDirection: "scale",
@@ -682,17 +699,17 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
         },
       },
       {
-        id: "find_sale_money",
+        id: `find_${saleMoneyId}`,
         order: 2,
         prompt: `If all the ${itemPlural} sell, how much money will ${firstName} collect?`,
         reasoningPrompt: `Each ${itemSingular} sells for the same number of pounds. What operation finds the total money?`,
         relationshipTemplateId: "multiplication_equal_groups",
         roleToQuantityId: {
-          groups: "total_items",
-          itemsPerGroup: "price_per_item",
-          total: "sale_money",
+          groups: totalItemsId,
+          itemsPerGroup: pricePerItemId,
+          total: saleMoneyId,
         },
-        goalQuantityId: "sale_money",
+        goalQuantityId: saleMoneyId,
         acceptedEquationFormIds: ["groups_times_items_equals_total", "items_times_groups_equals_total"],
         preferredEquationFormId: "groups_times_items_equals_total",
         expectedDirection: "scale",
@@ -705,42 +722,42 @@ function buildMonthlySalesAffordabilityGuess(rawInput: string, fallbackTitle: st
     ],
     operatorExperiments: [
       ...equalGroupsExperiments({
-        stepId: "find_total_items",
+        stepId: `find_${totalItemsId}`,
         groupPlural: "months",
         itemPlural,
-        actualSentence: `This matches the story: every month has {quantity:items_per_month}.`,
+        actualSentence: `This matches the story: every month has {quantity:${itemsPerMonthId}}.`,
       }),
       ...equalGroupsExperiments({
-        stepId: "find_sale_money",
+        stepId: `find_${saleMoneyId}`,
         groupPlural: itemPlural,
         itemPlural: "pounds",
-        actualSentence: `This matches the story: every ${itemSingular} sells for £{value:price_per_item}.`,
+        actualSentence: `This matches the story: every ${itemSingular} sells for £{value:${pricePerItemId}}.`,
       }),
     ],
     recap: {
-      headline: `Will ${firstName}'s fundraiser be enough?`,
+      headline: `Will ${possessiveName(firstName)} fundraiser be enough?`,
       causalChain: [
-        `{quantity:calendar_months} with {quantity:items_per_month} each made {quantity:total_items}.`,
-        `{quantity:total_items} sold for £{value:price_per_item} each made £{value:sale_money}.`,
+        `{quantity:calendar_months} with {quantity:${itemsPerMonthId}} each made {quantity:${totalItemsId}}.`,
+        `{quantity:${totalItemsId}} sold for £{value:${pricePerItemId}} each made £{value:${saleMoneyId}}.`,
         `The ${packageNoun} costs £{value:package_cost}.`,
       ],
-      calcFromStepId: "find_sale_money",
+      calcFromStepId: `find_${saleMoneyId}`,
       dataQuestion: {
-        prompt: `What does £{value:sale_money} represent in the fundraiser model?`,
-        correctQuantityId: "sale_money",
-        distractorQuantityIds: ["total_items", "price_per_item", "package_cost"],
-        correctFeedback: `Right. £{value:sale_money} is the money from selling all the ${itemPlural}.`,
-        incorrectFeedback: `That amount is the sale money: £{value:sale_money}.`,
+        prompt: `What does £{value:${saleMoneyId}} represent in the fundraiser model?`,
+        correctQuantityId: saleMoneyId,
+        distractorQuantityIds: [totalItemsId, pricePerItemId, "package_cost"],
+        correctFeedback: `Right. £{value:${saleMoneyId}} is the money from selling all the ${itemPlural}.`,
+        incorrectFeedback: `That amount is the sale money: £{value:${saleMoneyId}}.`,
       },
       decisionQuestion: {
         prompt: `Will ${firstName} have enough to buy the £{value:package_cost} ${packageNoun}?`,
         correctAnswer: enough ? "yes" : "no",
         correctFeedback: enough
-          ? `Yes. Selling all the ${itemPlural} makes £{value:sale_money}, which is enough for the £{value:package_cost} ${packageNoun}.`
-          : `Right. Selling all the ${itemPlural} makes £{value:sale_money}, which is not enough for the £{value:package_cost} ${packageNoun}.`,
+          ? `Yes. Selling all the ${itemPlural} makes £{value:${saleMoneyId}}, which is enough for the £{value:package_cost} ${packageNoun}.`
+          : `Right. Selling all the ${itemPlural} makes £{value:${saleMoneyId}}, which is not enough for the £{value:package_cost} ${packageNoun}.`,
         incorrectFeedback: enough
-          ? `Check the comparison: £{value:sale_money} is more than £{value:package_cost}, so the answer is yes.`
-          : `Check the comparison: £{value:sale_money} is less than £{value:package_cost}, so the answer is no.`,
+          ? `Check the comparison: £{value:${saleMoneyId}} is more than £{value:package_cost}, so the answer is yes.`
+          : `Check the comparison: £{value:${saleMoneyId}} is less than £{value:package_cost}, so the answer is no.`,
       },
     },
   };

@@ -143,13 +143,13 @@ describe("AuthoringView", () => {
     fireEvent.change(screen.getByLabelText(/Raw word problem/i), {
       target: {
         value:
-          "Coby bookmarks to raise money to buy a season package of theatre tickets. They will sell for £5 pounds each and since they had the press and materials she could keep all the money. She wants decided to make a design for each of the months, and do a limited run of 5 each. If they all sell how much will she have left after buying a £289 theatre package?",
+          "Grandpa gave Tilly an opportunity to create special edition Pages & Co bookmarks to raise money to buy a season package of theatre tickets. They will sell for £5 each and since they had the press and materials she could keep all the money. She wanted to make a design for each of the months, and do a limited run of 5 each. If they all sell, how much will she have left after buying a £289 theatre package?",
       },
     });
     await user.click(screen.getByRole("button", { name: /Analyze and prefill draft/i }));
 
     expect((screen.getByLabelText(/^Title$/i) as HTMLInputElement).value).toBe(
-      "Coby's theatre bookmark fundraiser",
+      "Tilly's theatre bookmark fundraiser",
     );
     const relationships = screen.getAllByRole("combobox", { name: /^Relationship$/i }) as HTMLSelectElement[];
     expect(relationships).toHaveLength(2);
@@ -159,12 +159,12 @@ describe("AuthoringView", () => {
 
     await user.click(screen.getByRole("button", { name: /Save browser draft/i }));
     const saved = JSON.parse(localStorage.getItem("storymath_authoring_draft_v1") ?? "{}");
-    expect(saved.story.briefTemplate).toContain("{value:items_per_month}");
-    expect(saved.story.briefTemplate).toContain("£{value:price_per_item}");
+    expect(saved.story.briefTemplate).toContain("{value:bookmarks_per_month}");
+    expect(saved.story.briefTemplate).toContain("£{value:price_per_bookmark}");
     expect(saved.story.briefTemplate).toContain("£{value:package_cost}");
     expect(saved.quantities.find((q: { id: string }) => q.id === "calendar_months").value).toBe(12);
-    expect(saved.quantities.find((q: { id: string }) => q.id === "total_items").expectedValueForFixture).toBe(60);
-    expect(saved.quantities.find((q: { id: string }) => q.id === "sale_money").expectedValueForFixture).toBe(300);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "total_bookmarks").expectedValueForFixture).toBe(60);
+    expect(saved.quantities.find((q: { id: string }) => q.id === "bookmark_revenue").expectedValueForFixture).toBe(300);
     expect(saved.recap.decisionQuestion.correctAnswer).toBe("yes");
     expect(validateProblem(saved).filter((issue) => issue.severity === "error")).toEqual([]);
   });
