@@ -14,6 +14,11 @@ const GITHUB_REPO = "StoryMath";
 const GITHUB_BRANCH = "main";
 const GITHUB_PROBLEM_PATH_PREFIX = "storymath-change-engine-starter/data/problems";
 
+type AuthoringSaveTarget =
+  | { mode: "local"; apiBaseUrl: ""; source: "local" }
+  | { mode: "server"; apiBaseUrl: string; source: "configured" | "same-origin" }
+  | { mode: "browser-github"; apiBaseUrl: ""; source: "browser-github" };
+
 const RELATIONSHIPS = [
   {
     id: "additive_comparison_decrease",
@@ -106,7 +111,7 @@ type RepoSavePayload = {
   error?: string;
   issues?: Array<{ severity?: string; message?: string }>;
 };
-type VercelSavePayload = RepoSavePayload & {
+type AuthoringApiSavePayload = RepoSavePayload & {
   commitSha?: string;
   commitUrl?: string;
 };
@@ -170,6 +175,31 @@ function githubContentsUrl(problemId: string): string {
   return `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${encodedPath}`;
 }
 
+export function normalizeAuthoringApiBaseUrl(value: string | undefined): string {
+  return (value ?? "").trim().replace(/\/+$/, "");
+}
+
+export function resolveAuthoringSaveTarget(args: {
+  isDev: boolean;
+  hostname?: string;
+  authoringApiBaseUrl?: string;
+}): AuthoringSaveTarget {
+  if (args.isDev) return { mode: "local", apiBaseUrl: "", source: "local" };
+
+  const apiBaseUrl = normalizeAuthoringApiBaseUrl(args.authoringApiBaseUrl);
+  if (apiBaseUrl) return { mode: "server", apiBaseUrl, source: "configured" };
+
+  if (args.hostname?.endsWith("github.io")) {
+    return { mode: "browser-github", apiBaseUrl: "", source: "browser-github" };
+  }
+
+  return { mode: "server", apiBaseUrl: "", source: "same-origin" };
+}
+
+function authoringApiUrl(apiBaseUrl: string, path: string): string {
+  return `${apiBaseUrl}${path}`;
+}
+
 async function saveProblemSpecThroughGitHub(spec: ProblemSpec, serialized: string, token: string): Promise<GitHubContentPayload> {
   const trimmedToken = token.trim();
   if (!trimmedToken) {
@@ -215,15 +245,20 @@ function relationshipFor(id: string) {
   return RELATIONSHIPS.find((item) => item.id === id) ?? RELATIONSHIPS[0];
 }
 
-async function draftProblemSpecThroughVercel(args: {
+async function draftProblemSpecThroughAuthoringApi(args: {
   rawProblem: string;
   fallbackTitle: string;
   secret: string;
+  apiBaseUrl: string;
 }): Promise<DraftProblemPayload> {
-  const response = await fetch("/api/draft-problem", {
+  const response = await fetch(authoringApiUrl(args.apiBaseUrl, "/api/draft-problem"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(args),
+    body: JSON.stringify({
+      rawProblem: args.rawProblem,
+      fallbackTitle: args.fallbackTitle,
+      secret: args.secret,
+    }),
   });
   const payload = (await response.json().catch(() => ({}))) as DraftProblemPayload;
   if (!response.ok || !payload.ok || !payload.spec) {
@@ -1522,11 +1557,15 @@ export function AuthoringView() {
   const [selectedProblemId, setSelectedProblemId] = useState(AUTHORING_PROBLEM_SPECS[0]?.id ?? "");
 
   const primaryRelationship = relationshipFor(relationshipIds[0] ?? "start_change_end_decrease");
-  const localRepoSaveAvailable = import.meta.env.DEV;
-  const browserGitHubSaveAvailable =
-    !localRepoSaveAvailable && typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
-  const vercelRepoSaveAvailable = !localRepoSaveAvailable && !browserGitHubSaveAvailable;
-  const openAiDraftAvailable = vercelRepoSaveAvailable;
+  const authoringSaveTarget = resolveAuthoringSaveTarget({
+    isDev: import.meta.env.DEV,
+    hostname: typeof window === "undefined" ? undefined : window.location.hostname,
+    authoringApiBaseUrl: import.meta.env.VITE_STORYMATH_AUTHORING_API_BASE_URL,
+  });
+  const localRepoSaveAvailable = authoringSaveTarget.mode === "local";
+  const serverRepoSaveAvailable = authoringSaveTarget.mode === "server";
+  const browserGitHubSaveAvailable = authoringSaveTarget.mode === "browser-github";
+  const openAiDraftAvailable = serverRepoSaveAvailable;
   const selectedProblem = AUTHORING_PROBLEM_SPECS.find((spec) => spec.id === selectedProblemId);
   const problemId = slugify(title) || "new_storymath_problem";
   const quantityStem = slugify(storyNoun) || "items";
@@ -1565,10 +1604,11 @@ export function AuthoringView() {
         setDraftBusy(true);
         setSaveMessage("Asking OpenAI to draft the problem pack…");
         try {
-          const payload = await draftProblemSpecThroughVercel({
+          const payload = await draftProblemSpecThroughAuthoringApi({
             rawProblem: sourceText,
             fallbackTitle: title,
-            secret: liveSaveSecret,
+            secret: liveSaveSecret.trim(),
+            apiBaseUrl: authoringSaveTarget.apiBaseUrl,
           });
           const validationIssues = validateProblem(payload.spec!);
           const validationErrors = validationIssues.filter((issue) => issue.severity === "error");
@@ -1805,24 +1845,24 @@ export function AuthoringView() {
     setSaveMessage(
       localRepoSaveAvailable
         ? "Saving problem JSON to the local repo…"
-        : vercelRepoSaveAvailable
-          ? "Asking Vercel to commit problem JSON to GitHub…"
+        : serverRepoSaveAvailable
+          ? "Asking the private authoring API to commit problem JSON to GitHub…"
           : "Committing problem JSON to GitHub…",
     );
     try {
-      if (vercelRepoSaveAvailable) {
+      if (serverRepoSaveAvailable) {
         const validationIssues = validateProblem(editedSpec);
         const validationErrors = validationIssues.filter((issue) => issue.severity === "error");
         if (validationErrors.length > 0) {
           throw new Error(`Problem validation failed. ${validationErrors.map((issue) => issue.message).join(" ")}`);
         }
 
-        const response = await fetch("/api/save-problem", {
+        const response = await fetch(authoringApiUrl(authoringSaveTarget.apiBaseUrl, "/api/save-problem"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ secret: liveSaveSecret, spec: editedSpec }),
+          body: JSON.stringify({ secret: liveSaveSecret.trim(), spec: editedSpec }),
         });
-        const payload = (await response.json().catch(() => ({}))) as VercelSavePayload;
+        const payload = (await response.json().catch(() => ({}))) as AuthoringApiSavePayload;
         if (!response.ok || !payload.ok) {
           const issueText =
             payload.issues
@@ -1834,7 +1874,7 @@ export function AuthoringView() {
         const shortSha = payload.commitSha?.slice(0, 7);
         const warningCount = payload.issues?.filter((issue) => issue.severity === "warning").length ?? 0;
         setSaveMessage(
-          `Committed ${payload.path ?? `${GITHUB_PROBLEM_PATH_PREFIX}/${editedSpec.id}.json`} through Vercel${shortSha ? ` (${shortSha})` : ""}.${warningCount > 0 ? ` ${warningCount} warning${warningCount === 1 ? "" : "s"} returned.` : ""} Vercel will redeploy from main shortly.`,
+          `Committed ${payload.path ?? `${GITHUB_PROBLEM_PATH_PREFIX}/${editedSpec.id}.json`} through the authoring API${shortSha ? ` (${shortSha})` : ""}.${warningCount > 0 ? ` ${warningCount} warning${warningCount === 1 ? "" : "s"} returned.` : ""} The site will redeploy from main shortly.`,
         );
         return;
       }
@@ -1870,8 +1910,8 @@ export function AuthoringView() {
       setSaveMessage(
         localRepoSaveAvailable
           ? `Could not save to the local repo. Use Download JSON if needed. ${error instanceof Error ? error.message : ""}`
-          : vercelRepoSaveAvailable
-            ? `Could not save through Vercel. Check STORYMATH_GITHUB_TOKEN, STORYMATH_SAVE_SECRET, and the authoring save secret. ${error instanceof Error ? error.message : ""}`
+          : serverRepoSaveAvailable
+            ? `Could not save through the authoring API. Check STORYMATH_GITHUB_TOKEN, STORYMATH_SAVE_SECRET, STORYMATH_ALLOWED_ORIGINS, and the authoring save secret. ${error instanceof Error ? error.message : ""}`
             : `Could not commit to GitHub from this page. Check the token permissions or use Download JSON. ${error instanceof Error ? error.message : ""}`,
       );
     } finally {
@@ -2044,12 +2084,12 @@ export function AuthoringView() {
             placeholder="Fashion Show Fundraiser Frenzy&#10;&#10;Seraphina was tasked with making designs for 11 models..."
           />
         </label>
-        {openAiDraftAvailable && (
-          <label className="authoring-field">
-            <span>Authoring API secret</span>
-            <span className="authoring-help">
-              Enter the same private phrase stored in Vercel. It unlocks the OpenAI drafter and is kept in memory only.
-            </span>
+          {openAiDraftAvailable && (
+            <label className="authoring-field">
+              <span>Authoring API secret</span>
+              <span className="authoring-help">
+                Enter the same private phrase stored with the authoring API. It unlocks the OpenAI drafter and is kept in memory only.
+              </span>
             <input
               className="text-input"
               type="password"
@@ -2468,15 +2508,17 @@ export function AuthoringView() {
           <p className="authoring-help">
             {localRepoSaveAvailable
               ? "Browser drafts stay on this device. Save JSON to repo writes into data/problems on the local dev server."
-              : vercelRepoSaveAvailable
-                ? "Browser drafts stay on this device. On Vercel, Save JSON to repo calls the private save endpoint and commits through GitHub."
-                : "Browser drafts stay on this device. On GitHub Pages, Save JSON to repo commits through GitHub using a token you paste for this session."}
+              : serverRepoSaveAvailable
+                ? authoringSaveTarget.source === "configured"
+                  ? "Browser drafts stay on this device. This build saves through the configured private authoring API and commits through GitHub."
+                  : "Browser drafts stay on this device. Save JSON to repo calls the private same-origin authoring API and commits through GitHub."
+                : "Browser drafts stay on this device. This static build has no authoring API configured, so Save JSON to repo commits through GitHub using a token you paste for this session."}
           </p>
-          {vercelRepoSaveAvailable && (
+          {serverRepoSaveAvailable && (
             <label className="authoring-field">
               <span>Authoring save secret</span>
               <span className="authoring-help">
-                Enter the same private phrase stored in Vercel as STORYMATH_SAVE_SECRET. This is kept in memory only and is not saved in the browser draft.
+                Enter the same private phrase stored with the authoring API as STORYMATH_SAVE_SECRET. This is kept in memory only and is not saved in the browser draft.
               </span>
               <input
                 className="text-input"

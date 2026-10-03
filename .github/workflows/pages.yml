@@ -35,6 +35,8 @@ jobs:
 
       - name: Build
         working-directory: storymath-change-engine-starter
+        env:
+          VITE_STORYMATH_AUTHORING_API_BASE_URL: ${{ vars.STORYMATH_AUTHORING_API_BASE_URL }}
         run: npm run build
 
       - name: Upload Pages artifact

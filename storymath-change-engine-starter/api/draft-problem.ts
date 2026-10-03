@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OperatorExperimentSpec, ProblemSpec, StepSpec } from "../src/model/problemSpec";
+import { applyAuthoringCors } from "./cors";
 
 type RequestWithBody = IncomingMessage & {
   body?: unknown;
@@ -1126,9 +1127,16 @@ function draftRequestPayload(rawProblem: string, fallbackTitle: string, model: s
 }
 
 export default async function handler(req: RequestWithBody, res: ServerResponse) {
+  const corsAllowed = applyAuthoringCors(req, res);
+
   if (req.method === "OPTIONS") {
-    res.statusCode = 204;
+    res.statusCode = corsAllowed ? 204 : 403;
     res.end();
+    return;
+  }
+
+  if (!corsAllowed) {
+    sendJson(res, 403, { ok: false, error: "This origin is not allowed to use the StoryMath authoring API." });
     return;
   }
 
@@ -1150,7 +1158,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
     }
 
     const body = await parsedBody(req);
-    if (body.secret !== expectedSecret) {
+    if (body.secret?.trim() !== expectedSecret) {
       sendJson(res, 401, { ok: false, error: "Authoring draft secret did not match." });
       return;
     }
