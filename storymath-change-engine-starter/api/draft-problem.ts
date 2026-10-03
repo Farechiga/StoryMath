@@ -1,6 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OperatorExperimentSpec, ProblemSpec, StepSpec } from "../src/model/problemSpec";
-import { applyAuthoringCors } from "./cors";
 
 type RequestWithBody = IncomingMessage & {
   body?: unknown;
@@ -32,6 +31,7 @@ type DraftIssue = {
 
 const DEFAULT_MODEL = "gpt-5-mini";
 const MAX_RAW_PROBLEM_CHARS = 8_000;
+const DEFAULT_ALLOWED_ORIGINS = ["https://farechiga.github.io"];
 
 const RELATIONSHIP_TEMPLATE_IDS = [
   "additive_comparison_decrease",
@@ -496,6 +496,37 @@ function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify(payload));
+}
+
+function configuredOrigins(): string[] {
+  const raw = process.env.STORYMATH_ALLOWED_ORIGINS;
+  if (!raw) return DEFAULT_ALLOWED_ORIGINS;
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function requestOrigin(req: IncomingMessage): string | undefined {
+  const origin = req.headers?.origin;
+  if (Array.isArray(origin)) return origin[0];
+  return origin;
+}
+
+function applyAuthoringCors(req: IncomingMessage, res: ServerResponse): boolean {
+  const origin = requestOrigin(req);
+  if (!origin) return true;
+
+  const origins = configuredOrigins();
+  const allowed = origins.includes("*") || origins.includes(origin);
+  if (!allowed) return false;
+
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.setHeader("Vary", "Origin");
+  return true;
 }
 
 function readRequestBody(req: IncomingMessage, limitBytes = 100_000): Promise<string> {
