@@ -77,10 +77,20 @@
 }
 
 .brand__mark {
-  width: 40px;
-  height: 40px;
+  width: 100px;
+  height: 100px;
   flex: none;
+  display: block;
   object-fit: contain;
+  margin-bottom: -8px;
+}
+
+@media (max-width: 560px) {
+  .brand__mark {
+    width: 72px;
+    height: 72px;
+    margin-bottom: -6px;
+  }
 }
 
 .brand__title {
