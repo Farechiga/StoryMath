@@ -34,7 +34,7 @@
     "learnerRole": "fundraiser planner"
   },
   "story": {
-    "briefTemplate": "Grandpa gave Tilly an opportunity to design a set of special edition Pages & Co bookmarks to raise money to buy a season package of theatre tickets. They will sell for £{value:price_per_bookmark} each and since they had the press and materials she could keep all the money. She wants decided to make a design for each of the months, and do a limited run of {value:bookmarks_per_month} each. If all the bookmarks sell will Tilly have enough money to afford a £{value:package_cost} theatre package?",
+    "briefTemplate": "Grandad gave Tilly an opportunity to design a set of special edition Pages & Co bookmarks to raise money to buy a season package of theatre tickets. They will sell for £{value:price_per_bookmark} each and since they had the press and materials she could keep all the money. She wants decided to make a design for each of the months, and do a limited run of {value:bookmarks_per_month} each. If all the bookmarks sell will Tilly have enough money to afford a £{value:package_cost} theatre package?",
     "causalEvent": "Each month has the same limited run, and each bookmark sells for the same amount.",
     "closingNoteTemplate": "Tilly would have enough for the theatre package."
   },
