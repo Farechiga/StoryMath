@@ -31,7 +31,7 @@ type DraftIssue = {
 
 const DEFAULT_MODEL = "gpt-5-mini";
 const MAX_RAW_PROBLEM_CHARS = 8_000;
-const DEFAULT_ALLOWED_ORIGINS = ["https://farechiga.github.io"];
+const DEFAULT_ALLOWED_ORIGINS = ["https://farechiga.github.io", "https://story-math.vercel.app"];
 
 const RELATIONSHIP_TEMPLATE_IDS = [
   "additive_comparison_decrease",
@@ -500,11 +500,13 @@ function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
 
 function configuredOrigins(): string[] {
   const raw = process.env.STORYMATH_ALLOWED_ORIGINS;
-  if (!raw) return DEFAULT_ALLOWED_ORIGINS;
-  return raw
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  const configured = raw
+    ? raw
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : [];
+  return [...new Set([...DEFAULT_ALLOWED_ORIGINS, ...configured])];
 }
 
 function requestOrigin(req: IncomingMessage): string | undefined {

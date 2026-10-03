@@ -27,7 +27,7 @@ const DEFAULT_OWNER = "Farechiga";
 const DEFAULT_REPO = "StoryMath";
 const DEFAULT_BRANCH = "main";
 const DEFAULT_PROBLEM_PATH_PREFIX = "storymath-change-engine-starter/data/problems";
-const DEFAULT_ALLOWED_ORIGINS = ["https://farechiga.github.io"];
+const DEFAULT_ALLOWED_ORIGINS = ["https://farechiga.github.io", "https://story-math.vercel.app"];
 
 function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
   res.statusCode = statusCode;
@@ -37,11 +37,13 @@ function sendJson(res: ServerResponse, statusCode: number, payload: unknown) {
 
 function configuredOrigins(): string[] {
   const raw = process.env.STORYMATH_ALLOWED_ORIGINS;
-  if (!raw) return DEFAULT_ALLOWED_ORIGINS;
-  return raw
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  const configured = raw
+    ? raw
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : [];
+  return [...new Set([...DEFAULT_ALLOWED_ORIGINS, ...configured])];
 }
 
 function requestOrigin(req: IncomingMessage): string | undefined {
