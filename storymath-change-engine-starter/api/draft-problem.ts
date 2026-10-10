@@ -175,6 +175,8 @@ const FORMULA_ROLE_REPAIRS: Record<string, string[]> = {
   total_divided_by_items_equals_groups: ["total", "itemsPerGroup", "groups"],
 };
 
+const FORMULA_REPAIR_IDS = Object.keys(FORMULA_ROLE_REPAIRS) as FormulaId[];
+
 const FORMULA_ID_ALIASES: Record<string, FormulaId> = {
   end_divided_by_groups_equals_items: "total_divided_by_groups_equals_items",
   end_divided_by_groups_equals_items_per_group: "total_divided_by_groups_equals_items",
@@ -869,6 +871,35 @@ function roleMatchScore(spec: ProblemSpec, id: string, role: string): number {
   return 0;
 }
 
+function resultRoleMatchScore(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], role: string): number {
+  const text = quantityText(spec, quantity.id);
+  if (role === "itemsPerGroup") {
+    return [/\bper\b/, /\beach\b/, /\bspacing\b/, /\bdistance\b/, /\bbetween\b/, /per_/, /_each/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  if (role === "groups") {
+    return [/\bcount\b/, /\bnumber\b/, /\bgroup/, /\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bbranch/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  if (role === "total" || role === "whole" || role === "end" || role === "bigger") {
+    return [/\btotal\b/, /\bheight\b/, /\bwhole\b/, /\baltogether\b/, /\bapproximate\b/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  if (role === "change" || role === "difference") {
+    return [/\bchange\b/, /\bdifference\b/, /\bgap\b/, /\bmore\b/, /\bless\b/, /\bneed/, /\brequir/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  return 0;
+}
+
 function repairExpectedDerivedOperands(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], operands: Record<string, string>, roles: string[]): DraftIssue[] {
   if (typeof quantity.expectedValueForFixture !== "number" || roles.length < 3) return [];
 
@@ -886,33 +917,70 @@ function repairExpectedDerivedOperands(spec: ProblemSpec, quantity: ProblemSpec[
     return [];
   }
 
-  let best: { leftId: string; rightId: string; score: number } | undefined;
-  for (const left of spec.quantities) {
-    if (left.id === quantity.id) continue;
-    const leftValue = quantityNumericValue(spec, left.id);
-    if (leftValue === undefined) continue;
-    for (const right of spec.quantities) {
-      if (right.id === quantity.id || right.id === left.id) continue;
-      const rightValue = quantityNumericValue(spec, right.id);
-      if (rightValue === undefined) continue;
-      const result = applyFormula(quantity.derived!.formulaId, leftValue, rightValue);
-      if (result === undefined || Math.abs(result - quantity.expectedValueForFixture) >= EXPECTED_VALUE_EPSILON) continue;
-      const score =
-        roleMatchScore(spec, left.id, leftRole) +
-        roleMatchScore(spec, right.id, rightRole) +
-        (operands[leftRole] === left.id ? 1 : 0) +
-        (operands[rightRole] === right.id ? 1 : 0);
-      if (!best || score > best.score) best = { leftId: left.id, rightId: right.id, score };
+  let best:
+    | {
+        formulaId: FormulaId;
+        leftRole: string;
+        rightRole: string;
+        leftId: string;
+        rightId: string;
+        score: number;
+      }
+    | undefined;
+  const formulaIds = [
+    quantity.derived!.formulaId as FormulaId,
+    ...FORMULA_REPAIR_IDS.filter((formulaId) => formulaId !== quantity.derived!.formulaId),
+  ].filter((formulaId, index, all) => all.indexOf(formulaId) === index);
+
+  for (const formulaId of formulaIds) {
+    const candidateRoles = FORMULA_ROLE_REPAIRS[formulaId] ?? [];
+    if (candidateRoles.length < 3) continue;
+    const candidateLeftRole = candidateRoles[0]!;
+    const candidateRightRole = candidateRoles[1]!;
+    const candidateResultRole = candidateRoles[2]!;
+    for (const left of spec.quantities) {
+      if (left.id === quantity.id) continue;
+      const leftValue = quantityNumericValue(spec, left.id);
+      if (leftValue === undefined) continue;
+      for (const right of spec.quantities) {
+        if (right.id === quantity.id || right.id === left.id) continue;
+        const rightValue = quantityNumericValue(spec, right.id);
+        if (rightValue === undefined) continue;
+        const result = applyFormula(formulaId, leftValue, rightValue);
+        if (result === undefined || Math.abs(result - quantity.expectedValueForFixture) >= EXPECTED_VALUE_EPSILON) continue;
+        const score =
+          roleMatchScore(spec, left.id, candidateLeftRole) +
+          roleMatchScore(spec, right.id, candidateRightRole) +
+          resultRoleMatchScore(spec, quantity, candidateResultRole) +
+          (quantity.derived!.formulaId === formulaId ? 2 : 0) +
+          (operands[candidateLeftRole] === left.id ? 1 : 0) +
+          (operands[candidateRightRole] === right.id ? 1 : 0);
+        if (!best || score > best.score) {
+          best = {
+            formulaId,
+            leftRole: candidateLeftRole,
+            rightRole: candidateRightRole,
+            leftId: left.id,
+            rightId: right.id,
+            score,
+          };
+        }
+      }
     }
   }
 
   if (!best) return [];
-  operands[leftRole] = best.leftId;
-  operands[rightRole] = best.rightId;
+  const changedFormula = best.formulaId !== quantity.derived!.formulaId;
+  quantity.derived!.formulaId = best.formulaId;
+  for (const role of Object.keys(operands)) {
+    if (role !== best.leftRole && role !== best.rightRole) delete operands[role];
+  }
+  operands[best.leftRole] = best.leftId;
+  operands[best.rightRole] = best.rightId;
   return [
     {
       severity: "warning",
-      message: `Repaired derived quantity ${quantity.id}: chose operands that match expectedValueForFixture.`,
+      message: `Repaired derived quantity ${quantity.id}: chose ${changedFormula ? "formula and operands" : "operands"} that match expectedValueForFixture.`,
     },
   ];
 }

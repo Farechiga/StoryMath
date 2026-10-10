@@ -450,10 +450,10 @@ describe("Vercel OpenAI draft API", () => {
         value: 4,
         expectedValueForFixture: 2,
         derived: {
-          formulaId: "end_divided_by_groups_equals_items" as "total_divided_by_groups_equals_items",
+          formulaId: "groups_times_items_equals_total",
           operands: {
-            end: "aiden_height",
             groups: "branches_as_tall_as_aiden",
+            itemsPerGroup: "aiden_height",
           },
         },
         visibility: "given",
@@ -539,14 +539,16 @@ describe("Vercel OpenAI draft API", () => {
     const repaired = payload.spec as ProblemSpec;
     const step = repaired.steps[0]!;
     const treeHeight = repaired.quantities.find((quantity) => quantity.id === "tree_height")!;
+    const branchSpacing = repaired.quantities.find((quantity) => quantity.id === "branch_spacing")!;
 
     expect(step.roleToQuantityId.groups).toBe("branch_count");
     expect(step.roleToQuantityId.itemsPerGroup).toBe("branch_spacing");
     expect(treeHeight.derived?.operands.groups).toBe("branch_count");
     expect(treeHeight.derived?.operands.itemsPerGroup).toBe("branch_spacing");
-    expect(repaired.quantities.find((quantity) => quantity.id === "branch_spacing")?.derived?.formulaId).toBe(
-      "total_divided_by_groups_equals_items",
-    );
+    expect(branchSpacing.derived?.formulaId).toBe("total_divided_by_groups_equals_items");
+    expect(branchSpacing.derived?.operands.total).toBe("aiden_height");
+    expect(branchSpacing.derived?.operands.groups).toBe("branches_as_tall_as_aiden");
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("chose formula and operands"))).toBe(true);
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("chose operands"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
