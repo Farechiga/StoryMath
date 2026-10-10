@@ -442,8 +442,8 @@ describe("Vercel OpenAI draft API", () => {
         derived: {
           formulaId: "groups_times_items_equals_total",
           operands: {
-            branches: "branch_count",
-            height: "branch_spacing",
+            count: "branch_count",
+            spacing_between_branches: "branch_spacing",
           },
         },
         visibility: "find",
@@ -517,7 +517,8 @@ describe("Vercel OpenAI draft API", () => {
     expect(step.roleToQuantityId.itemsPerGroup).toBe("branch_spacing");
     expect(treeHeight.derived?.operands.groups).toBe("branch_count");
     expect(treeHeight.derived?.operands.itemsPerGroup).toBe("branch_spacing");
-    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('operand "branches"'))).toBe(true);
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('inferred operand "groups"'))).toBe(true);
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('inferred operand "itemsPerGroup"'))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
 });

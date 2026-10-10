@@ -763,6 +763,10 @@ function canonicalRoleKey(role: string): string {
     cartcapacity: "itemsPerGroup",
     capacitypercart: "itemsPerGroup",
     amountpergroup: "itemsPerGroup",
+    spacing: "itemsPerGroup",
+    branchspacing: "itemsPerGroup",
+    distancebetweenbranches: "itemsPerGroup",
+    distanceperbranch: "itemsPerGroup",
     height: "itemsPerGroup",
     branchheight: "itemsPerGroup",
     heightperbranch: "itemsPerGroup",
@@ -771,6 +775,29 @@ function canonicalRoleKey(role: string): string {
     eachbranchheight: "itemsPerGroup",
   };
   return aliases[normalized] ?? role;
+}
+
+function inferOperandForRole(spec: ProblemSpec, role: string, usedIds: Set<string>): string | undefined {
+  if (role === "itemsPerGroup") {
+    return firstQuantityMatching(
+      spec,
+      [/\bper\b/, /\beach\b/, /\bcapacity\b/, /\bheight\b/, /\bfeet\b/, /\bspacing\b/, /\bdistance\b/, /per_/, /_each/, /books_per/, /items_per/],
+      usedIds,
+    );
+  }
+  if (role === "groups") {
+    return firstQuantityMatching(spec, [/\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bcar\b/, /\bgroup/, /\bfriend/, /\bbranch/], usedIds);
+  }
+  if (role === "total" || role === "whole") {
+    return firstQuantityMatching(spec, [/\btotal\b/, /\bheight\b/, /\bwhole\b/, /\baltogether\b/], usedIds);
+  }
+  if (role === "start") {
+    return firstQuantityMatching(spec, [/\bbefore\b/, /\bstart/, /\binitial/, /\btotal/], usedIds);
+  }
+  if (role === "change") {
+    return firstQuantityMatching(spec, [/\bsold\b/, /\btraded\b/, /\bremoved\b/, /\bused\b/, /\bneed/, /\brequir/, /\bchange\b/], usedIds);
+  }
+  return undefined;
 }
 
 function canonicalOperator(operator: string): string {
@@ -988,6 +1015,23 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
     }
     const resultRole = roles[2];
     if (resultRole) delete operands[resultRole];
+    const usedIds = new Set(
+      roles
+        .filter((role) => role !== resultRole)
+        .map((role) => operands[role])
+        .filter((id) => quantityExists(spec, id)),
+    );
+    for (const role of roles) {
+      if (role === resultRole || quantityExists(spec, operands[role])) continue;
+      const guess = inferOperandForRole(spec, role, usedIds);
+      if (!guess) continue;
+      operands[role] = guess;
+      usedIds.add(guess);
+      issues.push({
+        severity: "warning",
+        message: `Repaired derived quantity ${quantity.id}: inferred operand "${role}" from ${guess}.`,
+      });
+    }
     quantity.derived.operands = operands;
   }
   return issues;
