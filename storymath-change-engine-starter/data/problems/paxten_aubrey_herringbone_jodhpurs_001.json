@@ -1,0 +1,268 @@
+{
+  "id": "paxten_aubrey_herringbone_jodhpurs_001",
+  "metadata": {
+    "title": "Paying for Fabric with Spanish Songs",
+    "theme": "Saving up for herringbone fabric to make jodhpurs",
+    "gradeBand": "3-4",
+    "factualStatus": "fictionalized",
+    "tags": [
+      "money",
+      "multiplication",
+      "division",
+      "earnings",
+      "planning"
+    ]
+  },
+  "dimension": {
+    "kind": "amount",
+    "increaseLabel": "more",
+    "decreaseLabel": "fewer",
+    "sameLabel": "the same"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Make it yourself",
+    "startCta": "Start",
+    "finishCta": "Finish",
+    "groupNoun": "dollar"
+  },
+  "story": {
+    "briefTemplate": "Paxten and Aubrey need {quantity:yards_needed} of herringbone fabric priced at ${value:price_per_yard} per yard to make two pairs of jodhpurs. Their parents pay ${value:earn_per_song} for each Spanish song they memorize. How many songs must they learn to buy enough herringbone fabric?"
+  },
+  "quantities": [
+    {
+      "id": "price_per_yard",
+      "label": {
+        "child": "price per yard",
+        "compact": "price/yd",
+        "lowercase": "price/yd"
+      },
+      "unit": "dollars",
+      "unitSingular": "dollar",
+      "unitPlural": "dollars",
+      "value": 20,
+      "expectedValueForFixture": 20,
+      "semanticRole": "unit_rate",
+      "visibility": "given"
+    },
+    {
+      "id": "yards_needed",
+      "label": {
+        "child": "yards needed",
+        "compact": "yards",
+        "lowercase": "yards"
+      },
+      "unit": "yards",
+      "unitSingular": "yard",
+      "unitPlural": "yards",
+      "value": 3,
+      "expectedValueForFixture": 3,
+      "semanticRole": "needed_amount",
+      "visibility": "given"
+    },
+    {
+      "id": "earn_per_song",
+      "label": {
+        "child": "earnings per song",
+        "compact": "per song",
+        "lowercase": "per song"
+      },
+      "unit": "dollars",
+      "unitSingular": "dollar",
+      "unitPlural": "dollars",
+      "value": 5,
+      "expectedValueForFixture": 5,
+      "semanticRole": "payment_rate",
+      "visibility": "given"
+    },
+    {
+      "id": "total_cost",
+      "label": {
+        "child": "total fabric cost",
+        "compact": "total cost",
+        "lowercase": "total cost"
+      },
+      "unit": "dollars",
+      "unitSingular": "dollar",
+      "unitPlural": "dollars",
+      "value": null,
+      "expectedValueForFixture": 60,
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "price_per_yard",
+          "items": "yards_needed",
+          "itemsPerGroup": "yards_needed"
+        }
+      },
+      "semanticRole": "total_cost",
+      "visibility": "find",
+      "visualization": {}
+    },
+    {
+      "id": "songs_needed",
+      "label": {
+        "child": "songs needed",
+        "compact": "songs",
+        "lowercase": "songs"
+      },
+      "unit": "songs",
+      "unitSingular": "song",
+      "unitPlural": "songs",
+      "value": null,
+      "expectedValueForFixture": 12,
+      "derived": {
+        "formulaId": "total_divided_by_groups_equals_items",
+        "operands": {
+          "total": "total_cost",
+          "groups": "earn_per_song"
+        }
+      },
+      "semanticRole": "count_to_buy",
+      "visibility": "find",
+      "visualization": {}
+    }
+  ],
+  "steps": [
+    {
+      "id": "step1_total_cost",
+      "order": 1,
+      "prompt": "Find how much the fabric for the two pairs will cost in total.",
+      "reasoningPrompt": "Multiply the price per yard by the number of yards needed to get the total cost.",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "price_per_yard",
+        "items": "yards_needed",
+        "itemsPerGroup": "yards_needed",
+        "total": "total_cost"
+      },
+      "goalQuantityId": "total_cost",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Does your total cost times 1 give the same total cost? (Check your multiplication.)",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items",
+          "total_divided_by_items_equals_groups"
+        ]
+      },
+      "visualization": {
+        "visualModel": "array_grid"
+      }
+    },
+    {
+      "id": "step2_songs_needed",
+      "order": 2,
+      "prompt": "Determine how many Spanish songs they must memorize to earn that amount.",
+      "reasoningPrompt": "Divide the total fabric cost by how much they earn per song.",
+      "relationshipTemplateId": "division_equal_sharing",
+      "roleToQuantityId": {
+        "total": "total_cost",
+        "groups": "earn_per_song",
+        "itemsPerGroup": "price_per_yard"
+      },
+      "goalQuantityId": "songs_needed",
+      "acceptedEquationFormIds": [
+        "total_divided_by_groups_equals_items"
+      ],
+      "preferredEquationFormId": "total_divided_by_groups_equals_items",
+      "expectedDirection": "split",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Does the number of songs times the earnings per song equal the total cost?",
+        "acceptedEquationFormIds": [
+          "groups_times_items_equals_total"
+        ]
+      },
+      "visualization": {
+        "visualModel": "equal_shares_tray"
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "step1_total_cost",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step1_total_cost",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step1_total_cost",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "array_grid",
+      "groupNoun": "yards"
+    },
+    {
+      "stepId": "step1_total_cost",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Division fits equal sharing or checking a grouped total."
+    },
+    {
+      "stepId": "step2_songs_needed",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step2_songs_needed",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step2_songs_needed",
+      "operator": "×",
+      "narrativeFit": "different_question",
+      "visualModel": "equal_shares_tray",
+      "alternateWorldTemplate": "Multiplication fits equal groups."
+    },
+    {
+      "stepId": "step2_songs_needed",
+      "operator": "÷",
+      "narrativeFit": "actual",
+      "visualModel": "equal_shares_tray",
+      "groupNoun": "songs"
+    }
+  ],
+  "recap": {
+    "headline": "How many songs to pay for the fabric?",
+    "causalChain": [
+      "The fabric cost is {quantity:yards_needed} × ${value:price_per_yard} per yard = ${quantity:total_cost}.",
+      "Each song earns ${value:earn_per_song}, so divide the total cost by ${value:earn_per_song} to find how many songs are needed."
+    ],
+    "calcFromStepId": "step1_total_cost",
+    "dataQuestion": {
+      "prompt": "How many Spanish songs must Paxten and Aubrey learn to buy the fabric?",
+      "correctQuantityId": "songs_needed",
+      "distractorQuantityIds": [
+        "yards_needed",
+        "total_cost"
+      ],
+      "correctFeedback": "Correct — they must learn {quantity:songs_needed}.",
+      "incorrectFeedback": "Not quite. Check the total cost of the fabric and then divide by how much they earn per song."
+    }
+  }
+}
