@@ -400,4 +400,124 @@ describe("Vercel OpenAI draft API", () => {
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("operator experiment"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
+
+  it("repairs branch-height multiplication drafts with story-specific operand names", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-storymath-test");
+    vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
+
+    const brokenSpec = JSON.parse(JSON.stringify(libraryProblem)) as ProblemSpec;
+    brokenSpec.id = "tree_height_from_branches";
+    brokenSpec.metadata.title = "Tree height from branches";
+    brokenSpec.metadata.theme = "Estimating a tree by branch spacing";
+    delete brokenSpec.story.causalEvent;
+    delete brokenSpec.story.closingNoteTemplate;
+    brokenSpec.story.briefTemplate =
+      "Mario, Jayden, and Seraphina estimate a tree by counting {quantity:branch_count}. Each branch is about {quantity:branch_spacing}. What is the approximate height of the tree?";
+    brokenSpec.quantities = [
+      {
+        id: "branch_count",
+        label: { child: "evenly spaced branches", compact: "branches", lowercase: "branches" },
+        unit: "branches",
+        unitSingular: "branch",
+        unitPlural: "branches",
+        value: 11,
+        visibility: "given",
+      },
+      {
+        id: "branch_spacing",
+        label: { child: "height for each branch", compact: "feet per branch", lowercase: "feet per branch" },
+        unit: "feet",
+        unitSingular: "foot",
+        unitPlural: "feet",
+        value: 4,
+        visibility: "given",
+      },
+      {
+        id: "tree_height",
+        label: { child: "approximate tree height", compact: "tree height", lowercase: "tree height" },
+        unit: "feet",
+        unitSingular: "foot",
+        unitPlural: "feet",
+        value: null,
+        derived: {
+          formulaId: "groups_times_items_equals_total",
+          operands: {
+            branches: "branch_count",
+            height: "branch_spacing",
+          },
+        },
+        visibility: "find",
+      },
+    ];
+    brokenSpec.steps = [
+      {
+        id: "step1",
+        order: 1,
+        prompt: "What is the approximate height of the tree?",
+        reasoningPrompt: "Use the number of branches and the height for each branch.",
+        relationshipTemplateId: "multiplication_equal_groups",
+        roleToQuantityId: {
+          branches: "branch_count",
+          height: "branch_spacing",
+          total: "tree_height",
+        },
+        goalQuantityId: "tree_height",
+        acceptedEquationFormIds: ["groups_times_items_equals_total"],
+        preferredEquationFormId: "groups_times_items_equals_total",
+        expectedDirection: "scale",
+        operatorOptions: ["+", "-", "×", "÷"],
+        backwardCheck: {
+          prompt: "How could you check the estimate?",
+          acceptedEquationFormIds: ["total_divided_by_groups_equals_items"],
+        },
+      },
+    ];
+    brokenSpec.operatorExperiments = [];
+    brokenSpec.recap = {
+      headline: "The tree is about 44 feet tall.",
+      causalChain: ["{quantity:branch_count} × {quantity:branch_spacing} = {quantity:tree_height}."],
+      calcFromStepId: "step1",
+      dataQuestion: {
+        prompt: "What is the approximate tree height?",
+        correctQuantityId: "tree_height",
+        distractorQuantityIds: ["branch_count", "branch_spacing"],
+        correctFeedback: "Yes, multiply branches by feet per branch.",
+        incorrectFeedback: "Use branches times feet per branch.",
+      },
+    };
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ output_text: JSON.stringify(brokenSpec) }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = responseDouble();
+    await draftProblemHandler(
+      {
+        method: "POST",
+        body: {
+          secret: "secret phrase",
+          rawProblem:
+            "Mario, Jayden, and Seraphina are doing a back-of-the-envelope calculation, estimating how high a tree is by counting evenly spaced branches. Two of the branches are as tall as little Aiden, who is 4 feet tall. How far up is each branch? Altogether they count 11 branches. What is the approximate height of the tree?",
+        },
+      } as never,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.bodyText ?? "{}");
+    const repaired = payload.spec as ProblemSpec;
+    const step = repaired.steps[0]!;
+    const treeHeight = repaired.quantities.find((quantity) => quantity.id === "tree_height")!;
+
+    expect(step.roleToQuantityId.groups).toBe("branch_count");
+    expect(step.roleToQuantityId.itemsPerGroup).toBe("branch_spacing");
+    expect(treeHeight.derived?.operands.groups).toBe("branch_count");
+    expect(treeHeight.derived?.operands.itemsPerGroup).toBe("branch_spacing");
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('operand "branches"'))).toBe(true);
+    expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
 });

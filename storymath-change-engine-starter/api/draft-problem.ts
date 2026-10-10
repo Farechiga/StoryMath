@@ -737,6 +737,10 @@ function canonicalRoleKey(role: string): string {
     groups: "groups",
     numberofgroups: "groups",
     numbergroups: "groups",
+    branch: "groups",
+    branches: "groups",
+    numberofbranches: "groups",
+    branchcount: "groups",
     boxes: "groups",
     carts: "groups",
     shelves: "groups",
@@ -759,6 +763,12 @@ function canonicalRoleKey(role: string): string {
     cartcapacity: "itemsPerGroup",
     capacitypercart: "itemsPerGroup",
     amountpergroup: "itemsPerGroup",
+    height: "itemsPerGroup",
+    branchheight: "itemsPerGroup",
+    heightperbranch: "itemsPerGroup",
+    feetperbranch: "itemsPerGroup",
+    feetforeachbranch: "itemsPerGroup",
+    eachbranchheight: "itemsPerGroup",
   };
   return aliases[normalized] ?? role;
 }
@@ -910,7 +920,7 @@ function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
   if (repair.roles.includes("itemsPerGroup") && !quantityExists(spec, roleMap.itemsPerGroup)) {
     const guess = firstQuantityMatching(
       spec,
-      [/\bper\b/, /\beach\b/, /\bcapacity\b/, /per_/, /_each/, /books_per/, /items_per/],
+      [/\bper\b/, /\beach\b/, /\bcapacity\b/, /\bheight\b/, /\bfeet\b/, /per_/, /_each/, /books_per/, /items_per/],
       usedIds,
     );
     if (guess) {
@@ -923,7 +933,7 @@ function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
   if (repair.roles.includes("groups") && !quantityExists(spec, roleMap.groups)) {
     const guess = firstQuantityMatching(
       spec,
-      [/\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bcar\b/, /\bgroup/, /\bfriend/],
+      [/\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bcar\b/, /\bgroup/, /\bfriend/, /\bbranch/],
       usedIds,
     );
     if (guess) {
