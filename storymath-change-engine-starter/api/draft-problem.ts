@@ -190,6 +190,23 @@ const ROLE_DERIVATIONS: Record<
   },
 };
 
+const FORMULA_TEMPLATE_REPAIRS: Partial<Record<FormulaId, string>> = {
+  bigger_minus_difference_equals_smaller: "additive_comparison_decrease",
+  bigger_minus_smaller_equals_difference: "additive_comparison_decrease",
+  smaller_plus_difference_equals_bigger: "additive_comparison_increase",
+  part_a_plus_part_b_equals_whole: "part_part_whole",
+  whole_minus_part_a_equals_part_b: "part_part_whole",
+  whole_minus_part_b_equals_part_a: "part_part_whole",
+  start_plus_change_equals_end: "start_change_end_increase",
+  end_minus_start_equals_change: "start_change_end_increase",
+  start_minus_change_equals_end: "start_change_end_decrease",
+  end_plus_change_equals_start: "start_change_end_decrease",
+  groups_times_items_equals_total: "multiplication_equal_groups",
+  items_times_groups_equals_total: "multiplication_equal_groups",
+  total_divided_by_groups_equals_items: "division_equal_sharing",
+  total_divided_by_items_equals_groups: "division_equal_sharing",
+};
+
 const SYSTEM_PROMPT = `
 You draft StoryMath problem packs from raw word problems.
 
@@ -755,6 +772,40 @@ function canonicalOperator(operator: string): string {
   return operator;
 }
 
+function canonicalRelationshipTemplateId(step: StepSpec): string | undefined {
+  if (step.relationshipTemplateId in TEMPLATE_REPAIRS) return step.relationshipTemplateId;
+  const normalized = normalizedLookupKey(step.relationshipTemplateId);
+  const aliases: Record<string, string> = {
+    additivecomparisondecrease: "additive_comparison_decrease",
+    additivecomparisonincrease: "additive_comparison_increase",
+    comparisondecrease: "additive_comparison_decrease",
+    comparisonincrease: "additive_comparison_increase",
+    partpartwhole: "part_part_whole",
+    partwhole: "part_part_whole",
+    startchangeendincrease: "start_change_end_increase",
+    startchangeenddecrease: "start_change_end_decrease",
+    multiplication: "multiplication_equal_groups",
+    multiply: "multiplication_equal_groups",
+    equalgroups: "multiplication_equal_groups",
+    multiplicationequalgroup: "multiplication_equal_groups",
+    multiplicationequalgroups: "multiplication_equal_groups",
+    division: "division_equal_sharing",
+    divide: "division_equal_sharing",
+    equalsharing: "division_equal_sharing",
+    divisionequalsharing: "division_equal_sharing",
+    divisionequalshares: "division_equal_sharing",
+  };
+  const alias = aliases[normalized];
+  if (alias) return alias;
+
+  const formIds = [
+    step.preferredEquationFormId,
+    ...(Array.isArray(step.acceptedEquationFormIds) ? step.acceptedEquationFormIds : []),
+    ...(Array.isArray(step.backwardCheck?.acceptedEquationFormIds) ? step.backwardCheck.acceptedEquationFormIds : []),
+  ];
+  return formIds.map((formId) => FORMULA_TEMPLATE_REPAIRS[formId]).find((templateId): templateId is string => Boolean(templateId));
+}
+
 function quantityExists(spec: ProblemSpec, id: string | undefined): id is string {
   return typeof id === "string" && spec.quantities.some((quantity) => quantity.id === id);
 }
@@ -932,6 +983,21 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
   return issues;
 }
 
+function repairStepTemplateIds(spec: ProblemSpec): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  for (const step of spec.steps) {
+    const canonical = canonicalRelationshipTemplateId(step);
+    if (canonical && canonical !== step.relationshipTemplateId) {
+      issues.push({
+        severity: "warning",
+        message: `Repaired step ${step.id}: mapped relationship template "${step.relationshipTemplateId}" to "${canonical}".`,
+      });
+      step.relationshipTemplateId = canonical as StepSpec["relationshipTemplateId"];
+    }
+  }
+  return issues;
+}
+
 function defaultExperiment(step: StepSpec, operator: string, actualOperator: string, visualModel: string): OperatorExperimentSpec {
   const actual = operator === actualOperator;
   const reaction =
@@ -954,7 +1020,11 @@ function defaultExperiment(step: StepSpec, operator: string, actualOperator: str
 function repairOperatorExperiments(spec: ProblemSpec): DraftIssue[] {
   const issues: DraftIssue[] = [];
   const stepIds = new Set(spec.steps.map((step) => step.id));
-  const cleaned = spec.operatorExperiments
+  const sourceExperiments = Array.isArray(spec.operatorExperiments) ? spec.operatorExperiments : [];
+  if (!Array.isArray(spec.operatorExperiments)) {
+    issues.push({ severity: "warning", message: "Repaired operator experiments: initialized missing experiment list." });
+  }
+  const cleaned = sourceExperiments
     .filter((experiment) => stepIds.has(experiment.stepId))
     .map((experiment) => ({
       ...experiment,
@@ -1064,6 +1134,8 @@ function repairRepeatedQuantityNouns(spec: ProblemSpec): DraftIssue[] {
     update(`step ${step.id} backwardCheck.prompt`, (value) => { step.backwardCheck.prompt = value; }, step.backwardCheck.prompt);
   }
 
+  spec.operatorExperiments = Array.isArray(spec.operatorExperiments) ? spec.operatorExperiments : [];
+
   for (const experiment of spec.operatorExperiments) {
     if (experiment.alternateWorldTemplate) {
       update(
@@ -1149,6 +1221,7 @@ function normalizeProblemSpec(spec: ProblemSpec, rawProblem: string, fallbackTit
   deleteIfNull(spec.recap, "totalVisualStepId");
   deleteIfNull(spec.recap, "decisionQuestion");
   issues.push(...repairDerivedOperands(spec));
+  issues.push(...repairStepTemplateIds(spec));
   issues.push(...repairStepForms(spec));
   issues.push(...repairOperatorExperiments(spec));
   issues.push(...repairRepeatedQuantityNouns(spec));

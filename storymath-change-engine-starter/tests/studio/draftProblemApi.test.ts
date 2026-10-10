@@ -356,4 +356,48 @@ describe("Vercel OpenAI draft API", () => {
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("inferred change from stickers_needed"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
+
+  it("repairs drafts that use broad template names and omit operator experiments", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-storymath-test");
+    vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
+
+    const brokenSpec = JSON.parse(JSON.stringify(libraryProblem)) as ProblemSpec;
+    brokenSpec.steps[0]!.relationshipTemplateId = "multiplication" as ProblemSpec["steps"][number]["relationshipTemplateId"];
+    brokenSpec.steps[1]!.relationshipTemplateId = "division" as ProblemSpec["steps"][number]["relationshipTemplateId"];
+    brokenSpec.operatorExperiments = [];
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ output_text: JSON.stringify(brokenSpec) }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = responseDouble();
+    await draftProblemHandler(
+      {
+        method: "POST",
+        body: {
+          secret: "secret phrase",
+          rawProblem:
+            "Paxten and Aubrey need 3 yards of fabric at $20 per yard. Their parents pay $5 for every Spanish song they memorize. How many Spanish songs would they need to learn to purchase the fabric?",
+        },
+      } as never,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.bodyText ?? "{}");
+    const repaired = payload.spec as ProblemSpec;
+
+    expect(repaired.steps[0]!.relationshipTemplateId).toBe("multiplication_equal_groups");
+    expect(repaired.steps[1]!.relationshipTemplateId).toBe("division_equal_sharing");
+    for (const step of repaired.steps) {
+      expect(repaired.operatorExperiments.filter((experiment) => experiment.stepId === step.id)).toHaveLength(4);
+    }
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("relationship template"))).toBe(true);
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("operator experiment"))).toBe(true);
+    expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
 });
