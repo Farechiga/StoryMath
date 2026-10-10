@@ -121,6 +121,17 @@ function saveShapeErrors(spec: ProblemSpec): string[] {
   return errors;
 }
 
+function stampPublishedAt(spec: ProblemSpec): ProblemSpec {
+  if (spec.metadata.publishedAt || typeof spec.metadata.catalogOrder === "number") return spec;
+  return {
+    ...spec,
+    metadata: {
+      ...spec.metadata,
+      publishedAt: new Date().toISOString(),
+    },
+  };
+}
+
 function githubJsonHeaders(token: string): Record<string, string> {
   return {
     Accept: "application/vnd.github+json",
@@ -189,7 +200,8 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
       return;
     }
 
-    const shapeErrors = saveShapeErrors(spec);
+    const stampedSpec = stampPublishedAt(spec);
+    const shapeErrors = saveShapeErrors(stampedSpec);
     if (shapeErrors.length > 0) {
       sendJson(res, 422, {
         ok: false,
@@ -203,7 +215,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
     const repo = process.env.STORYMATH_GITHUB_REPO?.trim() || DEFAULT_REPO;
     const branch = process.env.STORYMATH_GITHUB_BRANCH?.trim() || DEFAULT_BRANCH;
     const pathPrefix = process.env.STORYMATH_PROBLEM_PATH_PREFIX?.trim() || DEFAULT_PROBLEM_PATH_PREFIX;
-    const githubPath = `${pathPrefix}/${spec.id}.json`;
+    const githubPath = `${pathPrefix}/${stampedSpec.id}.json`;
     const url = githubContentsUrl(owner, repo, githubPath);
     const headers = githubJsonHeaders(githubToken);
 
@@ -217,12 +229,12 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
       existingSha = existingPayload.sha;
     }
 
-    const serialized = `${JSON.stringify(spec, null, 2)}\n`;
+    const serialized = `${JSON.stringify(stampedSpec, null, 2)}\n`;
     const saveResponse = await fetch(url, {
       method: "PUT",
       headers,
       body: JSON.stringify({
-        message: `Save StoryMath problem: ${spec.metadata.title}`,
+        message: `Save StoryMath problem: ${stampedSpec.metadata.title}`,
         content: Buffer.from(serialized, "utf8").toString("base64"),
         branch,
         ...(existingSha ? { sha: existingSha } : {}),
@@ -235,7 +247,7 @@ export default async function handler(req: RequestWithBody, res: ServerResponse)
 
     sendJson(res, 200, {
       ok: true,
-      id: spec.id,
+      id: stampedSpec.id,
       path: githubPath,
       commitSha: savePayload.commit?.sha,
       commitUrl: savePayload.commit?.html_url,

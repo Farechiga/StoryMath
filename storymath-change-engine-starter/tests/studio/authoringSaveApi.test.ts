@@ -19,6 +19,7 @@ function responseDouble(): ResponseDouble {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -67,6 +68,48 @@ describe("Vercel authoring save API", () => {
     expect(putRequest.branch).toBe("main");
     expect(putRequest.message).toContain("Save StoryMath problem:");
     expect(putRequest.content).toBe(Buffer.from(`${JSON.stringify(libraryProblem, null, 2)}\n`, "utf8").toString("base64"));
+  });
+
+  it("adds publishedAt when a new problem has no explicit ordering metadata", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-10T02:08:37.000Z"));
+    vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
+    vi.stubEnv("STORYMATH_GITHUB_TOKEN", "github_pat_test");
+
+    const unorderedProblem = JSON.parse(JSON.stringify(libraryProblem)) as ProblemSpec;
+    delete unorderedProblem.metadata.catalogOrder;
+    delete unorderedProblem.metadata.publishedAt;
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ message: "Not Found" }), { status: 404 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            commit: { sha: "abcdef1234567890", html_url: "https://github.com/Farechiga/StoryMath/commit/abcdef1" },
+            content: { path: "storymath-change-engine-starter/data/problems/tilly_and_oscar_s_library_of_congress_search-v1.json" },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = responseDouble();
+    await saveProblemHandler(
+      {
+        method: "POST",
+        body: {
+          secret: "secret phrase",
+          spec: unorderedProblem,
+        },
+      } as never,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const putRequest = JSON.parse(String(fetchMock.mock.calls[1]![1]!.body));
+    const saved = JSON.parse(Buffer.from(String(putRequest.content), "base64").toString("utf8")) as ProblemSpec;
+    expect(saved.metadata.publishedAt).toBe("2026-10-10T02:08:37.000Z");
   });
 
   it("rejects requests with the wrong authoring secret before calling GitHub", async () => {
