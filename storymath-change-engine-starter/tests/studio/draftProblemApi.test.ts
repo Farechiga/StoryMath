@@ -255,4 +255,105 @@ describe("Vercel OpenAI draft API", () => {
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("used the goal quantity as smaller"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
+
+  it("repairs start-change-end drafts that omit the needed amount as change", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-storymath-test");
+    vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
+
+    const brokenSpec = JSON.parse(JSON.stringify(theatreProblem)) as ProblemSpec;
+    brokenSpec.quantities.push(
+      {
+        id: "pack_stickers",
+        label: {
+          child: "Flower stickers in one pack",
+          compact: "Pack stickers",
+          lowercase: "flower stickers in one pack",
+        },
+        unit: "stickers",
+        unitSingular: "sticker",
+        unitPlural: "stickers",
+        value: 150,
+        visibility: "given",
+      },
+      {
+        id: "stickers_needed",
+        label: {
+          child: "Flower stickers needed for the project",
+          compact: "Stickers needed",
+          lowercase: "flower stickers needed",
+        },
+        unit: "stickers",
+        unitSingular: "sticker",
+        unitPlural: "stickers",
+        value: 180,
+        visibility: "revealed_after_step",
+      },
+      {
+        id: "stickers_remaining",
+        label: {
+          child: "Flower stickers left after the project",
+          compact: "Stickers left",
+          lowercase: "flower stickers left",
+        },
+        unit: "stickers",
+        unitSingular: "sticker",
+        unitPlural: "stickers",
+        value: -30,
+        visibility: "find",
+      },
+    );
+    brokenSpec.steps.push({
+      id: "step3",
+      order: 3,
+      prompt: "Will one pack of flower stickers be enough?",
+      reasoningPrompt: "Compare the pack size with the stickers needed for the collage.",
+      relationshipTemplateId: "start_change_end_decrease",
+      roleToQuantityId: {
+        start: "pack_stickers",
+        end: "stickers_remaining",
+      },
+      goalQuantityId: "stickers_remaining",
+      acceptedEquationFormIds: ["start_minus_change_equals_end"],
+      preferredEquationFormId: "start_minus_change_equals_end",
+      expectedDirection: "decrease",
+      operatorOptions: ["+", "-", "×", "÷"],
+      backwardCheck: {
+        prompt: "How can you check the remaining stickers?",
+        acceptedEquationFormIds: ["end_plus_change_equals_start"],
+      },
+    });
+    brokenSpec.operatorExperiments = brokenSpec.operatorExperiments.filter(
+      (experiment) => experiment.narrativeFit === "actual",
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ output_text: JSON.stringify(brokenSpec) }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = responseDouble();
+    await draftProblemHandler(
+      {
+        method: "POST",
+        body: {
+          secret: "secret phrase",
+          rawProblem:
+            "Seraphina was making a multimedia art collage depicting St. Terese as a child playing in the garden of her family home. The gesso board was 12 inches tall by 5 inches wide and Seraphina wanted to add 3 colorful flower stickers per square inch. Hint: you can find the total square inches of a surface by multiplying the height by the width. Will one pack of 150 flower stickers be enough for Seraphina's project?",
+        },
+      } as never,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.bodyText ?? "{}");
+    const repaired = payload.spec as ProblemSpec;
+    const enoughStep = repaired.steps.find((step) => step.id === "step3")!;
+
+    expect(enoughStep.roleToQuantityId.change).toBe("stickers_needed");
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("inferred change from stickers_needed"))).toBe(true);
+    expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
 });

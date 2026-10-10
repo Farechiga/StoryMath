@@ -705,7 +705,13 @@ function canonicalRoleKey(role: string): string {
     sold: "change",
     traded: "change",
     used: "change",
+    needed: "change",
+    required: "change",
+    need: "change",
+    requires: "change",
     changeamount: "change",
+    neededamount: "change",
+    requiredamount: "change",
     remaining: "end",
     left: "end",
     final: "end",
@@ -886,7 +892,11 @@ function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
   }
 
   if (repair.roles.includes("change") && !quantityExists(spec, roleMap.change)) {
-    const guess = firstQuantityMatching(spec, [/\bsold\b/, /\btraded\b/, /\bremoved\b/, /\bused\b/, /\bchange\b/], usedIds);
+    const guess = firstQuantityMatching(
+      spec,
+      [/\bsold\b/, /\btraded\b/, /\bremoved\b/, /\bused\b/, /\bneed/, /\brequir/, /\bchange\b/],
+      usedIds,
+    );
     if (guess) {
       roleMap.change = guess;
       usedIds.add(guess);
