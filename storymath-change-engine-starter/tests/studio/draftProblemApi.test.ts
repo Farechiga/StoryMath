@@ -564,7 +564,7 @@ describe("Vercel OpenAI draft API", () => {
     delete brokenSpec.story.causalEvent;
     delete brokenSpec.story.closingNoteTemplate;
     brokenSpec.story.briefTemplate =
-      "Mario, Jayden, and Seraphina estimate a tree by counting {quantity:branch_count}. Each two branches are as tall as {quantity:aiden_height}. What is the approximate height of the tree?";
+      "Mario, Jayden, and Seraphina estimate a tree by counting {quantity:branch_count}. Each two branches are as tall as {quantity:aiden_height}. {quantity:how_far_up_each_branch} shows how far up each branch is. What is the approximate height of the tree?";
     brokenSpec.quantities = [
       {
         id: "branches_as_tall_as_aiden",
@@ -594,8 +594,8 @@ describe("Vercel OpenAI draft API", () => {
         visibility: "given",
       },
       {
-        id: "distance_between_branches",
-        label: { child: "distance between branches", compact: "feet per branch", lowercase: "feet per branch" },
+        id: "how_far_up_each_branch",
+        label: { child: "how far up each branch is", compact: "feet each branch", lowercase: "how far up each branch is" },
         unit: "feet",
         unitSingular: "foot",
         unitPlural: "feet",
@@ -618,7 +618,7 @@ describe("Vercel OpenAI draft API", () => {
           formulaId: "groups_times_items_equals_total",
           operands: {
             groups: "branch_count",
-            itemsPerGroup: "distance_between_branches",
+            itemsPerGroup: "how_far_up_each_branch",
           },
         },
         visibility: "find",
@@ -633,7 +633,7 @@ describe("Vercel OpenAI draft API", () => {
         relationshipTemplateId: "multiplication_equal_groups",
         roleToQuantityId: {
           groups: "branch_count",
-          itemsPerGroup: "distance_between_branches",
+          itemsPerGroup: "how_far_up_each_branch",
           total: "tree_height",
         },
         goalQuantityId: "tree_height",
@@ -650,12 +650,12 @@ describe("Vercel OpenAI draft API", () => {
     brokenSpec.operatorExperiments = [];
     brokenSpec.recap = {
       headline: "The tree is approximately 22 feet tall.",
-      causalChain: ["{quantity:branch_count} × {quantity:distance_between_branches} = {quantity:tree_height}."],
+      causalChain: ["{quantity:branch_count} × {quantity:how_far_up_each_branch} = {quantity:tree_height}."],
       calcFromStepId: "step1",
       dataQuestion: {
         prompt: "What is the approximate tree height?",
         correctQuantityId: "tree_height",
-        distractorQuantityIds: ["branch_count", "distance_between_branches"],
+        distractorQuantityIds: ["branch_count", "how_far_up_each_branch"],
         correctFeedback: "Yes, multiply the branch count by the feet per branch.",
         incorrectFeedback: "Use branches times feet per branch.",
       },
@@ -685,7 +685,7 @@ describe("Vercel OpenAI draft API", () => {
     expect(res.statusCode).toBe(200);
     const payload = JSON.parse(res.bodyText ?? "{}");
     const repaired = payload.spec as ProblemSpec;
-    const distance = repaired.quantities.find((quantity) => quantity.id === "distance_between_branches")!;
+    const distance = repaired.quantities.find((quantity) => quantity.id === "how_far_up_each_branch")!;
 
     expect(distance.derived?.formulaId).toBe("total_divided_by_groups_equals_items");
     expect(distance.derived?.operands.total).toBe("aiden_height");

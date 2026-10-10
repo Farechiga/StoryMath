@@ -900,7 +900,7 @@ function roleMatchScore(spec: ProblemSpec, id: string, role: string): number {
 function resultRoleMatchScore(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], role: string): number {
   const text = quantityText(spec, quantity.id);
   if (role === "itemsPerGroup") {
-    return [/\bper\b/, /\beach\b/, /\bspacing\b/, /\bdistance\b/, /\bbetween\b/, /per_/, /_each/].reduce(
+    return [/\bper\b/, /\beach\b/, /\bspacing\b/, /\bdistance\b/, /\bbetween\b/, /\bfar\b/, /\bup\b/, /\bbranch\b/, /per_/, /_each/].reduce(
       (score, pattern) => score + (pattern.test(text) ? 1 : 0),
       0,
     );
