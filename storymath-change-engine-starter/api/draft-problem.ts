@@ -175,6 +175,17 @@ const FORMULA_ROLE_REPAIRS: Record<string, string[]> = {
   total_divided_by_items_equals_groups: ["total", "itemsPerGroup", "groups"],
 };
 
+const FORMULA_ID_ALIASES: Record<string, FormulaId> = {
+  end_divided_by_groups_equals_items: "total_divided_by_groups_equals_items",
+  end_divided_by_groups_equals_items_per_group: "total_divided_by_groups_equals_items",
+  total_divided_by_group_equals_items: "total_divided_by_groups_equals_items",
+  total_divided_by_groups_equals_items_per_group: "total_divided_by_groups_equals_items",
+  total_divided_by_items_per_group_equals_groups: "total_divided_by_items_equals_groups",
+  total_divided_by_item_equals_groups: "total_divided_by_items_equals_groups",
+  groups_times_items_per_group_equals_total: "groups_times_items_equals_total",
+  items_per_group_times_groups_equals_total: "items_times_groups_equals_total",
+};
+
 const ROLE_DERIVATIONS: Record<
   string,
   Partial<Record<string, { formulaId: FormulaId; operands: string[] }>>
@@ -949,6 +960,11 @@ function canonicalRelationshipTemplateId(step: StepSpec): string | undefined {
   return formIds.map((formId) => FORMULA_TEMPLATE_REPAIRS[formId]).find((templateId): templateId is string => Boolean(templateId));
 }
 
+function canonicalFormulaId(formulaId: string): FormulaId | undefined {
+  if (FORMULA_IDS.includes(formulaId)) return formulaId as FormulaId;
+  return FORMULA_ID_ALIASES[formulaId] ?? FORMULA_ID_ALIASES[normalizedLookupKey(formulaId)];
+}
+
 function quantityExists(spec: ProblemSpec, id: string | undefined): id is string {
   return typeof id === "string" && spec.quantities.some((quantity) => quantity.id === id);
 }
@@ -1107,6 +1123,14 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
   const issues: DraftIssue[] = [];
   for (const quantity of spec.quantities) {
     if (!quantity.derived) continue;
+    const canonicalDerivedFormula = canonicalFormulaId(quantity.derived.formulaId);
+    if (canonicalDerivedFormula && canonicalDerivedFormula !== quantity.derived.formulaId) {
+      issues.push({
+        severity: "warning",
+        message: `Repaired derived quantity ${quantity.id}: mapped formulaId "${quantity.derived.formulaId}" to "${canonicalDerivedFormula}".`,
+      });
+      quantity.derived.formulaId = canonicalDerivedFormula;
+    }
     const roles = FORMULA_ROLE_REPAIRS[quantity.derived.formulaId] ?? [];
     const operands = { ...quantity.derived.operands };
     for (const [role, quantityId] of Object.entries(quantity.derived.operands)) {
@@ -1147,6 +1171,19 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
 function repairStepTemplateIds(spec: ProblemSpec): DraftIssue[] {
   const issues: DraftIssue[] = [];
   for (const step of spec.steps) {
+    const preferred = canonicalFormulaId(step.preferredEquationFormId);
+    if (preferred && preferred !== step.preferredEquationFormId) {
+      issues.push({
+        severity: "warning",
+        message: `Repaired step ${step.id}: mapped preferred formula "${step.preferredEquationFormId}" to "${preferred}".`,
+      });
+      step.preferredEquationFormId = preferred as StepSpec["preferredEquationFormId"];
+    }
+    step.acceptedEquationFormIds = step.acceptedEquationFormIds.map((formulaId) => canonicalFormulaId(formulaId) ?? formulaId) as StepSpec["acceptedEquationFormIds"];
+    step.backwardCheck.acceptedEquationFormIds = step.backwardCheck.acceptedEquationFormIds.map(
+      (formulaId) => canonicalFormulaId(formulaId) ?? formulaId,
+    ) as StepSpec["backwardCheck"]["acceptedEquationFormIds"];
+
     const canonical = canonicalRelationshipTemplateId(step);
     if (canonical && canonical !== step.relationshipTemplateId) {
       issues.push({

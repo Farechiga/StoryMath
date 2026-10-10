@@ -450,9 +450,9 @@ describe("Vercel OpenAI draft API", () => {
         value: 4,
         expectedValueForFixture: 2,
         derived: {
-          formulaId: "total_divided_by_groups_equals_items",
+          formulaId: "end_divided_by_groups_equals_items" as "total_divided_by_groups_equals_items",
           operands: {
-            total: "aiden_height",
+            end: "aiden_height",
             groups: "branches_as_tall_as_aiden",
           },
         },
@@ -544,6 +544,9 @@ describe("Vercel OpenAI draft API", () => {
     expect(step.roleToQuantityId.itemsPerGroup).toBe("branch_spacing");
     expect(treeHeight.derived?.operands.groups).toBe("branch_count");
     expect(treeHeight.derived?.operands.itemsPerGroup).toBe("branch_spacing");
+    expect(repaired.quantities.find((quantity) => quantity.id === "branch_spacing")?.derived?.formulaId).toBe(
+      "total_divided_by_groups_equals_items",
+    );
     expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("chose operands"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
