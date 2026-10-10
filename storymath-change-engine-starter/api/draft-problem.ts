@@ -176,6 +176,11 @@ const FORMULA_ROLE_REPAIRS: Record<string, string[]> = {
 };
 
 const FORMULA_REPAIR_IDS = Object.keys(FORMULA_ROLE_REPAIRS) as FormulaId[];
+const ADDITIVE_COMPARISON_FORMULA_IDS = new Set<FormulaId>([
+  "bigger_minus_difference_equals_smaller",
+  "smaller_plus_difference_equals_bigger",
+  "bigger_minus_smaller_equals_difference",
+]);
 
 const FORMULA_ID_ALIASES: Record<string, FormulaId> = {
   end_divided_by_groups_equals_items: "total_divided_by_groups_equals_items",
@@ -792,6 +797,27 @@ function canonicalRoleKey(role: string): string {
 }
 
 function inferOperandForRole(spec: ProblemSpec, role: string, usedIds: Set<string>): string | undefined {
+  if (role === "bigger") {
+    return firstQuantityMatching(
+      spec,
+      [/\bbigger\b/, /\blarger\b/, /\bgreater\b/, /\bmore\b/, /\btotal\b/, /\bheight\b/, /\bcapacity\b/, /\brevenue\b/, /\bavailable\b/, /\bpack\b/],
+      usedIds,
+    );
+  }
+  if (role === "smaller") {
+    return firstQuantityMatching(
+      spec,
+      [/\bsmaller\b/, /\blesser\b/, /\bless\b/, /\bcost\b/, /\bneeded\b/, /\bneed\b/, /\bpackage\b/, /\bused\b/, /\brequired\b/, /\brequir/],
+      usedIds,
+    );
+  }
+  if (role === "difference") {
+    return firstQuantityMatching(
+      spec,
+      [/\bdifference\b/, /\bgap\b/, /\bleft\b/, /\bremaining\b/, /\bextra\b/, /\bsuffic/, /\bshortage\b/, /\bchange\b/],
+      usedIds,
+    );
+  }
   if (role === "itemsPerGroup") {
     return firstQuantityMatching(
       spec,
@@ -898,6 +924,20 @@ function resultRoleMatchScore(spec: ProblemSpec, quantity: ProblemSpec["quantiti
     );
   }
   return 0;
+}
+
+function semanticFormulaForDerivedResult(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], roles: string[]): FormulaId | undefined {
+  const formulaId = quantity.derived?.formulaId;
+  if (!formulaId || !ADDITIVE_COMPARISON_FORMULA_IDS.has(formulaId as FormulaId)) return undefined;
+  if (roles[2] === "itemsPerGroup") return undefined;
+  if (resultRoleMatchScore(spec, quantity, "itemsPerGroup") < 2) return undefined;
+
+  const unavailableIds = new Set([quantity.id]);
+  const totalGuess = inferOperandForRole(spec, "total", unavailableIds);
+  if (totalGuess) unavailableIds.add(totalGuess);
+  const groupsGuess = inferOperandForRole(spec, "groups", unavailableIds);
+  if (!totalGuess || !groupsGuess) return undefined;
+  return "total_divided_by_groups_equals_items";
 }
 
 function repairExpectedDerivedOperands(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], operands: Record<string, string>, roles: string[]): DraftIssue[] {
@@ -1199,7 +1239,7 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
       });
       quantity.derived.formulaId = canonicalDerivedFormula;
     }
-    const roles = FORMULA_ROLE_REPAIRS[quantity.derived.formulaId] ?? [];
+    let roles = FORMULA_ROLE_REPAIRS[quantity.derived.formulaId] ?? [];
     const operands = { ...quantity.derived.operands };
     for (const [role, quantityId] of Object.entries(quantity.derived.operands)) {
       const canonical = canonicalRoleKey(role);
@@ -1210,6 +1250,15 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
           message: `Repaired derived quantity ${quantity.id}: mapped operand "${role}" to "${canonical}".`,
         });
       }
+    }
+    const semanticFormula = semanticFormulaForDerivedResult(spec, quantity, roles);
+    if (semanticFormula && semanticFormula !== quantity.derived.formulaId) {
+      issues.push({
+        severity: "warning",
+        message: `Repaired derived quantity ${quantity.id}: mapped comparison formula "${quantity.derived.formulaId}" to "${semanticFormula}" from its per-item label.`,
+      });
+      quantity.derived.formulaId = semanticFormula;
+      roles = FORMULA_ROLE_REPAIRS[quantity.derived.formulaId] ?? [];
     }
     const resultRole = roles[2];
     if (resultRole) delete operands[resultRole];
