@@ -1,0 +1,322 @@
+{
+  "id": "seraphina_flower_stickers_001",
+  "metadata": {
+    "title": "Will one pack of flower stickers be enough?",
+    "theme": "Can one sticker pack cover the collage?",
+    "gradeBand": "3-4",
+    "factualStatus": "realistic",
+    "tags": [
+      "area",
+      "multiplication",
+      "resource_check",
+      "art"
+    ]
+  },
+  "dimension": {
+    "kind": "capacity",
+    "increaseLabel": "more than",
+    "decreaseLabel": "less than",
+    "sameLabel": "equal to",
+    "increaseLabelLower": "more than",
+    "decreaseLabelLower": "less than",
+    "sameLabelLower": "equal to"
+  },
+  "storyChrome": {
+    "openingEyebrow": "Art project",
+    "startCta": "Start",
+    "finishCta": "Finish",
+    "groupNoun": "inch"
+  },
+  "story": {
+    "briefTemplate": "Seraphina is making a collage on a gesso board that is {quantity:height} tall and {quantity:width} wide. She wants to add {quantity:stickers_per_sq_inch} flower stickers per square inch. One pack contains {quantity:pack_count}. Will one pack be enough?"
+  },
+  "quantities": [
+    {
+      "id": "height",
+      "label": {
+        "child": "height of board",
+        "compact": "height",
+        "lowercase": "height"
+      },
+      "unit": "inches",
+      "unitSingular": "inch",
+      "unitPlural": "inches",
+      "value": 12,
+      "expectedValueForFixture": 12,
+      "semanticRole": "given",
+      "visibility": "given",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "height"
+      }
+    },
+    {
+      "id": "width",
+      "label": {
+        "child": "width of board",
+        "compact": "width",
+        "lowercase": "width"
+      },
+      "unit": "inches",
+      "unitSingular": "inch",
+      "unitPlural": "inches",
+      "value": 5,
+      "expectedValueForFixture": 5,
+      "semanticRole": "given",
+      "visibility": "given",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "width"
+      }
+    },
+    {
+      "id": "stickers_per_sq_inch",
+      "label": {
+        "child": "stickers per square inch",
+        "compact": "stickers/in²",
+        "lowercase": "stickers/in²"
+      },
+      "unit": "stickers per square inch",
+      "unitSingular": "sticker per square inch",
+      "unitPlural": "stickers per square inch",
+      "value": 3,
+      "expectedValueForFixture": 3,
+      "semanticRole": "given",
+      "visibility": "given",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "st/ in²"
+      }
+    },
+    {
+      "id": "pack_count",
+      "label": {
+        "child": "stickers in one pack",
+        "compact": "pack",
+        "lowercase": "pack"
+      },
+      "unit": "flower stickers",
+      "unitSingular": "flower sticker",
+      "unitPlural": "flower stickers",
+      "value": 150,
+      "expectedValueForFixture": 150,
+      "semanticRole": "given",
+      "visibility": "given",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "pack"
+      }
+    },
+    {
+      "id": "area_sq_in",
+      "label": {
+        "child": "area of board",
+        "compact": "area",
+        "lowercase": "area"
+      },
+      "unit": "square inches",
+      "unitSingular": "square inch",
+      "unitPlural": "square inches",
+      "value": null,
+      "expectedValueForFixture": 60,
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "height",
+          "items": "width",
+          "itemsPerGroup": "width"
+        }
+      },
+      "semanticRole": "derived",
+      "visibility": "revealed_after_step",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "sq in"
+      }
+    },
+    {
+      "id": "total_needed",
+      "label": {
+        "child": "total stickers needed",
+        "compact": "needed",
+        "lowercase": "needed"
+      },
+      "unit": "flower stickers",
+      "unitSingular": "flower sticker",
+      "unitPlural": "flower stickers",
+      "value": null,
+      "expectedValueForFixture": 180,
+      "derived": {
+        "formulaId": "groups_times_items_equals_total",
+        "operands": {
+          "groups": "area_sq_in",
+          "items": "stickers_per_sq_inch",
+          "itemsPerGroup": "stickers_per_sq_inch"
+        }
+      },
+      "semanticRole": "find",
+      "visibility": "find",
+      "allowLiteralNumbers": false,
+      "visualization": {
+        "storyLabel": "needed"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "step1_area",
+      "order": 1,
+      "prompt": "Find the area of the gesso board by multiplying its height and width.",
+      "reasoningPrompt": "Multiply {quantity:height} by {quantity:width} to get the area in square inches.",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "height",
+        "items": "width",
+        "itemsPerGroup": "width",
+        "total": "area_sq_in"
+      },
+      "goalQuantityId": "area_sq_in",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Does multiplying height by width give the area in square inches?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items",
+          "total_divided_by_items_equals_groups"
+        ]
+      },
+      "visualization": {
+        "relationshipType": "area",
+        "visualModel": "array_grid"
+      }
+    },
+    {
+      "id": "step2_total_needed",
+      "order": 2,
+      "prompt": "Find how many stickers Seraphina needs by multiplying the board's area by the stickers per square inch.",
+      "reasoningPrompt": "Multiply the area ({quantity:area_sq_in}) by {quantity:stickers_per_sq_inch} to find the total stickers needed.",
+      "relationshipTemplateId": "multiplication_equal_groups",
+      "roleToQuantityId": {
+        "groups": "area_sq_in",
+        "items": "stickers_per_sq_inch",
+        "itemsPerGroup": "stickers_per_sq_inch",
+        "total": "total_needed"
+      },
+      "goalQuantityId": "total_needed",
+      "acceptedEquationFormIds": [
+        "groups_times_items_equals_total",
+        "items_times_groups_equals_total"
+      ],
+      "preferredEquationFormId": "groups_times_items_equals_total",
+      "expectedDirection": "scale",
+      "operatorOptions": [
+        "+",
+        "-",
+        "×",
+        "÷"
+      ],
+      "backwardCheck": {
+        "prompt": "Does multiplying area by stickers per square inch give the total stickers needed?",
+        "acceptedEquationFormIds": [
+          "total_divided_by_groups_equals_items",
+          "total_divided_by_items_equals_groups"
+        ]
+      },
+      "visualization": {
+        "relationshipType": "rate_area",
+        "visualModel": "repeated_groups_grid"
+      }
+    }
+  ],
+  "operatorExperiments": [
+    {
+      "stepId": "step1_area",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step1_area",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step1_area",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "array_grid",
+      "shortReaction": "Area requires multiplication.",
+      "groupNoun": "inches"
+    },
+    {
+      "stepId": "step1_area",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Division fits equal sharing or checking a grouped total."
+    },
+    {
+      "stepId": "step2_total_needed",
+      "operator": "+",
+      "narrativeFit": "different_question",
+      "alternateWorldTemplate": "Addition fits a joining story."
+    },
+    {
+      "stepId": "step2_total_needed",
+      "operator": "-",
+      "narrativeFit": "different_story",
+      "alternateWorldTemplate": "Subtraction fits a removal or difference story."
+    },
+    {
+      "stepId": "step2_total_needed",
+      "operator": "×",
+      "narrativeFit": "actual",
+      "visualModel": "repeated_groups_grid",
+      "shortReaction": "Scale area by stickers per square inch.",
+      "groupNoun": "square inches"
+    },
+    {
+      "stepId": "step2_total_needed",
+      "operator": "÷",
+      "narrativeFit": "different_question",
+      "visualModel": "repeated_groups_grid",
+      "alternateWorldTemplate": "Division fits equal sharing or checking a grouped total."
+    }
+  ],
+  "recap": {
+    "headline": "Compare stickers needed to one pack",
+    "causalChain": [
+      "Area = height × width",
+      "Total needed = area × stickers per square inch",
+      "Compare total needed to stickers in one pack"
+    ],
+    "calcFromStepId": "step2_total_needed",
+    "dataQuestion": {
+      "prompt": "How many stickers does Seraphina need in total?",
+      "correctQuantityId": "total_needed",
+      "distractorQuantityIds": [
+        "area_sq_in",
+        "pack_count"
+      ],
+      "correctFeedback": "Correct — that's the total number of stickers needed.",
+      "incorrectFeedback": "Check the area and multiply by stickers per square inch."
+    },
+    "decisionQuestion": {
+      "prompt": "Will one pack of {quantity:pack_count} be enough for Seraphina's project?",
+      "correctAnswer": "no",
+      "correctFeedback": "No. The board has {quantity:area_sq_in} and needs {quantity:total_needed}, which is more than {quantity:pack_count}.",
+      "incorrectFeedback": "Compare the total stickers needed with the pack size. One pack has {quantity:pack_count}."
+    }
+  }
+}
