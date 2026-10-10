@@ -415,6 +415,24 @@ describe("Vercel OpenAI draft API", () => {
       "Mario, Jayden, and Seraphina estimate a tree by counting {quantity:branch_count}. Each branch is about {quantity:branch_spacing}. What is the approximate height of the tree?";
     brokenSpec.quantities = [
       {
+        id: "branches_as_tall_as_aiden",
+        label: { child: "branches as tall as Aiden", compact: "two branches", lowercase: "two branches" },
+        unit: "branches",
+        unitSingular: "branch",
+        unitPlural: "branches",
+        value: 2,
+        visibility: "given",
+      },
+      {
+        id: "aiden_height",
+        label: { child: "Aiden's height", compact: "Aiden height", lowercase: "Aiden's height" },
+        unit: "feet",
+        unitSingular: "foot",
+        unitPlural: "feet",
+        value: 4,
+        visibility: "given",
+      },
+      {
         id: "branch_count",
         label: { child: "evenly spaced branches", compact: "branches", lowercase: "branches" },
         unit: "branches",
@@ -430,6 +448,14 @@ describe("Vercel OpenAI draft API", () => {
         unitSingular: "foot",
         unitPlural: "feet",
         value: 4,
+        expectedValueForFixture: 2,
+        derived: {
+          formulaId: "total_divided_by_groups_equals_items",
+          operands: {
+            total: "aiden_height",
+            groups: "branches_as_tall_as_aiden",
+          },
+        },
         visibility: "given",
       },
       {
@@ -439,11 +465,12 @@ describe("Vercel OpenAI draft API", () => {
         unitSingular: "foot",
         unitPlural: "feet",
         value: null,
+        expectedValueForFixture: 22,
         derived: {
           formulaId: "groups_times_items_equals_total",
           operands: {
-            count: "branch_count",
-            spacing_between_branches: "branch_spacing",
+            groups: "branches_as_tall_as_aiden",
+            itemsPerGroup: "aiden_height",
           },
         },
         visibility: "find",
@@ -517,8 +544,7 @@ describe("Vercel OpenAI draft API", () => {
     expect(step.roleToQuantityId.itemsPerGroup).toBe("branch_spacing");
     expect(treeHeight.derived?.operands.groups).toBe("branch_count");
     expect(treeHeight.derived?.operands.itemsPerGroup).toBe("branch_spacing");
-    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('inferred operand "groups"'))).toBe(true);
-    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes('inferred operand "itemsPerGroup"'))).toBe(true);
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("chose operands"))).toBe(true);
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
 });

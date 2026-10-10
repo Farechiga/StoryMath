@@ -63,6 +63,7 @@ const FORMULA_IDS = [
 
 const OPERATORS = ["+", "-", "×", "÷"];
 const DIRECTIONS = ["increase", "decrease", "same", "combine", "scale", "split", "unknown"];
+const EXPECTED_VALUE_EPSILON = 1e-9;
 const VISUAL_MODEL_TYPES = [
   "comparison_gap_bar",
   "part_whole_bar",
@@ -800,6 +801,111 @@ function inferOperandForRole(spec: ProblemSpec, role: string, usedIds: Set<strin
   return undefined;
 }
 
+function quantityNumericValue(spec: ProblemSpec, id: string): number | undefined {
+  const quantity = spec.quantities.find((item) => item.id === id);
+  if (!quantity) return undefined;
+  if (quantity.derived && typeof quantity.expectedValueForFixture === "number") return quantity.expectedValueForFixture;
+  if (typeof quantity.value === "number") return quantity.value;
+  if (typeof quantity.expectedValueForFixture === "number") return quantity.expectedValueForFixture;
+  return undefined;
+}
+
+function applyFormula(formulaId: string, left: number, right: number): number | undefined {
+  if (
+    formulaId === "bigger_minus_difference_equals_smaller" ||
+    formulaId === "bigger_minus_smaller_equals_difference" ||
+    formulaId === "whole_minus_part_a_equals_part_b" ||
+    formulaId === "whole_minus_part_b_equals_part_a" ||
+    formulaId === "start_minus_change_equals_end" ||
+    formulaId === "end_minus_start_equals_change"
+  ) {
+    return left - right;
+  }
+  if (
+    formulaId === "smaller_plus_difference_equals_bigger" ||
+    formulaId === "part_a_plus_part_b_equals_whole" ||
+    formulaId === "start_plus_change_equals_end" ||
+    formulaId === "end_plus_change_equals_start"
+  ) {
+    return left + right;
+  }
+  if (formulaId === "groups_times_items_equals_total" || formulaId === "items_times_groups_equals_total") {
+    return left * right;
+  }
+  if (formulaId === "total_divided_by_groups_equals_items" || formulaId === "total_divided_by_items_equals_groups") {
+    return right === 0 ? undefined : left / right;
+  }
+  return undefined;
+}
+
+function roleMatchScore(spec: ProblemSpec, id: string, role: string): number {
+  const text = quantityText(spec, id);
+  if (role === "groups") {
+    return [/\bbranch/, /\bcount\b/, /\bnumber\b/, /\bgroup/, /\bbox/, /\bcart/, /\bshelf/, /\bmonth/, /\bfriend/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  if (role === "itemsPerGroup") {
+    return [/\bper\b/, /\beach\b/, /\bspacing\b/, /\bdistance\b/, /\bheight\b/, /\bfeet\b/, /\bcapacity\b/].reduce(
+      (score, pattern) => score + (pattern.test(text) ? 1 : 0),
+      0,
+    );
+  }
+  if (role === "total" || role === "whole") {
+    return [/\btotal\b/, /\bheight\b/, /\bwhole\b/, /\baltogether\b/].reduce((score, pattern) => score + (pattern.test(text) ? 1 : 0), 0);
+  }
+  return 0;
+}
+
+function repairExpectedDerivedOperands(spec: ProblemSpec, quantity: ProblemSpec["quantities"][number], operands: Record<string, string>, roles: string[]): DraftIssue[] {
+  if (typeof quantity.expectedValueForFixture !== "number" || roles.length < 3) return [];
+
+  const leftRole = roles[0]!;
+  const rightRole = roles[1]!;
+  const currentLeftId = operands[leftRole];
+  const currentRightId = operands[rightRole];
+  const currentLeft = currentLeftId ? quantityNumericValue(spec, currentLeftId) : undefined;
+  const currentRight = currentRightId ? quantityNumericValue(spec, currentRightId) : undefined;
+  const currentValue =
+    currentLeft !== undefined && currentRight !== undefined
+      ? applyFormula(quantity.derived!.formulaId, currentLeft, currentRight)
+      : undefined;
+  if (currentValue !== undefined && Math.abs(currentValue - quantity.expectedValueForFixture) < EXPECTED_VALUE_EPSILON) {
+    return [];
+  }
+
+  let best: { leftId: string; rightId: string; score: number } | undefined;
+  for (const left of spec.quantities) {
+    if (left.id === quantity.id) continue;
+    const leftValue = quantityNumericValue(spec, left.id);
+    if (leftValue === undefined) continue;
+    for (const right of spec.quantities) {
+      if (right.id === quantity.id || right.id === left.id) continue;
+      const rightValue = quantityNumericValue(spec, right.id);
+      if (rightValue === undefined) continue;
+      const result = applyFormula(quantity.derived!.formulaId, leftValue, rightValue);
+      if (result === undefined || Math.abs(result - quantity.expectedValueForFixture) >= EXPECTED_VALUE_EPSILON) continue;
+      const score =
+        roleMatchScore(spec, left.id, leftRole) +
+        roleMatchScore(spec, right.id, rightRole) +
+        (operands[leftRole] === left.id ? 1 : 0) +
+        (operands[rightRole] === right.id ? 1 : 0);
+      if (!best || score > best.score) best = { leftId: left.id, rightId: right.id, score };
+    }
+  }
+
+  if (!best) return [];
+  operands[leftRole] = best.leftId;
+  operands[rightRole] = best.rightId;
+  return [
+    {
+      severity: "warning",
+      message: `Repaired derived quantity ${quantity.id}: chose operands that match expectedValueForFixture.`,
+    },
+  ];
+}
+
 function canonicalOperator(operator: string): string {
   const normalized = operator.trim().toLowerCase();
   if (normalized === "*" || normalized === "x" || normalized === "×") return "×";
@@ -1032,6 +1138,7 @@ function repairDerivedOperands(spec: ProblemSpec): DraftIssue[] {
         message: `Repaired derived quantity ${quantity.id}: inferred operand "${role}" from ${guess}.`,
       });
     }
+    issues.push(...repairExpectedDerivedOperands(spec, quantity, operands, roles));
     quantity.derived.operands = operands;
   }
   return issues;
