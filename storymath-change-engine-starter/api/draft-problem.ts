@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OperatorExperimentSpec, ProblemSpec, StepSpec } from "../src/model/problemSpec";
+import type { FormulaId } from "../src/model/relationshipRegistry";
 
 type RequestWithBody = IncomingMessage & {
   body?: unknown;
@@ -171,6 +172,22 @@ const FORMULA_ROLE_REPAIRS: Record<string, string[]> = {
   items_times_groups_equals_total: ["itemsPerGroup", "groups", "total"],
   total_divided_by_groups_equals_items: ["total", "groups", "itemsPerGroup"],
   total_divided_by_items_equals_groups: ["total", "itemsPerGroup", "groups"],
+};
+
+const ROLE_DERIVATIONS: Record<
+  string,
+  Partial<Record<string, { formulaId: FormulaId; operands: string[] }>>
+> = {
+  additive_comparison_decrease: {
+    bigger: { formulaId: "smaller_plus_difference_equals_bigger", operands: ["smaller", "difference"] },
+    difference: { formulaId: "bigger_minus_smaller_equals_difference", operands: ["bigger", "smaller"] },
+    smaller: { formulaId: "bigger_minus_difference_equals_smaller", operands: ["bigger", "difference"] },
+  },
+  additive_comparison_increase: {
+    bigger: { formulaId: "smaller_plus_difference_equals_bigger", operands: ["smaller", "difference"] },
+    difference: { formulaId: "bigger_minus_smaller_equals_difference", operands: ["bigger", "smaller"] },
+    smaller: { formulaId: "bigger_minus_difference_equals_smaller", operands: ["bigger", "difference"] },
+  },
 };
 
 const SYSTEM_PROMPT = `
@@ -761,6 +778,35 @@ function firstQuantityMatching(spec: ProblemSpec, patterns: RegExp[], usedIds: S
   })?.id;
 }
 
+function repairGoalQuantityDerivation(
+  spec: ProblemSpec,
+  step: StepSpec,
+  roleMap: Record<string, string>,
+): DraftIssue[] {
+  const quantity = spec.quantities.find((item) => item.id === step.goalQuantityId);
+  if (!quantity || quantity.derived || typeof quantity.value === "number") return [];
+
+  const goalRole = Object.entries(roleMap).find(([, quantityId]) => quantityId === step.goalQuantityId)?.[0];
+  if (!goalRole) return [];
+
+  const derivation = ROLE_DERIVATIONS[step.relationshipTemplateId]?.[goalRole];
+  if (!derivation) return [];
+
+  if (!derivation.operands.every((role) => quantityExists(spec, roleMap[role]))) return [];
+
+  quantity.derived = {
+    formulaId: derivation.formulaId,
+    operands: Object.fromEntries(derivation.operands.map((role) => [role, roleMap[role]!])),
+  };
+  quantity.value = null;
+  return [
+    {
+      severity: "warning",
+      message: `Repaired quantity ${quantity.id}: derived it from step ${step.id}.`,
+    },
+  ];
+}
+
 function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
   const issues: DraftIssue[] = [];
   const repair = TEMPLATE_REPAIRS[step.relationshipTemplateId];
@@ -776,6 +822,15 @@ function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
         message: `Repaired step ${step.id}: mapped role "${role}" to "${canonical}".`,
       });
     }
+  }
+
+  for (const role of repair.roles) {
+    if (quantityExists(spec, roleMap[role]) || !quantityExists(spec, step.goalQuantityId)) continue;
+    const derivation = ROLE_DERIVATIONS[step.relationshipTemplateId]?.[role];
+    if (!derivation?.operands.every((operandRole) => quantityExists(spec, roleMap[operandRole]))) continue;
+    roleMap[role] = step.goalQuantityId;
+    issues.push({ severity: "warning", message: `Repaired step ${step.id}: used the goal quantity as ${role}.` });
+    break;
   }
 
   const usedIds = new Set(Object.values(roleMap).filter((id) => quantityExists(spec, id)));
@@ -840,6 +895,7 @@ function fillMissingStepRoles(spec: ProblemSpec, step: StepSpec): DraftIssue[] {
   }
 
   step.roleToQuantityId = roleMap;
+  issues.push(...repairGoalQuantityDerivation(spec, step, roleMap));
   return issues;
 }
 

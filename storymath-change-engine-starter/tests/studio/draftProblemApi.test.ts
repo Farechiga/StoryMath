@@ -174,4 +174,85 @@ describe("Vercel OpenAI draft API", () => {
     }
     expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
   });
+
+  it("repairs model drafts that leave a comparison result unmapped and underived", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-storymath-test");
+    vi.stubEnv("STORYMATH_SAVE_SECRET", "secret phrase");
+
+    const brokenSpec = JSON.parse(JSON.stringify(theatreProblem)) as ProblemSpec;
+    brokenSpec.quantities.push({
+      id: "pack_suffices",
+      label: {
+        child: "Extra money after buying the theatre package",
+        compact: "Extra money",
+        lowercase: "extra money",
+      },
+      unit: "pounds",
+      unitSingular: "pound",
+      unitPlural: "pounds",
+      value: null,
+      visibility: "find",
+    });
+    brokenSpec.steps.push({
+      id: "step3_compare_pack",
+      order: 3,
+      prompt: "How much money is left after Tilly pays for the theatre package?",
+      reasoningPrompt: "Compare the bookmark revenue with the theatre package cost.",
+      relationshipTemplateId: "additive_comparison_decrease",
+      roleToQuantityId: {
+        bigger: "bookmark_revenue",
+        difference: "package_cost",
+      },
+      goalQuantityId: "pack_suffices",
+      acceptedEquationFormIds: ["bigger_minus_difference_equals_smaller"],
+      preferredEquationFormId: "bigger_minus_difference_equals_smaller",
+      expectedDirection: "decrease",
+      operatorOptions: ["+", "-", "×", "÷"],
+      backwardCheck: {
+        prompt: "How can you check the comparison?",
+        acceptedEquationFormIds: ["smaller_plus_difference_equals_bigger"],
+      },
+    });
+    brokenSpec.operatorExperiments = brokenSpec.operatorExperiments.filter(
+      (experiment) => experiment.narrativeFit === "actual",
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ output_text: JSON.stringify(brokenSpec) }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = responseDouble();
+    await draftProblemHandler(
+      {
+        method: "POST",
+        body: {
+          secret: "secret phrase",
+          rawProblem:
+            "Tilly makes bookmarks to raise money for a theatre package. The bookmarks earn £300 and the package costs £289. Will the money be enough?",
+        },
+      } as never,
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const payload = JSON.parse(res.bodyText ?? "{}");
+    const repaired = payload.spec as ProblemSpec;
+    const comparisonStep = repaired.steps.find((step) => step.id === "step3_compare_pack")!;
+    const packSuffices = repaired.quantities.find((quantity) => quantity.id === "pack_suffices")!;
+
+    expect(comparisonStep.roleToQuantityId.smaller).toBe("pack_suffices");
+    expect(packSuffices.derived).toEqual({
+      formulaId: "bigger_minus_difference_equals_smaller",
+      operands: {
+        bigger: "bookmark_revenue",
+        difference: "package_cost",
+      },
+    });
+    expect(payload.issues.some((issue: { message?: string }) => issue.message?.includes("used the goal quantity as smaller"))).toBe(true);
+    expect(validateProblem(repaired).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
 });
